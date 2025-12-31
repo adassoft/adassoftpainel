@@ -32,7 +32,7 @@ class Register extends BaseRegister
                             ->required()
                             ->maxLength(255)
                             ->autofocus()
-                            ->icon('heroicon-o-user')
+                            ->prefixIcon('heroicon-o-user')
                             ->placeholder('Seu nome completo'),
 
                         \Filament\Forms\Components\Grid::make(2)
@@ -42,7 +42,7 @@ class Register extends BaseRegister
                                     ->required()
                                     ->unique('usuario', 'login')
                                     ->maxLength(50)
-                                    ->icon('heroicon-o-at')
+                                    ->prefixIcon('heroicon-o-at')
                                     ->placeholder('usuario.sistema'),
 
                                 TextInput::make('email')
@@ -51,7 +51,7 @@ class Register extends BaseRegister
                                     ->required()
                                     ->unique('usuario', 'email')
                                     ->maxLength(255)
-                                    ->icon('heroicon-o-envelope')
+                                    ->prefixIcon('heroicon-o-envelope')
                                     ->placeholder('seu@email.com'),
                             ]),
 
@@ -63,15 +63,15 @@ class Register extends BaseRegister
                                     ->required()
                                     ->minLength(8)
                                     ->same('passwordConfirmation')
-                                    ->icon('heroicon-o-lock-closed'),
+                                    ->prefixIcon('heroicon-o-lock-closed'),
 
                                 TextInput::make('passwordConfirmation')
                                     ->label('Confirmar Senha')
                                     ->password()
                                     ->required()
-                                    ->icon('heroicon-o-check-circle'),
+                                    ->prefixIcon('heroicon-o-check-circle'),
                             ]),
-                    ])->compact(), // Compact deixa visualmente mais leve
+                    ])->compact(),
 
                 Section::make('Dados da Empresa / Pessoal')
                     ->description('Necessário para validação da conta.')
@@ -82,15 +82,15 @@ class Register extends BaseRegister
                                     ->label('CPF ou CNPJ')
                                     ->required()
                                     ->maxLength(18)
-                                    ->mask('999.999.999-99') // Máscara dinâmica seria ideal, mas fixo por enquanto
-                                    ->icon('heroicon-o-identification')
+                                    ->mask('999.999.999-99')
+                                    ->prefixIcon('heroicon-o-identification')
                                     ->placeholder('000.000.000-00'),
 
                                 TextInput::make('fone')
                                     ->label('WhatsApp / Celular')
                                     ->tel()
                                     ->maxLength(20)
-                                    ->icon('heroicon-o-phone')
+                                    ->prefixIcon('heroicon-o-phone')
                                     ->mask('(99) 99999-9999')
                                     ->placeholder('(00) 00000-0000'),
                             ]),
@@ -98,14 +98,14 @@ class Register extends BaseRegister
                         TextInput::make('razao')
                             ->label('Razão Social (Opcional)')
                             ->placeholder('Nome da sua empresa (se houver)')
-                            ->icon('heroicon-o-building-office'),
+                            ->prefixIcon('heroicon-o-building-office'),
 
                         \Filament\Forms\Components\Grid::make(4)
                             ->schema([
                                 TextInput::make('cidade')
                                     ->label('Cidade')
                                     ->required()
-                                    ->icon('heroicon-o-map-pin')
+                                    ->prefixIcon('heroicon-o-map-pin')
                                     ->columnSpan(3),
 
                                 Select::make('uf')
@@ -141,9 +141,10 @@ class Register extends BaseRegister
                                         'TO' => 'TO'
                                     ])
                                     ->required()
+                                    ->prefixIcon('heroicon-o-map')
                                     ->columnSpan(1),
                             ]),
-                    ])->collapsible(), // Permite minimizar
+                    ])->collapsible(),
             ]);
     }
 
