@@ -1,23 +1,3 @@
-@php
-    // Configuração Padrão (Adassoft)
-    $gradientStart = '#1a2980';
-    $gradientEnd = '#26d0ce';
-    $appName = config('app.name', 'Adassoft');
-    $slogan = 'Segurança e Gestão de Licenças';
-    $logoUrl = asset('favicon.svg');
-
-    // Tenta carregar Branding da Revenda via Domínio
-    $branding = \App\Services\ResellerBranding::getCurrent();
-
-    if ($branding) {
-        $gradientStart = $branding['gradient_start'] ?? $gradientStart;
-        $gradientEnd = $branding['gradient_end'] ?? $gradientEnd;
-        $appName = $branding['nome_sistema'] ?? $appName;
-        $slogan = $branding['slogan'] ?? $slogan;
-        $logoUrl = $branding['logo_url'] ?? $logoUrl;
-    }
-@endphp
-
 <x-filament-panels::layout.base :livewire="$this">
     <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4 sm:p-0">
 
