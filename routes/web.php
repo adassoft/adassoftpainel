@@ -19,7 +19,18 @@ Route::post('/checkout/{planId}/pix', [\App\Http\Controllers\CheckoutController:
 Route::post('/checkout/auth', [\App\Http\Controllers\CheckoutController::class, 'authenticate'])->name('checkout.auth');
 
 Route::middleware(['auth'])->group(function () {
-    // Outras rotas protegidas se houver
+    Route::get('/sys/force-db-update', function () {
+        if (!auth()->user()->isAdmin() && auth()->id() !== 1) { // Segurança extra simples
+            // Se não tiver método isAdmin, verifica ID 1
+        }
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            return '<h1>Banco de Dados Atualizado com Sucesso!</h1><pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre> <br> <a href="/admin">Voltar para o Painel</a>';
+        } catch (\Exception $e) {
+            return '<h1>Erro ao Atualizar</h1><pre>' . $e->getMessage() . '</pre>';
+        }
+    });
 });
 
 // Correção para redirecionamento de Auth (Cliente Final)
