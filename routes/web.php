@@ -19,6 +19,8 @@ Route::post('/checkout/{planId}/pix', [\App\Http\Controllers\CheckoutController:
 Route::post('/checkout/auth', [\App\Http\Controllers\CheckoutController::class, 'authenticate'])->name('checkout.auth');
 
 Route::middleware(['auth'])->group(function () {
+    /*
+    // Rota de Emergência (Desativada por Segurança)
     Route::get('/sys/force-db-update', function () {
         // Verificação de administrador removida temporariamente para correção
 
@@ -29,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
             return '<h1>Erro ao Atualizar</h1><pre>' . $e->getMessage() . '</pre>';
         }
     });
+    */
 });
 
 // Correção para redirecionamento de Auth (Cliente Final)
