@@ -35,7 +35,7 @@
 
         <!-- Lado Direito: Formulário de Login -->
         <div class="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 lg:p-24 bg-white">
-            <div class="w-full max-w-md space-y-8">
+            <div class="w-full max-w-2xl space-y-8">
 
                 <!-- Logo Mobile -->
                 <div class="lg:hidden text-center mb-8">
