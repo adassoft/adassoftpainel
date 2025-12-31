@@ -24,91 +24,126 @@ class Register extends BaseRegister
     {
         return $form
             ->schema([
-                TextInput::make('nome')
-                    ->label('Nome Completo')
-                    ->required()
-                    ->maxLength(255)
-                    ->autofocus(),
+                // Dados de Acesso
+                Section::make()
+                    ->schema([
+                        TextInput::make('nome')
+                            ->label('Nome Completo')
+                            ->required()
+                            ->maxLength(255)
+                            ->autofocus()
+                            ->icon('heroicon-o-user')
+                            ->placeholder('Seu nome completo'),
 
-                TextInput::make('login')
-                    ->label('Usuário (Login)')
-                    ->required()
-                    ->unique('usuario', 'login')
-                    ->maxLength(50),
+                        \Filament\Forms\Components\Grid::make(2)
+                            ->schema([
+                                TextInput::make('login')
+                                    ->label('Usuário')
+                                    ->required()
+                                    ->unique('usuario', 'login')
+                                    ->maxLength(50)
+                                    ->icon('heroicon-o-at')
+                                    ->placeholder('usuario.sistema'),
 
-                TextInput::make('email')
-                    ->label('E-mail')
-                    ->email()
-                    ->required()
-                    ->unique('usuario', 'email')
-                    ->maxLength(255),
+                                TextInput::make('email')
+                                    ->label('E-mail')
+                                    ->email()
+                                    ->required()
+                                    ->unique('usuario', 'email')
+                                    ->maxLength(255)
+                                    ->icon('heroicon-o-envelope')
+                                    ->placeholder('seu@email.com'),
+                            ]),
 
-                TextInput::make('password')
-                    ->label('Senha')
-                    ->password()
-                    ->required()
-                    ->minLength(8)
-                    ->same('passwordConfirmation'),
+                        \Filament\Forms\Components\Grid::make(2)
+                            ->schema([
+                                TextInput::make('password')
+                                    ->label('Senha')
+                                    ->password()
+                                    ->required()
+                                    ->minLength(8)
+                                    ->same('passwordConfirmation')
+                                    ->icon('heroicon-o-lock-closed'),
 
-                TextInput::make('passwordConfirmation')
-                    ->label('Confirmar Senha')
-                    ->password()
-                    ->required(),
+                                TextInput::make('passwordConfirmation')
+                                    ->label('Confirmar Senha')
+                                    ->password()
+                                    ->required()
+                                    ->icon('heroicon-o-check-circle'),
+                            ]),
+                    ])->compact(), // Compact deixa visualmente mais leve
 
                 Section::make('Dados da Empresa / Pessoal')
-                    ->description('Informe seus dados para emissão de nota e cadastro.')
+                    ->description('Necessário para validação da conta.')
                     ->schema([
-                        TextInput::make('cnpj')
-                            ->label('CPF ou CNPJ')
-                            ->required()
-                            ->maxLength(18)
-                            ->mask('999.999.999-99'), // Padrão CPF inicio 
+                        \Filament\Forms\Components\Grid::make(2)
+                            ->schema([
+                                TextInput::make('cnpj')
+                                    ->label('CPF ou CNPJ')
+                                    ->required()
+                                    ->maxLength(18)
+                                    ->mask('999.999.999-99') // Máscara dinâmica seria ideal, mas fixo por enquanto
+                                    ->icon('heroicon-o-identification')
+                                    ->placeholder('000.000.000-00'),
 
-                        TextInput::make('fone')
-                            ->label('WhatsApp')
-                            ->tel()
-                            ->maxLength(20),
+                                TextInput::make('fone')
+                                    ->label('WhatsApp / Celular')
+                                    ->tel()
+                                    ->maxLength(20)
+                                    ->icon('heroicon-o-phone')
+                                    ->mask('(99) 99999-9999')
+                                    ->placeholder('(00) 00000-0000'),
+                            ]),
 
                         TextInput::make('razao')
-                            ->label('Razão Social (Opcional)'),
+                            ->label('Razão Social (Opcional)')
+                            ->placeholder('Nome da sua empresa (se houver)')
+                            ->icon('heroicon-o-building-office'),
 
-                        TextInput::make('cidade')
-                            ->label('Cidade')
-                            ->required(),
+                        \Filament\Forms\Components\Grid::make(4)
+                            ->schema([
+                                TextInput::make('cidade')
+                                    ->label('Cidade')
+                                    ->required()
+                                    ->icon('heroicon-o-map-pin')
+                                    ->columnSpan(3),
 
-                        Select::make('uf')
-                            ->label('UF')
-                            ->options([
-                                'AC' => 'AC',
-                                'AL' => 'AL',
-                                'AP' => 'AP',
-                                'AM' => 'AM',
-                                'BA' => 'BA',
-                                'CE' => 'CE',
-                                'DF' => 'DF',
-                                'ES' => 'ES',
-                                'GO' => 'GO',
-                                'MA' => 'MA',
-                                'MT' => 'MT',
-                                'MS' => 'MS',
-                                'MG' => 'MG',
-                                'PA' => 'PA',
-                                'PB' => 'PB',
-                                'PR' => 'PR',
-                                'PE' => 'PE',
-                                'PI' => 'PI',
-                                'RJ' => 'RJ',
-                                'RN' => 'RN',
-                                'RS' => 'RS',
-                                'RO' => 'RO',
-                                'RR' => 'RR',
-                                'SC' => 'SC',
-                                'SP' => 'SP',
-                                'SE' => 'SE',
-                                'TO' => 'TO'
-                            ])
-                            ->required(),
-                    ])
+                                Select::make('uf')
+                                    ->label('UF')
+                                    ->searchable()
+                                    ->options([
+                                        'AC' => 'AC',
+                                        'AL' => 'AL',
+                                        'AP' => 'AP',
+                                        'AM' => 'AM',
+                                        'BA' => 'BA',
+                                        'CE' => 'CE',
+                                        'DF' => 'DF',
+                                        'ES' => 'ES',
+                                        'GO' => 'GO',
+                                        'MA' => 'MA',
+                                        'MT' => 'MT',
+                                        'MS' => 'MS',
+                                        'MG' => 'MG',
+                                        'PA' => 'PA',
+                                        'PB' => 'PB',
+                                        'PR' => 'PR',
+                                        'PE' => 'PE',
+                                        'PI' => 'PI',
+                                        'RJ' => 'RJ',
+                                        'RN' => 'RN',
+                                        'RS' => 'RS',
+                                        'RO' => 'RO',
+                                        'RR' => 'RR',
+                                        'SC' => 'SC',
+                                        'SP' => 'SP',
+                                        'SE' => 'SE',
+                                        'TO' => 'TO'
+                                    ])
+                                    ->required()
+                                    ->columnSpan(1),
+                            ]),
+                    ])->collapsible(), // Permite minimizar
             ]);
     }
 
