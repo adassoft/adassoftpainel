@@ -24,41 +24,41 @@ class Register extends BaseRegister
     {
         return $form
             ->schema([
-                // Dados de Acesso
-                Section::make()
+                // SEUS DADOS
+                Section::make('SEUS DADOS')
                     ->schema([
-                        TextInput::make('nome')
-                            ->label('Nome Completo')
-                            ->required()
-                            ->maxLength(255)
-                            ->autofocus()
-                            ->prefixIcon('heroicon-o-user')
-                            ->placeholder('Seu nome completo'),
-
                         \Filament\Forms\Components\Grid::make(2)
                             ->schema([
+                                TextInput::make('nome')
+                                    ->label('Nome Completo')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->autofocus()
+                                    ->prefixIcon('heroicon-o-user')
+                                    ->placeholder('Seu nome completo'),
+
                                 TextInput::make('login')
-                                    ->label('Usuário')
+                                    ->label('Usuário (Login)')
                                     ->required()
                                     ->unique('usuario', 'login')
                                     ->maxLength(50)
                                     ->prefixIcon('heroicon-o-key')
                                     ->placeholder('usuario.sistema'),
-
-                                TextInput::make('email')
-                                    ->label('E-mail')
-                                    ->email()
-                                    ->required()
-                                    ->unique('usuario', 'email')
-                                    ->maxLength(255)
-                                    ->prefixIcon('heroicon-o-envelope')
-                                    ->placeholder('seu@email.com'),
                             ]),
+
+                        TextInput::make('email')
+                            ->label('E-mail Corporativo')
+                            ->email()
+                            ->required()
+                            ->unique('usuario', 'email')
+                            ->maxLength(255)
+                            ->prefixIcon('heroicon-o-envelope')
+                            ->placeholder('seu@email.com'),
 
                         \Filament\Forms\Components\Grid::make(2)
                             ->schema([
                                 TextInput::make('password')
-                                    ->label('Senha')
+                                    ->label('Crie uma Senha')
                                     ->password()
                                     ->required()
                                     ->minLength(8)
@@ -66,15 +66,15 @@ class Register extends BaseRegister
                                     ->prefixIcon('heroicon-o-lock-closed'),
 
                                 TextInput::make('passwordConfirmation')
-                                    ->label('Confirmar Senha')
+                                    ->label('Confirme a Senha')
                                     ->password()
                                     ->required()
                                     ->prefixIcon('heroicon-o-check-circle'),
                             ]),
                     ])->compact(),
 
-                Section::make('Dados da Empresa / Pessoal')
-                    ->description('Necessário para validação da conta.')
+                // DADOS DA EMPRESA
+                Section::make('DADOS DA EMPRESA')
                     ->schema([
                         \Filament\Forms\Components\Grid::make(2)
                             ->schema([
@@ -83,11 +83,11 @@ class Register extends BaseRegister
                                     ->required()
                                     ->maxLength(18)
                                     ->mask('999.999.999-99')
-                                    ->prefixIcon('heroicon-o-identification')
+                                    ->prefixIcon('heroicon-o-document-text')
                                     ->placeholder('000.000.000-00'),
 
                                 TextInput::make('fone')
-                                    ->label('WhatsApp / Celular')
+                                    ->label('WhatsApp Comercial')
                                     ->tel()
                                     ->maxLength(20)
                                     ->prefixIcon('heroicon-o-phone')
@@ -96,8 +96,8 @@ class Register extends BaseRegister
                             ]),
 
                         TextInput::make('razao')
-                            ->label('Razão Social (Opcional)')
-                            ->placeholder('Nome da sua empresa (se houver)')
+                            ->label('Razão Social')
+                            ->placeholder('Nome da sua empresa')
                             ->prefixIcon('heroicon-o-building-office'),
 
                         \Filament\Forms\Components\Grid::make(4)
@@ -144,7 +144,7 @@ class Register extends BaseRegister
                                     ->prefixIcon('heroicon-o-map')
                                     ->columnSpan(1),
                             ]),
-                    ])->collapsible(),
+                    ])->compact(),
             ]);
     }
 
