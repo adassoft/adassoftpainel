@@ -1,12 +1,14 @@
 <div>
-    {{ $this->form }}
+    <x-filament-panels::form wire:submit="register">
+        {{ $this->form }}
 
-    <!-- Botão de Cadastro -->
-    <div class="mt-6">
-        <x-filament::button type="submit" form="authenticate" class="w-full">
-            {{ __('filament-panels::pages/auth/register.form.actions.register.label') }}
-        </x-filament::button>
-    </div>
+        <!-- Botão de Cadastro -->
+        <div class="mt-6">
+            <x-filament::button type="submit" form="register" class="w-full">
+                {{ __('filament-panels::pages/auth/register.form.actions.register.label') }}
+            </x-filament::button>
+        </div>
+    </x-filament-panels::form>
 
     <!-- Links Auxiliares -->
     <div class="mt-6 text-center text-sm">

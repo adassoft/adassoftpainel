@@ -1,12 +1,13 @@
 <div>
-    {{ $this->form }}
+    <x-filament-panels::form wire:submit="authenticate">
+        {{ $this->form }}
 
-    <!-- Botões de Ação Personalizados (Logar) -->
-    <div class="mt-6">
-        <x-filament::button type="submit" form="authenticate" class="w-full">
-            {{ __('filament-panels::pages/auth/login.form.actions.authenticate.label') }}
-        </x-filament::button>
-    </div>
+        <div class="mt-6">
+            <x-filament::button type="submit" form="authenticate" class="w-full">
+                {{ __('filament-panels::pages/auth/login.form.actions.authenticate.label') }}
+            </x-filament::button>
+        </div>
+    </x-filament-panels::form>
 
     <!-- Links Auxiliares -->
     <div class="mt-6 text-center text-sm">
