@@ -89,14 +89,11 @@
                 </div>
             </div>
         </div>
+        <!-- Injetar Estilos especificos -->
+        <style>
+            .fi-form-actions {
+                display: none !important;
+            }
+        </style>
     </div>
-
-    <!-- Injetar Estilos especificos para sobrescrever algumas coisas do form padrão se for preciso -->
-    <style>
-        .fi-form-actions {
-            display: none !important;
-        }
-
-        /* Esconde o botão original do form se ele renderizar duplo */
-    </style>
 </x-filament-panels::layout.base>
