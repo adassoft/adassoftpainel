@@ -8,18 +8,23 @@ class Empresa extends Model
 {
     protected $table = 'empresa';
 
-    // Assumindo que a PK seja 'id', mas a ligação com user é via 'cnpj'.
-    // Importante verificar se 'empresa' tem timestamps
-    public $timestamps = false;
+    protected $primaryKey = 'codigo';
+
+    public $timestamps = true;
 
     protected $fillable = [
-        'nome_fantasia',
         'razao_social',
+        'nome_fantasia',
         'cnpj',
         'email',
         'fone',
+        'cep',
+        'endereco',
+        'numero',
+        'bairro',
+        'cidade',
+        'uf',
         'asaas_access_token',
         'asaas_wallet_id',
-        // Outros campos podem ser adicionados conforme descoberta
     ];
 }

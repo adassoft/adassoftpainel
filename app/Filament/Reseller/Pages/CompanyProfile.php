@@ -45,12 +45,12 @@ class CompanyProfile extends Page
     {
         return $form
             ->schema([
-                TextInput::make('razao')
+                TextInput::make('razao_social')
                     ->label('Razão Social')
                     ->required()
                     ->maxLength(255),
 
-                TextInput::make('fantasia')
+                TextInput::make('nome_fantasia')
                     ->label('Nome Fantasia')
                     ->required()
                     ->maxLength(255),
@@ -59,7 +59,7 @@ class CompanyProfile extends Page
                     ->label('CNPJ')
                     ->required()
                     ->mask('99.999.999/9999-99')
-                    ->unique('empresas', 'cnpj', ignoreRecord: true)
+                    ->unique('empresa', 'cnpj', ignoreRecord: true)
                     ->live(onBlur: true), // Validação ao sair do campo
 
                 TextInput::make('email')
@@ -67,7 +67,7 @@ class CompanyProfile extends Page
                     ->email()
                     ->required(),
 
-                TextInput::make('telefone')
+                TextInput::make('fone')
                     ->label('Telefone/WhatsApp')
                     ->mask('(99) 99999-9999')
                     ->required(),
