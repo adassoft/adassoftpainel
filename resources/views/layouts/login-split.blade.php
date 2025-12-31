@@ -33,7 +33,7 @@
             </div>
         </div>
 
-        <!-- Lado Direito: Formulário de Login -->
+        <!-- Lado Direito: Formulário (Agora largo e confortável) -->
         <div class="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 lg:p-24 bg-white">
             <div class="w-full max-w-2xl space-y-8">
 
@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <!-- Estilos Extras para garantir beleza -->
+    <!-- Estilos Extras para garantir beleza e Scripts White Label -->
     <style>
         body {
             margin: 0;
@@ -63,4 +63,24 @@
             font-family: 'Nunito', sans-serif;
         }
     </style>
+
+    <script>
+        // White Label: Atualiza o Título da Aba com o Nome da Revenda
+        // Pega o título atual da página (definido pelo Filament) e prefixa com o nome da revenda
+        var pageTitle = "{{ $appName }}";
+        if (document.title && !document.title.includes(pageTitle)) {
+            document.title = pageTitle + ' - ' + document.title;
+        }
+
+        // White Label: Atualiza Favicon se houver logo customizado
+        @if(isset($branding['logo_url']))
+            var link = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.getElementsByTagName('head')[0].appendChild(link);
+            }
+            link.href = "{{ $branding['logo_url'] }}";
+        @endif
+    </script>
 </x-filament-panels::layout.base>
