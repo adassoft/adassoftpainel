@@ -4,7 +4,8 @@ namespace App\Filament\App\Pages\Auth;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Form;
 use Filament\Pages\Auth\Register as BaseRegister;
 use Illuminate\Support\Facades\Hash;
@@ -24,127 +25,135 @@ class Register extends BaseRegister
     {
         return $form
             ->schema([
-                // SEUS DADOS
-                Section::make('SEUS DADOS')
+                // TÍTULO: SEUS DADOS
+                Placeholder::make('seus_dados_title')
+                    ->label('SEUS DADOS')
+                    ->content('')
+                    ->extraAttributes([
+                        'class' => 'text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2 mb-4',
+                    ]),
+
+                Grid::make(2)
                     ->schema([
-                        \Filament\Forms\Components\Grid::make(2)
-                            ->schema([
-                                TextInput::make('nome')
-                                    ->label('Nome Completo')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->autofocus()
-                                    ->prefixIcon('heroicon-o-user')
-                                    ->placeholder('Seu nome completo'),
-
-                                TextInput::make('login')
-                                    ->label('Usuário (Login)')
-                                    ->required()
-                                    ->unique('usuario', 'login')
-                                    ->maxLength(50)
-                                    ->prefixIcon('heroicon-o-key')
-                                    ->placeholder('usuario.sistema'),
-                            ]),
-
-                        TextInput::make('email')
-                            ->label('E-mail Corporativo')
-                            ->email()
+                        TextInput::make('nome')
+                            ->label('Nome Completo')
                             ->required()
-                            ->unique('usuario', 'email')
                             ->maxLength(255)
-                            ->prefixIcon('heroicon-o-envelope')
-                            ->placeholder('seu@email.com'),
+                            ->autofocus()
+                            ->prefixIcon('heroicon-o-user')
+                            ->placeholder('Seu nome completo'),
 
-                        \Filament\Forms\Components\Grid::make(2)
-                            ->schema([
-                                TextInput::make('password')
-                                    ->label('Crie uma Senha')
-                                    ->password()
-                                    ->required()
-                                    ->minLength(8)
-                                    ->same('passwordConfirmation')
-                                    ->prefixIcon('heroicon-o-lock-closed'),
+                        TextInput::make('login')
+                            ->label('Usuário (Login)')
+                            ->required()
+                            ->unique('usuario', 'login')
+                            ->maxLength(50)
+                            ->prefixIcon('heroicon-o-key')
+                            ->placeholder('usuario.sistema'),
+                    ]),
 
-                                TextInput::make('passwordConfirmation')
-                                    ->label('Confirme a Senha')
-                                    ->password()
-                                    ->required()
-                                    ->prefixIcon('heroicon-o-check-circle'),
-                            ]),
-                    ])->compact(),
+                TextInput::make('email')
+                    ->label('E-mail Corporativo')
+                    ->email()
+                    ->required()
+                    ->unique('usuario', 'email')
+                    ->maxLength(255)
+                    ->prefixIcon('heroicon-o-envelope')
+                    ->placeholder('seu@email.com'),
 
-                // DADOS DA EMPRESA
-                Section::make('DADOS DA EMPRESA')
+                Grid::make(2)
                     ->schema([
-                        \Filament\Forms\Components\Grid::make(2)
-                            ->schema([
-                                TextInput::make('cnpj')
-                                    ->label('CPF ou CNPJ')
-                                    ->required()
-                                    ->maxLength(18)
-                                    ->mask('999.999.999-99')
-                                    ->prefixIcon('heroicon-o-document-text')
-                                    ->placeholder('000.000.000-00'),
+                        TextInput::make('password')
+                            ->label('Crie uma Senha')
+                            ->password()
+                            ->required()
+                            ->minLength(8)
+                            ->same('passwordConfirmation')
+                            ->prefixIcon('heroicon-o-lock-closed'),
 
-                                TextInput::make('fone')
-                                    ->label('WhatsApp Comercial')
-                                    ->tel()
-                                    ->maxLength(20)
-                                    ->prefixIcon('heroicon-o-phone')
-                                    ->mask('(99) 99999-9999')
-                                    ->placeholder('(00) 00000-0000'),
-                            ]),
+                        TextInput::make('passwordConfirmation')
+                            ->label('Confirme a Senha')
+                            ->password()
+                            ->required()
+                            ->prefixIcon('heroicon-o-check-circle'),
+                    ]),
 
-                        TextInput::make('razao')
-                            ->label('Razão Social')
-                            ->placeholder('Nome da sua empresa')
-                            ->prefixIcon('heroicon-o-building-office'),
+                // TÍTULO: DADOS DA EMPRESA
+                Placeholder::make('dados_empresa_title')
+                    ->label('DADOS DA EMPRESA')
+                    ->content('')
+                    ->extraAttributes([
+                        'class' => 'text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2 mb-4 mt-6',
+                    ]),
 
-                        \Filament\Forms\Components\Grid::make(4)
-                            ->schema([
-                                TextInput::make('cidade')
-                                    ->label('Cidade')
-                                    ->required()
-                                    ->prefixIcon('heroicon-o-map-pin')
-                                    ->columnSpan(3),
+                Grid::make(2)
+                    ->schema([
+                        TextInput::make('cnpj')
+                            ->label('CPF ou CNPJ')
+                            ->required()
+                            ->maxLength(18)
+                            ->mask('999.999.999-99')
+                            ->prefixIcon('heroicon-o-document-text')
+                            ->placeholder('000.000.000-00'),
 
-                                Select::make('uf')
-                                    ->label('UF')
-                                    ->searchable()
-                                    ->options([
-                                        'AC' => 'AC',
-                                        'AL' => 'AL',
-                                        'AP' => 'AP',
-                                        'AM' => 'AM',
-                                        'BA' => 'BA',
-                                        'CE' => 'CE',
-                                        'DF' => 'DF',
-                                        'ES' => 'ES',
-                                        'GO' => 'GO',
-                                        'MA' => 'MA',
-                                        'MT' => 'MT',
-                                        'MS' => 'MS',
-                                        'MG' => 'MG',
-                                        'PA' => 'PA',
-                                        'PB' => 'PB',
-                                        'PR' => 'PR',
-                                        'PE' => 'PE',
-                                        'PI' => 'PI',
-                                        'RJ' => 'RJ',
-                                        'RN' => 'RN',
-                                        'RS' => 'RS',
-                                        'RO' => 'RO',
-                                        'RR' => 'RR',
-                                        'SC' => 'SC',
-                                        'SP' => 'SP',
-                                        'SE' => 'SE',
-                                        'TO' => 'TO'
-                                    ])
-                                    ->required()
-                                    ->prefixIcon('heroicon-o-map')
-                                    ->columnSpan(1),
-                            ]),
-                    ])->compact(),
+                        TextInput::make('fone')
+                            ->label('WhatsApp Comercial')
+                            ->tel()
+                            ->maxLength(20)
+                            ->prefixIcon('heroicon-o-phone')
+                            ->mask('(99) 99999-9999')
+                            ->placeholder('(00) 00000-0000'),
+                    ]),
+
+                TextInput::make('razao')
+                    ->label('Razão Social')
+                    ->placeholder('Nome da sua empresa')
+                    ->prefixIcon('heroicon-o-building-office'),
+
+                Grid::make(4)
+                    ->schema([
+                        TextInput::make('cidade')
+                            ->label('Cidade')
+                            ->required()
+                            ->prefixIcon('heroicon-o-map-pin')
+                            ->columnSpan(3),
+
+                        Select::make('uf')
+                            ->label('UF')
+                            ->searchable()
+                            ->options([
+                                'AC' => 'AC',
+                                'AL' => 'AL',
+                                'AP' => 'AP',
+                                'AM' => 'AM',
+                                'BA' => 'BA',
+                                'CE' => 'CE',
+                                'DF' => 'DF',
+                                'ES' => 'ES',
+                                'GO' => 'GO',
+                                'MA' => 'MA',
+                                'MT' => 'MT',
+                                'MS' => 'MS',
+                                'MG' => 'MG',
+                                'PA' => 'PA',
+                                'PB' => 'PB',
+                                'PR' => 'PR',
+                                'PE' => 'PE',
+                                'PI' => 'PI',
+                                'RJ' => 'RJ',
+                                'RN' => 'RN',
+                                'RS' => 'RS',
+                                'RO' => 'RO',
+                                'RR' => 'RR',
+                                'SC' => 'SC',
+                                'SP' => 'SP',
+                                'SE' => 'SE',
+                                'TO' => 'TO'
+                            ])
+                            ->required()
+                            ->prefixIcon('heroicon-o-map')
+                            ->columnSpan(1),
+                    ]),
             ]);
     }
 
