@@ -54,6 +54,7 @@ class ResellerPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                \App\Http\Middleware\EnsureUserHasCompany::class,
             ])
             ->renderHook(
                 'panels::body.end',
