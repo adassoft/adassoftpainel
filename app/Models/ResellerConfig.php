@@ -24,10 +24,12 @@ class ResellerConfig extends Model
         'dados_pendentes',
         'status_aprovacao',
         'mensagem_rejeicao',
+        'is_default',
     ];
 
     protected $casts = [
         'ativo' => 'boolean',
+        'is_default' => 'boolean',
         'dados_pendentes' => 'array',
     ];
 

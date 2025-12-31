@@ -32,7 +32,13 @@ class ResellerBranding
                     return $config;
                 }
             }
-            return null;
+
+            // Se não encontrou configuração específica para o domínio, busca a Padrão
+            return ResellerConfig::with('user')
+                ->where('ativo', true)
+                ->where('status_aprovacao', 'aprovado')
+                ->where('is_default', true)
+                ->first();
         });
     }
 

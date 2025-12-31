@@ -71,6 +71,13 @@ class ResellerConfigResource extends Resource
                             ->label('Ativo')
                             ->default(true)
                             ->inline(false),
+
+                        Forms\Components\Toggle::make('is_default')
+                            ->label('Revenda Padrão')
+                            ->helperText('Se ativo, será usada para acessos sem revenda definida.')
+                            ->default(false)
+                            ->inline(false)
+                            ->onColor('success'),
                     ])->columns(2)
             ]);
     }
@@ -100,6 +107,11 @@ class ResellerConfigResource extends Resource
                 Tables\Columns\IconColumn::make('ativo')
                     ->label('Status')
                     ->boolean()
+                    ->sortable(),
+
+                Tables\Columns\ToggleColumn::make('is_default')
+                    ->label('Padrão')
+                    ->onColor('success')
                     ->sortable(),
             ])
             ->filters([
