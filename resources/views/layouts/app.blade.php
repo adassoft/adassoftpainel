@@ -1,13 +1,20 @@
+@php
+    $branding = \App\Services\ResellerBranding::getCurrent();
+    $appName = $branding['nome_sistema'] ?? 'Adassoft';
+    $logoUrl = $branding['logo_url'] ?? asset('favicon.svg');
+    $slogan = $branding['slogan'] ?? 'Tecnologia que impulsiona';
+@endphp
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>@yield('title', 'AdasSoft Store')</title>
+    <title>@yield('title', $appName . ' | Store')</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ $logoUrl }}">
 
     <!-- Fonts -->
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
@@ -49,7 +56,6 @@
 
         .nav-link {
             color: #4e73df !important;
-            /* Usando azul como na imagem original que o usuário gostou */
             font-weight: 600;
             font-size: 0.95rem;
             transition: color 0.3s;
@@ -112,8 +118,8 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top navbar-landing">
         <div class="container">
             <a class="navbar-brand font-weight-bold" href="{{ url('/') }}">
-                <img src="{{ asset('favicon.svg') }}" width="28" height="28" class="mr-2" alt="Logo">
-                <span>Adassoft</span>
+                <img src="{{ $logoUrl }}" width="32" height="32" class="mr-2 rounded object-contain" alt="Logo">
+                <span>{{ $appName }}</span>
             </a>
             <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbarNav">
                 <i class="fas fa-bars text-primary"></i>
@@ -121,13 +127,14 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto align-items-center">
                     <li class="nav-item mx-3">
-                        <a class="nav-link active-link" href="{{ url('/') }}">Home</a>
+                        <a class="nav-link {{ Request::is('/') ? 'active-link' : '' }}" href="{{ url('/') }}">Home</a>
                     </li>
                     <li class="nav-item mx-3">
                         <a class="nav-link" href="{{ url('/') }}#produtos">Catálogo</a>
                     </li>
                     <li class="nav-item mx-3">
-                        <a class="nav-link" href="{{ route('downloads') }}">Downloads</a>
+                        <a class="nav-link {{ Request::routeIs('downloads') ? 'active-link' : '' }}"
+                            href="{{ route('downloads') }}">Downloads</a>
                     </li>
                     @if(!\App\Services\ResellerBranding::getCurrentCnpj())
                         <li class="nav-item mx-3">
@@ -142,28 +149,12 @@
                                 Área do Cliente
                             </a>
                         </li>
-                        @if(!\App\Services\ResellerBranding::getCurrentCnpj())
-                            <li class="nav-item">
-                                <a href="{{ route('reseller.register') }}" class="btn-register">
-                                    Seja Revenda
-                                </a>
-                            </li>
-                        @endif
                     @endguest
-
                     @auth
                         <li class="nav-item ml-lg-4">
                             <a href="{{ url('/admin') }}" class="btn-login">
                                 <i class="fas fa-user-circle mr-1"></i> Painel
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <form action="{{ url('/admin/logout') }}" method="POST" class="m-0 p-0">
-                                @csrf
-                                <button type="submit" class="btn-register border-0" style="cursor: pointer;">
-                                    Sair
-                                </button>
-                            </form>
                         </li>
                     @endauth
                 </ul>
@@ -180,16 +171,17 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12 text-center text-white">
-                    <h5 class="font-weight-bold mb-3 border-bottom border-primary d-inline-block pb-1">
-                        {{ $branding['nome_sistema'] ?? 'Adassoft' }}
+                    <img src="{{ $logoUrl }}" width="48" height="48" class="mb-3 rounded bg-white p-1"
+                        style="object-fit: contain;">
+                    <h5 class="font-weight-bold mb-3 d-block">
+                        {{ $appName }}
                     </h5>
-                    <p class="text-secondary small">O sistema de licenciamento definitivo para Softhouses brasileiras.
-                    </p>
+                    <p class="text-secondary small max-w-md mx-auto">{{ $slogan }}</p>
                 </div>
             </div>
             <div class="text-center mt-5 border-top pt-4 border-secondary">
                 <p class="mb-0 text-secondary small">&copy; {{ date('Y') }}
-                    {{ $branding['nome_sistema'] ?? 'Adassoft' }}. Todos os direitos reservados.
+                    {{ $appName }}. Todos os direitos reservados.
                 </p>
             </div>
         </div>
