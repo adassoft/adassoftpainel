@@ -1,4 +1,4 @@
-<x-filament-panels::layout.base :livewire="$this">
+<div>
     <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4 sm:p-0">
 
         <div
@@ -76,4 +76,4 @@
             }
         </style>
     </div>
-</x-filament-panels::layout.base>
+</div>
