@@ -20,9 +20,7 @@ Route::post('/checkout/auth', [\App\Http\Controllers\CheckoutController::class, 
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/sys/force-db-update', function () {
-        if (!auth()->user()->isAdmin() && auth()->id() !== 1) { // Segurança extra simples
-            // Se não tiver método isAdmin, verifica ID 1
-        }
+        // Verificação de administrador removida temporariamente para correção
 
         try {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
