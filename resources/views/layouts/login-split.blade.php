@@ -12,12 +12,15 @@
     <div class="min-h-screen w-full flex bg-gray-50">
 
         <!-- Lado Esquerdo: Branding (Desktop Only) -->
-        <div class="hidden lg:flex w-1/2 relative flex-col items-center justify-center p-12 text-center text-white overflow-hidden"
+        <div class="hidden lg:flex w-1/2 relative flex-col justify-between p-12 text-center text-white overflow-hidden"
             style="background: linear-gradient(135deg, {{ $gradientStart }}, {{ $gradientEnd }});">
 
             <!-- Efeitos de Fundo (Círculos) -->
             <div class="absolute -top-12 -left-12 w-48 h-48 bg-white opacity-10 rounded-full blur-2xl"></div>
             <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+
+            <!-- Espaçador vazio para empurrar o conteúdo para o centro (junto com justify-between) -->
+            <div></div>
 
             <div class="relative z-10 animate-fade-in-up">
                 <img src="{{ $logoUrl }}"
@@ -26,8 +29,8 @@
                 <p class="text-xl opacity-90 font-light max-w-lg mx-auto leading-relaxed">{{ $slogan }}</p>
             </div>
 
-            <!-- Footerzinho da Marca -->
-            <div class="absolute bottom-8 text-xs opacity-60">
+            <!-- Footerzinho da Marca (Agora fixado no bottom pelo flex flow) -->
+            <div class="relative z-10 text-xs opacity-60">
                 &copy; {{ date('Y') }} {{ $appName }}. Todos os direitos reservados.
             </div>
         </div>
