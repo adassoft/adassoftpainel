@@ -164,7 +164,7 @@ class ManageGateways extends Page
             })
             ->action(function (array $data, array $arguments) {
                 $gatewaySlug = $arguments['gateway'];
-                $gatewayName = $data['gateway_name'];
+                // $gatewayName removido pois vem do argumento e o campo é disabled
                 $targetName = $arguments['gateway'] === 'mercadopago' ? 'mercadopago' : 'asaas';
 
                 $record = Gateway::where('gateway_name', 'LIKE', $targetName)->first();

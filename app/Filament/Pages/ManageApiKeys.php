@@ -88,11 +88,13 @@ class ManageApiKeys extends Page implements HasForms, HasTable
                 DateTimePicker::make('expires_at')
                     ->label('Expira em (Opcional)'),
 
-                FormAction::make('create')
-                    ->label('Gerar API Key')
-                    ->icon('heroicon-o-key')
-                    ->color('success')
-                    ->action('createKey'),
+                \Filament\Forms\Components\Actions::make([
+                    FormAction::make('create')
+                        ->label('Gerar API Key')
+                        ->icon('heroicon-o-key')
+                        ->color('success')
+                        ->action('createKey'),
+                ]),
             ])
             ->statePath('data');
     }
