@@ -12,15 +12,18 @@ class ShopController extends Controller
     public function index(Request $request)
     {
         $cnpjRevenda = $request->query('r');
+        $currentBranding = \App\Services\ResellerBranding::getCurrent();
+        $contactInfo = \App\Services\ResellerBranding::getContactInfo();
+
         $branding = [
-            'nome_sistema' => 'AdasSoft Store',
-            'email_suporte' => 'suporte@adassoft.com',
-            'whatsapp' => '(11) 99999-9999',
-            'logo_path' => asset('favicon.svg'), // Placeholder
-            'tem_asaas' => true // Default
+            'nome_sistema' => $currentBranding['nome_sistema'] ?? 'AdasSoft Store',
+            'email_suporte' => $contactInfo['email'] ?? 'suporte@adassoft.com',
+            'whatsapp' => $contactInfo['whatsapp'] ?? '(11) 99999-9999',
+            'logo_path' => $currentBranding['logo_url'] ?? asset('favicon.svg'),
+            'tem_asaas' => $contactInfo['has_payment'] ?? false
         ];
 
-        // Se for revenda, tenta buscar dados
+        // Se for revenda via query param (legado), tenta buscar dados
         if ($cnpjRevenda) {
             $revenda = Company::where('cnpj', $cnpjRevenda)->where('status', 'Ativo')->first();
             if ($revenda) {
