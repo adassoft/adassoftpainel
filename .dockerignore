@@ -1,0 +1,16 @@
+.git
+.env
+.env.example
+.idea
+.vscode
+node_modules
+vendor
+storage/logs/*.log
+tests
+phpunit.xml
+README.md
+Dockerfile
+deploy.sh
+fix_env.sh
+install.sh
+**/*.md

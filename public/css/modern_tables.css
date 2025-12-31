@@ -1,0 +1,101 @@
+/* Modern Mobile-First Tables */
+
+/* Estilos Globais para Tabelas Modernas */
+.table-modern {
+    border-collapse: separate;
+    border-spacing: 0 5px;
+    /* Espaço entre linhas "flutuantes" no desktop também, se quiser */
+}
+
+/* Em telas GRANDES (Desktop), vamos dar um ar mais limpo */
+@media screen and (min-width: 769px) {
+    .table-modern thead th {
+        border-bottom: 2px solid #4e73df;
+        color: #5a5c69;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        padding: 15px;
+    }
+
+    .table-modern tbody tr {
+        background-color: #fff;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .table-modern tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        z-index: 10;
+        position: relative;
+    }
+
+    .table-modern td {
+        vertical-align: middle !important;
+        border-top: 1px solid #f0f0f0;
+        padding: 15px;
+    }
+}
+
+/* Em telas PEQUENAS (Mobile/Tablet), transforma em CARDS */
+@media screen and (max-width: 768px) {
+    .table-modern {
+        border: 0;
+        width: 100%;
+    }
+
+    .table-modern thead {
+        display: none;
+        /* Esconde cabeçalho */
+    }
+
+    .table-modern tbody tr {
+        display: block;
+        margin-bottom: 15px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid #e3e6f0;
+    }
+
+    .table-modern tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 12px 15px;
+        font-size: 0.9rem;
+        text-align: right;
+    }
+
+    .table-modern tbody td:last-child {
+        border-bottom: 0;
+        background-color: #f8f9fc;
+        /* Destaque para linha de ações */
+        justify-content: center;
+    }
+
+    /* O atributo data-label vira o "Título" da linha no card */
+    .table-modern tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #4e73df;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        text-align: left;
+        margin-right: 15px;
+        flex-shrink: 0;
+        /* Impede que o título quebre */
+    }
+
+    /* Ajustes específicos para conteudos longos */
+    .table-modern tbody td span {
+        max-width: 60%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

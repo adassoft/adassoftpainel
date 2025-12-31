@@ -1,0 +1,247 @@
+<?php
+
+namespace App\Filament\Reseller\Pages;
+
+use Filament\Pages\Page;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
+use Filament\Tables;
+use App\Models\CreditHistory;
+use App\Models\Company;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
+
+class MyWallet extends Page implements HasTable
+{
+    use InteractsWithTable;
+
+    protected static ?string $navigationIcon = 'heroicon-o-wallet';
+    protected static ?string $navigationLabel = 'Minha Carteira';
+    protected static ?string $title = 'Minha Carteira';
+
+    protected static string $view = 'filament.reseller.pages.my-wallet';
+
+    public float $saldo = 0.00;
+    public float $minRecarga = 5.00;
+
+    // Novas propriedades para lógica de PIX
+    public ?string $valorRecargaInput = null;
+    public ?string $pixQrCode = null;
+    public ?string $pixCopyPaste = null;
+    public bool $showPixModal = false;
+
+    public function mount(): void
+    {
+        $user = Auth::user();
+        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+
+        $this->saldo = (float) (Company::where('cnpj', $cnpjLimpo)->value('saldo') ?? 0.00);
+
+        try {
+            $min = DB::table('gateways')
+                ->where('gateway_name', 'Asaas')
+                ->value('min_recharge');
+
+            if ($min) {
+                $this->minRecarga = (float) $min;
+            }
+        } catch (\Exception $e) {
+            // Silencioso se tabela não existir ou erro de DB
+            $this->minRecarga = 5.00;
+        }
+    }
+
+    public function generatePix(): void
+    {
+        $valorStr = str_replace(['.', ','], ['', '.'], $this->valorRecargaInput);
+        $valor = (float) $valorStr;
+
+        if ($valor < $this->minRecarga) {
+            Notification::make()
+                ->title('Valor inválido')
+                ->body('O valor mínimo para recarga é R$ ' . number_format($this->minRecarga, 2, ',', '.'))
+                ->danger()
+                ->send();
+            return;
+        }
+
+        try {
+            // 1. Configuração do Gateway
+            $gateway = DB::table('gateways')
+                ->where('gateway_name', 'Asaas')
+                ->where('active', 1)
+                ->first();
+
+            if (!$gateway) {
+                throw new \Exception('Gateway de pagamento não configurado.');
+            }
+
+            $apiKey = $gateway->access_token;
+            // $walletId = $gateway->wallet_id; // V3 usa access_token para definir conta
+            $isProd = $gateway->producao === 's';
+            $baseUrl = $isProd ? 'https://api.asaas.com/v3' : 'https://sandbox.asaas.com/api/v3';
+
+            $user = Auth::user();
+            $empresa = Company::where('cnpj', $user->cnpj)->firstOrFail();
+            $cnpjLimpo = preg_replace('/\D/', '', $empresa->cnpj);
+
+            // 2. Buscar/Criar Cliente
+            $headers = [
+                'access_token' => $apiKey,
+                'User-Agent' => 'Adassoft-Panel/1.0',
+                'Content-Type' => 'application/json'
+            ];
+
+            // Busca cliente
+            $response = Http::withHeaders($headers)
+                ->get("$baseUrl/customers", ['cpfCnpj' => $cnpjLimpo]);
+
+            if ($response->failed())
+                throw new \Exception('Erro ao conectar com Asaas (Customer Search): ' . $response->body());
+
+            $customers = $response->json('data');
+            $customerId = null;
+
+            if (!empty($customers)) {
+                $customerId = $customers[0]['id'];
+            } else {
+                // Criar Cliente
+                $newCustomer = [
+                    'name' => substr($empresa->razao, 0, 100),
+                    'cpfCnpj' => $cnpjLimpo,
+                    'email' => $empresa->email ?? 'noreply@adassoft.com',
+                ];
+
+                $createResp = Http::withHeaders($headers)
+                    ->post("$baseUrl/customers", $newCustomer);
+
+                if ($createResp->failed())
+                    throw new \Exception('Erro ao criar cliente no Asaas.');
+                $customerId = $createResp->json('id');
+            }
+
+            // 3. Criar Cobrança (Pedido)
+            $codTransacao = 'REC-' . date('YmdHis') . '-' . rand(1000, 9999);
+
+            // Criar Pedido no Banco LOCAL primeiro
+            $order = new \App\Models\Order();
+            $order->cnpj = $empresa->cnpj;
+            $order->valor = $valor;
+            $order->situacao = 'AGUARDANDO';
+            $order->data = now();
+            $order->cod_transacao = $codTransacao;
+            $order->recorrencia = 'CREDITO';
+            $order->save();
+
+            // 4. Criar Pagamento no Asaas
+            $paymentData = [
+                'customer' => $customerId,
+                'billingType' => 'PIX',
+                'value' => $valor,
+                'dueDate' => now()->addDays(1)->format('Y-m-d'),
+                'description' => "Recarga Créditos Ref: $codTransacao",
+                'externalReference' => $codTransacao,
+            ];
+
+            $payResp = Http::withHeaders($headers)
+                ->post("$baseUrl/payments", $paymentData);
+
+            if ($payResp->failed()) {
+                throw new \Exception('Erro ao criar pagamento no Asaas: ' . $payResp->body());
+            }
+
+            $paymentId = $payResp->json('id');
+
+            // 5. Obter QR Code e Payload PIX
+            $qrResp = Http::withHeaders($headers)
+                ->get("$baseUrl/payments/$paymentId/pixQrCode");
+
+            if ($qrResp->failed())
+                throw new \Exception('Erro ao obter QR Code PIX.');
+
+            $this->pixQrCode = $qrResp->json('encodedImage'); // Base64
+            $this->pixCopyPaste = $qrResp->json('payload');
+            $this->showPixModal = true;
+
+            Notification::make()
+                ->title('PIX Gerado com Sucesso!')
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Erro na Recarga')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    // Polling hook para atualizar saldo automaticamente
+    public function refreshSaldo()
+    {
+        $user = Auth::user();
+        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+
+        $novoSaldo = (float) (Company::where('cnpj', $cnpjLimpo)->value('saldo') ?? 0.00);
+
+        if ($novoSaldo != $this->saldo) {
+            $this->saldo = $novoSaldo;
+            // Se houve recarga (aumento), fechamos o modal
+            if ($novoSaldo > $this->saldo) {
+                $this->showPixModal = false;
+                Notification::make()
+                    ->title('Pagamento Recebido!')
+                    ->body('Seu saldo foi atualizado.')
+                    ->success()
+                    ->send();
+            }
+        }
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(
+                CreditHistory::query()
+                    ->where('empresa_cnpj', preg_replace('/\D/', '', Auth::user()->cnpj))
+                    ->orderBy('data_movimento', 'desc')
+            )
+            ->heading('Extrato de Movimentações')
+            ->poll('5s') // Auto-refresh da tabela
+            ->columns([
+                Tables\Columns\TextColumn::make('data_movimento')
+                    ->label('Data')
+                    ->dateTime('d/m/Y H:i'),
+
+                Tables\Columns\TextColumn::make('descricao')
+                    ->label('Descrição')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('tipo')
+                    ->label('Tipo')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'entrada' => 'success',
+                        'saida' => 'danger',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'entrada' => 'Crédito',
+                        'saida' => 'Débito',
+                        default => ucfirst($state),
+                    }),
+
+                Tables\Columns\TextColumn::make('valor')
+                    ->label('Valor (R$)')
+                    ->money('BRL')
+                    ->color(fn(CreditHistory $record) => $record->tipo === 'entrada' ? 'success' : 'danger')
+                    ->prefix(fn(CreditHistory $record) => $record->tipo === 'entrada' ? '+ ' : '- ')
+                    ->weight('bold'),
+            ])
+            ->paginated([10, 25, 50]);
+    }
+}

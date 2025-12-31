@@ -1,0 +1,256 @@
+<?php
+
+namespace App\Filament\Pages;
+
+use App\Models\ApiKey;
+use App\Models\Company;
+use App\Models\Software;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Actions\Action as FormAction;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class ManageApiKeys extends Page implements HasForms, HasTable
+{
+    use InteractsWithForms;
+    use InteractsWithTable;
+
+    protected static ?string $navigationIcon = 'heroicon-o-key';
+    protected static ?string $navigationLabel = 'Gestão de API Keys';
+    protected static ?string $title = 'Gestão de API Keys';
+    protected static ?string $navigationGroup = 'Configurações';
+    protected static string $view = 'filament.pages.manage-api-keys';
+
+    public ?array $data = [];
+    public ?string $generatedKey = null;
+
+    public function mount(): void
+    {
+        $this->form->fill();
+    }
+
+    public function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Select::make('software_id')
+                    ->label('Software')
+                    ->options(Software::pluck('nome_software', 'id'))
+                    ->searchable()
+                    ->required(),
+
+                TextInput::make('label')
+                    ->label('Descrição')
+                    ->placeholder('Ex: Integração ERP, Parceiro X')
+                    ->maxLength(255),
+
+                Select::make('empresa_codigo')
+                    ->label('Empresa (Opcional)')
+                    ->options(Company::pluck('razao', 'codigo'))
+                    ->searchable()
+                    ->placeholder('Selecione ou deixe vazio'),
+
+                CheckboxList::make('scopes')
+                    ->label('Escopos Permitidos')
+                    ->options([
+                        'emitir_token' => 'Emitir Token',
+                        'validar_serial' => 'Validar Serial',
+                        'status_licenca' => 'Status Licença',
+                        'listar_terminais' => 'Listar Terminais',
+                        'remover_terminal' => 'Remover Terminal',
+                        'offline_activation' => 'Ativação Offline', // Novo
+                    ])
+                    ->columns(2)
+                    ->default(array_keys([
+                        'emitir_token' => 1,
+                        'validar_serial' => 1,
+                        'status_licenca' => 1,
+                        'listar_terminais' => 1,
+                        'remover_terminal' => 1,
+                        'offline_activation' => 1
+                    ])), // Padrão todos? Ou vazio? Usuário disse "padrão todos" no legado.
+
+                DateTimePicker::make('expires_at')
+                    ->label('Expira em (Opcional)'),
+
+                FormAction::make('create')
+                    ->label('Gerar API Key')
+                    ->icon('heroicon-o-key')
+                    ->color('success')
+                    ->action('createKey'),
+            ])
+            ->statePath('data');
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->query(ApiKey::query()->latest())
+            ->columns([
+                TextColumn::make('id')->sortable()->label('ID'),
+
+                TextColumn::make('software.nome_software')
+                    ->description(fn(ApiKey $record) => $record->label)
+                    ->label('Software/Label')
+                    ->searchable(),
+
+                TextColumn::make('key_hint')
+                    ->label('Hint')
+                    ->formatStateUsing(fn($state) => '****' . $state)
+                    ->fontFamily('mono'),
+
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'ativo' => 'success',
+                        'revogado' => 'danger',
+                        'inativo' => 'warning',
+                    }),
+
+                TextColumn::make('scopes')
+                    ->badge()
+                    ->color('info')
+                    ->limitList(3)
+                    ->separator(','),
+
+                TextColumn::make('expires_at')
+                    ->label('Expira')
+                    ->dateTime('d/m/Y')
+                    ->placeholder('Sem expiração'),
+
+                TextColumn::make('use_count')
+                    ->label('Usos')
+                    ->alignCenter(),
+            ])
+            ->actions([
+                ActionGroup::make([
+                    Action::make('rotate')
+                        ->label('Rotacionar')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('gray')
+                        ->requiresConfirmation()
+                        ->modalHeading('Rotacionar Chave')
+                        ->modalDescription('Isso irá gerar uma nova chave com as mesmas permissões e REVOGAR a chave atual. O sistema que usa a chave antiga parará de funcionar até ser atualizado.')
+                        ->action(function (ApiKey $record) {
+                            $this->rotateKey($record);
+                        }),
+
+                    Action::make('toggle_status')
+                        ->label(fn($record) => $record->status === 'ativo' ? 'Inativar' : 'Ativar')
+                        ->icon(fn($record) => $record->status === 'ativo' ? 'heroicon-o-pause' : 'heroicon-o-play')
+                        ->color(fn($record) => $record->status === 'ativo' ? 'warning' : 'success')
+                        ->visible(fn($record) => $record->status !== 'revogado')
+                        ->action(function (ApiKey $record) {
+                            $novo = $record->status === 'ativo' ? 'inativo' : 'ativo';
+                            $record->update(['status' => $novo]);
+                            Notification::make()->success()->title("Status alterado para {$novo}")->send();
+                        }),
+
+                    Action::make('revoke')
+                        ->label('Revogar')
+                        ->icon('heroicon-o-ban')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->visible(fn($record) => $record->status !== 'revogado')
+                        ->action(function (ApiKey $record) {
+                            $record->update(['status' => 'revogado']);
+                            Notification::make()->success()->title('Chave revogada.')->send();
+                        }),
+                ])
+            ])
+            ->poll('10s');
+    }
+
+    public function createKey()
+    {
+        $data = $this->form->getState();
+
+        try {
+            DB::beginTransaction();
+
+            $rawKey = bin2hex(random_bytes(32)); // 64 chars
+            $hash = hash('sha256', $rawKey);
+            $hint = substr($rawKey, -4);
+
+            // Garantir escopos únicos e array simples
+            $scopes = array_values(array_unique($data['scopes'] ?? []));
+            if (empty($scopes))
+                $scopes = ['*']; // Fallback
+
+            ApiKey::create([
+                'software_id' => $data['software_id'],
+                'empresa_codigo' => $data['empresa_codigo'] ?? null,
+                'label' => $data['label'],
+                'key_hash' => $hash,
+                'key_hint' => $hint,
+                'scopes' => $scopes,
+                'expires_at' => $data['expires_at'],
+                'created_by' => auth()->id(),
+                'status' => 'ativo',
+            ]);
+
+            DB::commit();
+
+            $this->generatedKey = $rawKey;
+            $this->form->fill(); // Reset form
+
+            Notification::make()->success()->title('API Key criada com sucesso!')->send();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Notification::make()->danger()->title('Erro ao criar chave: ' . $e->getMessage())->send();
+        }
+    }
+
+    public function rotateKey(ApiKey $oldKey)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Revoga antiga
+            $oldKey->update(['status' => 'revogado']);
+
+            // Gera nova baseada na antiga
+            $rawKey = bin2hex(random_bytes(32));
+            $hash = hash('sha256', $rawKey);
+            $hint = substr($rawKey, -4);
+
+            ApiKey::create([
+                'software_id' => $oldKey->software_id,
+                'empresa_codigo' => $oldKey->empresa_codigo,
+                'label' => $oldKey->label,
+                'key_hash' => $hash,
+                'key_hint' => $hint,
+                'scopes' => $oldKey->scopes,
+                'expires_at' => $oldKey->expires_at,
+                'created_by' => auth()->id(),
+                'status' => 'ativo',
+            ]);
+
+            DB::commit();
+
+            $this->generatedKey = $rawKey; // Exibe a nova chave
+
+            Notification::make()->success()->title('Chave rotacionada com sucesso!')->send();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Notification::make()->danger()->title('Erro na rotação: ' . $e->getMessage())->send();
+        }
+    }
+}

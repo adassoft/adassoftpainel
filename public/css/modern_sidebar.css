@@ -1,0 +1,110 @@
+/* Modern Sidebar Enhancements for SB Admin 2 */
+
+/* Cores modernas */
+:root {
+  --primary-color: #4e73df; /* Azul padrão, pode mudar para degradê se quiser */
+  --sidebar-bg: #1c1c1e; /* Fundo mais escuro e moderno */
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.1);
+  --sidebar-text: #d1d5db;
+  --sidebar-active-text: #ffffff;
+}
+
+/* Sidebar Estilo Apple/Moderno */
+#accordionSidebar {
+  background: var(--sidebar-bg) !important;
+  background-image: linear-gradient(180deg, #2c3e50 10%, #1a252f 100%) !important;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Títulos de Seção */
+.sidebar-heading {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.4) !important;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  padding-left: 1.5rem;
+}
+
+/* Itens do Menu */
+.nav-item .nav-link {
+  color: var(--sidebar-text) !important;
+  padding: 12px 20px !important;
+  transition: all 0.2s ease-in-out;
+  border-left: 4px solid transparent;
+  font-weight: 500;
+}
+
+.nav-item .nav-link i {
+  color: rgba(255, 255, 255, 0.6) !important;
+  margin-right: 8px;
+  width: 20px;
+  text-align: center;
+}
+
+/* Hover e Active */
+.nav-item .nav-link:hover {
+  background-color: var(--sidebar-hover-bg);
+  border-left-color: var(--primary-color);
+  color: var(--sidebar-active-text) !important;
+  padding-left: 24px !important; /* Efeito de slide */
+}
+
+.nav-item .nav-link:hover i {
+  color: #fff !important;
+}
+
+.nav-item.active .nav-link {
+  background-color: rgba(78, 115, 223, 0.15); /* Leve toque azul */
+  color: #fff !important;
+  border-left-color: #36b9cc; /* Ciano destaque */
+  font-weight: 700;
+}
+
+.nav-item.active .nav-link i {
+  color: #36b9cc !important;
+}
+
+/* Separadores */
+.sidebar-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  margin: 10px 1rem !important;
+}
+
+/* Mobile Adjustments (Responsividade) */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 0;
+    overflow: hidden;
+    transition: width 0.3s;
+  }
+  
+  .sidebar.toggled {
+    width: 250px !important;
+    position: fixed;
+    z-index: 1000;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  /* Overlay quando menu abre no mobile */
+  #content-wrapper {
+    position: relative;
+  }
+  
+  .sidebar-toggled-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 900;
+      display: none;
+  }
+  
+  body.sidebar-toggled .sidebar-toggled-overlay {
+      display: block;
+  }
+}

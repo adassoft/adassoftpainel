@@ -1,0 +1,217 @@
+<?php
+
+namespace App\Filament\App\Resources;
+
+use App\Filament\App\Resources\LicenseResource\Pages;
+use App\Models\License;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+
+class LicenseResource extends Resource
+{
+    protected static ?string $model = License::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-key';
+    protected static ?string $navigationLabel = 'Minhas Licenças';
+    protected static ?string $modelLabel = 'Licença';
+    protected static ?string $pluralModelLabel = 'Minhas Licenças';
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = auth()->user();
+        if (!$user)
+            return parent::getEloquentQuery()->whereRaw('1=0');
+
+        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+        $company = \App\Models\Company::where('cnpj', $cnpjLimpo)->first();
+
+        if (!$company) {
+            return parent::getEloquentQuery()->whereRaw('1=0');
+        }
+
+        return parent::getEloquentQuery()->where('empresa_codigo', $company->codigo);
+    }
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('empresa_codigo')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\TextInput::make('cnpj_revenda')
+                    ->maxLength(20)
+                    ->default(null),
+                Forms\Components\TextInput::make('software_id')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\TextInput::make('serial_atual')
+                    ->required()
+                    ->maxLength(200),
+                Forms\Components\DateTimePicker::make('data_criacao'),
+                Forms\Components\DateTimePicker::make('data_ativacao')
+                    ->required(),
+                Forms\Components\DatePicker::make('data_expiracao')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('data_ultima_renovacao'),
+                Forms\Components\TextInput::make('terminais_utilizados')
+                    ->required()
+                    ->numeric()
+                    ->default(0),
+                Forms\Components\TextInput::make('terminais_permitidos')
+                    ->required()
+                    ->numeric()
+                    ->default(1),
+                Forms\Components\TextInput::make('status')
+                    ->required(),
+                Forms\Components\Textarea::make('observacoes')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('software.nome_software')
+                    ->label('Software')
+                    ->sortable()
+                    ->weight(\Filament\Support\Enums\FontWeight::Bold)
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('data_ativacao')
+                    ->label('Data Liberação')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->color('gray'),
+
+                Tables\Columns\TextColumn::make('data_ultima_renovacao')
+                    ->label('Últ. Renovação')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('data_expiracao')
+                    ->label('Expira em')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->weight(\Filament\Support\Enums\FontWeight::Bold)
+                    ->color(fn($state) => $state < now()->addDays(7) ? 'danger' : 'success'),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'ativo' => 'success',
+                        'inativo', 'bloqueado' => 'danger',
+                        default => 'warning',
+                    }),
+                Tables\Columns\TextColumn::make('terminais_uso')
+                    ->label('Terminais')
+                    ->state(fn(License $record): string => "{$record->terminais_utilizados} / {$record->terminais_permitidos}")
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                // Ação Renovar
+                // Ação Renovar (Checkout Otimizado)
+                Tables\Actions\Action::make('renovar')
+                    ->label('Renovar Agora')
+                    ->icon('heroicon-o-credit-card')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Renovar Licença')
+                    ->modalDescription('Você será redirecionado para a tela de pagamento. Deseja continuar?')
+                    ->action(function (License $record) {
+                        $plano = \App\Models\Plano::where('software_id', $record->software_id)->first();
+
+                        if (!$plano) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Erro')
+                                ->body('Nenhum plano disponível para renovação deste software.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        return redirect()->route('checkout.start', ['planId' => $plano->id, 'license_id' => $record->id]);
+                    }),
+
+                // Histórico de Renovação
+                Tables\Actions\Action::make('historico')
+                    ->label('Histórico')
+                    ->icon('heroicon-o-clock')
+                    ->color('warning')
+                    ->modalContent(function (License $record) {
+                        // Busca pedidos PAGOS ou APROVADOS deste cliente para este software
+                        $orders = \App\Models\Order::where('software_id', $record->software_id)
+                            ->where('cnpj', $record->company->cnpj ?? '')
+                            ->whereIn(DB::raw('UPPER(situacao)'), ['PAGO', 'APROVADO'])
+                            ->orderBy('data', 'desc')
+                            ->get();
+
+                        return view('filament.app.resources.license-resource.pages.history-modal', [
+                            'orders' => $orders
+                        ]);
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Fechar'),
+
+                // Ação Terminais
+                Tables\Actions\Action::make('terminais')
+                    ->label('Terminais')
+                    ->icon('heroicon-o-computer-desktop')
+                    ->color('info')
+                    ->modalContent(function (License $record) {
+                        $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
+                            ->where('terminais_software.licenca_id', $record->id)
+                            ->select('terminais.*', 'terminais_software.ultima_atividade', 'terminais_software.ativo as status_vinculo')
+                            ->get();
+
+                        return view('filament.app.resources.license-resource.pages.terminals-modal', [
+                            'terminais' => $terminais
+                        ]);
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Fechar'),
+
+                // Ação Copiar Token
+                Tables\Actions\Action::make('copiar')
+                    ->label('Token')
+                    ->tooltip('Copiar Token de Ativação')
+                    ->icon('heroicon-o-clipboard-document')
+                    ->color('gray')
+                    ->action(function () {})
+                    ->extraAttributes(fn(License $record) => [
+                        'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
+                        'style' => 'cursor: pointer;',
+                    ]),
+            ])
+            ->bulkActions([
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListLicenses::route('/'),
+        ];
+    }
+}
