@@ -42,7 +42,7 @@ class Register extends BaseRegister
                                     ->required()
                                     ->unique('usuario', 'login')
                                     ->maxLength(50)
-                                    ->prefixIcon('heroicon-o-at')
+                                    ->prefixIcon('heroicon-o-key')
                                     ->placeholder('usuario.sistema'),
 
                                 TextInput::make('email')
