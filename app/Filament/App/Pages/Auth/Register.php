@@ -13,8 +13,13 @@ use App\Models\Empresa;
 use App\Services\ResellerBranding;
 use Illuminate\Database\Eloquent\Model;
 
+use Livewire\Attributes\Layout;
+
+#[Layout('layouts.login-split')]
 class Register extends BaseRegister
 {
+    protected static string $view = 'filament.app.pages.auth.register';
+
     public function form(Form $form): Form
     {
         return $form
