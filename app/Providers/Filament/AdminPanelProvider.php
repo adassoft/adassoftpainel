@@ -27,6 +27,9 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->colors([
+                'primary' => Color::Blue,
+            ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->brandLogo(fn() => view('filament.logo'))
             ->brandLogoHeight('3.5rem')

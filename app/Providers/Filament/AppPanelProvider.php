@@ -27,6 +27,9 @@ class AppPanelProvider extends PanelProvider
             ->path('app')
             ->login(\App\Filament\App\Pages\Auth\Login::class) // Custom Login Page
             ->registration(\App\Filament\App\Pages\Auth\Register::class)
+            ->colors([
+                'primary' => Color::Blue,
+            ])
             ->viteTheme('resources/css/filament/admin/theme.css') // Usando o mesmo tema do Admin
             ->brandLogo(fn() => view('filament.logo'))
             ->brandLogoHeight('3.5rem')

@@ -26,6 +26,9 @@ class ResellerPanelProvider extends PanelProvider
             ->id('reseller')
             ->path('revenda')
             ->login()
+            ->colors([
+                'primary' => Color::Blue,
+            ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->brandLogo(fn() => view('filament.logo'))
             ->brandLogoHeight('3.5rem')
