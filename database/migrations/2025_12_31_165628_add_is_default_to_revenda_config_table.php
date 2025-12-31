@@ -10,9 +10,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('revenda_config', function (Blueprint $table) {
-            $table->boolean('is_default')->default(false)->after('ativo');
-        });
+        if (!Schema::hasColumn('revenda_config', 'is_default')) {
+            Schema::table('revenda_config', function (Blueprint $table) {
+                $table->boolean('is_default')->default(false)->after('ativo');
+            });
+        }
     }
 
     /**
@@ -20,8 +22,10 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('revenda_config', function (Blueprint $table) {
-            $table->dropColumn('is_default');
-        });
+        if (Schema::hasColumn('revenda_config', 'is_default')) {
+            Schema::table('revenda_config', function (Blueprint $table) {
+                $table->dropColumn('is_default');
+            });
+        }
     }
 };
