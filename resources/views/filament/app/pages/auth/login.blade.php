@@ -22,7 +22,7 @@
     <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4 sm:p-0">
 
         <div
-            class="w-full max-w-5xl bg-white shadow-2xl rounded-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+            class="w-full max-w-7xl bg-white shadow-2xl rounded-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
 
             <!-- Lado Esquerdo: Branding (Gradient) -->
             <div class="w-full md:w-1/2 relative flex flex-col items-center justify-center p-12 text-center text-white overflow-hidden"
@@ -41,7 +41,7 @@
             </div>
 
             <!-- Lado Direito: Login Form -->
-            <div class="w-full md:w-1/2 bg-white flex flex-col justify-center p-8 md:p-12 lg:p-16">
+            <div class="w-full md:w-1/2 bg-white flex flex-col justify-center p-6 md:p-10">
                 <div class="w-full max-w-md mx-auto">
                     <div class="text-center mb-10">
                         <h2 class="text-2xl font-bold text-gray-800 mb-2">Bem-vindo de volta!</h2>
