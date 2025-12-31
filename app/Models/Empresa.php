@@ -13,8 +13,8 @@ class Empresa extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'razao_social',
-        'nome_fantasia',
+        'razao', // Legacy name
+        'nome_fantasia', // Created now
         'cnpj',
         'email',
         'fone',

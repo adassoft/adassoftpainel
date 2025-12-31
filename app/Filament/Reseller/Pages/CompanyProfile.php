@@ -45,7 +45,7 @@ class CompanyProfile extends Page
     {
         return $form
             ->schema([
-                TextInput::make('razao_social')
+                TextInput::make('razao')
                     ->label('Razão Social')
                     ->required()
                     ->maxLength(255),
