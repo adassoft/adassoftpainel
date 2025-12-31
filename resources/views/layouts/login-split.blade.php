@@ -22,7 +22,8 @@
             <!-- Conteúdo Principal: flex-grow faz ocupar todo espaço disponível, empurrando o footer para baixo e centralizando o conteúdo -->
             <div class="flex-grow flex flex-col justify-center items-center relative z-10 w-full animate-fade-in-up">
                 <img src="{{ $logoUrl }}"
-                    class="h-32 mx-auto mb-8 drop-shadow-2xl hover:scale-105 transition-transform duration-300">
+                    class="h-32 mx-auto mb-8 drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+                    onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                 <h1 class="text-5xl font-extrabold mb-4 tracking-tight drop-shadow-sm font-heading">{{ $appName }}</h1>
                 <p class="text-xl opacity-90 font-light max-w-lg mx-auto leading-relaxed">{{ $slogan }}</p>
             </div>
@@ -39,7 +40,8 @@
 
                 <!-- Logo Mobile -->
                 <div class="lg:hidden text-center mb-8">
-                    <img src="{{ $logoUrl }}" class="h-16 mx-auto mb-4">
+                    <img src="{{ $logoUrl }}" class="h-16 mx-auto mb-4"
+                        onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                     <h2 class="text-2xl font-bold text-gray-900">{{ $appName }}</h2>
                 </div>
 

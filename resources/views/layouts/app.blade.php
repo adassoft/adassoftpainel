@@ -118,7 +118,8 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top navbar-landing">
         <div class="container">
             <a class="navbar-brand font-weight-bold" href="{{ url('/') }}">
-                <img src="{{ $logoUrl }}" width="32" height="32" class="mr-2 rounded object-contain" alt="Logo">
+                <img src="{{ $logoUrl }}" width="32" height="32" class="mr-2 rounded object-contain" alt="Logo"
+                    onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                 <span>{{ $appName }}</span>
             </a>
             <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbarNav">
@@ -172,7 +173,8 @@
             <div class="row">
                 <div class="col-md-12 text-center text-white">
                     <img src="{{ $logoUrl }}" width="48" height="48" class="mb-3 rounded bg-white p-1"
-                        style="object-fit: contain;">
+                        style="object-fit: contain;"
+                        onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                     <h5 class="font-weight-bold mb-3 d-block">
                         {{ $appName }}
                     </h5>
