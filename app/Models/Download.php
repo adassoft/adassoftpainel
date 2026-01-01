@@ -12,6 +12,7 @@ class Download extends Model
 
     protected $fillable = [
         'titulo',
+        'slug', // Novo
         'descricao',
         'categoria',
         'versao',
@@ -35,6 +36,14 @@ class Download extends Model
         static::creating(function ($model) {
             $model->data_cadastro = now();
             $model->data_atualizacao = now();
+
+            // Generate Slug
+            if (empty($model->slug)) {
+                $slug = \Illuminate\Support\Str::slug($model->titulo);
+                $count = static::whereRaw("slug RLIKE '^{$slug}(-[0-9]+)?$'")->count();
+                $model->slug = $count ? "{$slug}-{$count}" : $slug;
+            }
+
             self::calculateSize($model);
         });
 

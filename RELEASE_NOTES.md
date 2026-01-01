@@ -1,9 +1,8 @@
-# Release Notes - 2026-01-01 16:20
+# Release Notes - 2026-01-01 16:30
 
-- URLs Amigáveis (Slugs):
-    - Implementada a possibilidade de usar nomes nas URLs dos produtos (ex: `/produto/super-carne`).
-    - Campo "URL Amigável" adicionado ao cadastro do software.
-    - Compatibilidade mantida com URLs baseadas em ID.
+- URLs Amigáveis para Downloads:
+    - Mesma lógica de produtos aplicada aos downloads (ex: `/download/manual-instalacao`).
+    - Campo "URL Amigável" adicionado ao cadastro de Downloads.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`

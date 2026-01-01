@@ -82,12 +82,16 @@ class DownloadController extends Controller
 
     public function show($id)
     {
-        $download = Download::findOrFail($id);
+        if (is_numeric($id)) {
+            $download = Download::findOrFail($id);
+        } else {
+            $download = Download::where('slug', $id)->firstOrFail();
+        }
 
         // Se este download for vinculado a um software, redireciona para a página do produto
-        $software = Software::where('id_download_repo', $id)->first();
+        $software = Software::where('id_download_repo', $download->id)->first();
         if ($software) {
-            return redirect()->route('product.show', $software->id);
+            return redirect()->route('product.show', $software->slug ?? $software->id);
         }
 
         return view('shop.download-details', compact('download'));

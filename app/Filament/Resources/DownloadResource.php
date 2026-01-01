@@ -30,9 +30,18 @@ class DownloadResource extends Resource
                 Forms\Components\TextInput::make('titulo')
                     ->label('Título')
                     ->required()
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
                     ->placeholder('Ex: Manual de Instalação')
                     ->columnSpanFull()
                     ->prefixIcon('heroicon-m-document-text'),
+
+                Forms\Components\TextInput::make('slug')
+                    ->label('URL Amigável')
+                    ->unique(ignoreRecord: true)
+                    ->required()
+                    ->columnSpanFull()
+                    ->prefixIcon('heroicon-m-link'),
 
                 Forms\Components\Grid::make(3)
                     ->schema([
