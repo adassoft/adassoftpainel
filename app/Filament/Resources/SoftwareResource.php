@@ -326,10 +326,13 @@ class SoftwareResource extends Resource
                                         TextInput::make('gtin')
                                             ->label('GTIN / EAN')
                                             ->placeholder('EAN-13 ou deixe vazio')
-                                            ->helperText('Se vazio, será enviado "identifier_exists=no".'),
-                                        TextInput::make('google_product_category')
-                                            ->label('ID Categoria Google')
-                                            ->placeholder('Ex: 316 (Software)'),
+                                            ->helperText('Se vazio, enviará "identifier_exists=no".'),
+                                        Select::make('google_product_category')
+                                            ->label('Categoria Google')
+                                            ->options(\App\Services\GoogleTaxonomy::getSoftwareCategories())
+                                            ->searchable()
+                                            ->preload()
+                                            ->placeholder('Busque por: Software, ERP, CRM...'),
                                         TextInput::make('brand')
                                             ->label('Marca')
                                             ->default('AdasSoft'),
