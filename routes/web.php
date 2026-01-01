@@ -12,6 +12,10 @@ Route::get('/seja-parceiro', [\App\Http\Controllers\ResellerController::class, '
 Route::get('/revenda/cadastro', [\App\Http\Controllers\ResellerController::class, 'register'])->name('reseller.register');
 Route::post('/revenda/cadastro', [\App\Http\Controllers\ResellerController::class, 'store'])->name('reseller.store');
 
+Route::get('/parceiros', function () {
+    return view('shop.partners-selector');
+})->name('partners.index');
+
 // Checkout routes public (auth handled inside)
 Route::get('/checkout/{planId}', [\App\Http\Controllers\CheckoutController::class, 'start'])->name('checkout.start');
 Route::post('/checkout/{planId}/pix', [\App\Http\Controllers\CheckoutController::class, 'processPix'])->name('checkout.pix');

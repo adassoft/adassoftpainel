@@ -139,7 +139,7 @@
                     </li>
                     @if(!\App\Services\ResellerBranding::getCurrentCnpj())
                         <li class="nav-item mx-3">
-                            <a class="nav-link btn-partner" href="{{ route('reseller.lp') }}">
+                            <a class="nav-link btn-partner" href="{{ route('partners.index') }}">
                                 <i class="fas fa-handshake mr-1"></i> Seja Parceiro
                             </a>
                         </li>
@@ -244,7 +244,7 @@
                                 class="text-reset text-decoration-none hover-white">Início</a></li>
                         <li class="mb-2"><a href="{{ route('downloads') }}"
                                 class="text-reset text-decoration-none hover-white">Downloads</a></li>
-                        <li class="mb-2"><a href="{{ url('/seja-parceiro') }}"
+                        <li class="mb-2"><a href="{{ route('partners.index') }}"
                                 class="text-reset text-decoration-none hover-white">Seja Parceiro</a></li>
                         <li class="mb-2"><a href="{{ url('/login') }}"
                                 class="text-reset text-decoration-none hover-white">Login</a></li>
