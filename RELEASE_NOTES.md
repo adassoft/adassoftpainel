@@ -1,6 +1,10 @@
-# Release Notes - 2026-01-01 15:30
+# Release Notes - 2026-01-01 15:35
 
-- Melhoria de Usabilidade: O campo "Categoria Google" agora é uma lista pesquisável com as principais categorias de Software (ERP, CRM, Segurança, etc.), facilitando o preenchimento correto.
+- Novo Recurso: Status das Integrações (Google Shopping).
+    - Acesse em "Configurações > Status das Integrações" no painel Admin.
+    - Visualize a URL do Feed XML.
+    - Diagnóstico automático para saber se seus softwares atendem aos requisitos do Google.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`
+2. Configure a URL do Feed no seu Google Merchant Center.
