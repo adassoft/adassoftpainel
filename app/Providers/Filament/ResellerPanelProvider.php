@@ -28,12 +28,22 @@ class ResellerPanelProvider extends PanelProvider
             ->login()
             ->colors([
                 'primary' => Color::Blue,
+                'danger' => Color::Red, // ou Rose
+                'gray' => Color::Gray,
+                'info' => Color::Sky, // ou Blue
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->brandLogo(fn() => view('filament.logo'))
             ->brandLogoHeight('3.5rem')
             ->font('Nunito')
             ->sidebarCollapsibleOnDesktop()
+            ->navigationGroups([
+                'Gestão de Clientes',
+                'Financeiro',
+                'Configurações',
+            ])
             ->discoverResources(in: app_path('Filament/Reseller/Resources'), for: 'App\\Filament\\Reseller\\Resources')
             ->discoverPages(in: app_path('Filament/Reseller/Pages'), for: 'App\\Filament\\Reseller\\Pages')
             ->pages([

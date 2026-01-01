@@ -29,6 +29,11 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->colors([
                 'primary' => Color::Blue,
+                'danger' => Color::Red,
+                'gray' => Color::Gray,
+                'info' => Color::Sky,
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->brandLogo(fn() => view('filament.logo'))
@@ -64,10 +69,11 @@ class AdminPanelProvider extends PanelProvider
                 fn() => view('partials.chatwoot')
             )
             ->navigationGroups([
-                'Gestão',
-                'Clientes e Licenças',
-                'Comercial',
-                'Configurações',
+                'Gestão de Usuários e Clientes',
+                'Catálogo de Softwares',
+                'Licenciamento e Ativações',
+                'Suporte e Conteúdo',
+                'Sistema e Site',
             ])
             ->renderHook(
                 'panels::body.end',

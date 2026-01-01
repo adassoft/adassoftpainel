@@ -84,7 +84,7 @@ class User extends Authenticatable implements FilamentUser
     // Compatibility for 'name' -> 'nome'
     public function getNameAttribute()
     {
-        return $this->attributes['nome'];
+        return $this->nome ?? $this->login;
     }
 
     public function setNameAttribute($value)
@@ -122,4 +122,5 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasOne(Empresa::class, 'cnpj', 'cnpj');
     }
+
 }

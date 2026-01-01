@@ -167,24 +167,144 @@
         @yield('content')
     </main>
 
+    @php
+        $config = \App\Services\ResellerBranding::getConfig();
+        $user = $config?->user;
+        $empresa = $user?->empresa;
+
+        // Dados padrão (Fallback final)
+        $defaultCnpj = '28.718.938/0001-60';
+        $defaultEmail = 'suporte@adassoft.com';
+        $defaultWhatsapp = '11999999999';
+
+        // Redes Sociais (Exclusivo da Config)
+        $instagram = $config->instagram_url ?? null;
+        $facebook = $config->facebook_url ?? null;
+        $linkedin = $config->linkedin_url ?? null;
+        $youtube = $config->youtube_url ?? null;
+
+        // Contatos: Config > Empresa > User > Padrão
+        $email = $config->email_suporte
+            ?? $empresa->email
+            ?? $user->email
+            ?? $defaultEmail;
+
+        // Whatsapp/Fone: Config > Empresa > Padrão
+        $rawPhone = $config->whatsapp
+            ?? $empresa->fone
+            ?? $defaultWhatsapp;
+        $whatsapp = preg_replace('/[^0-9]/', '', $rawPhone);
+
+        // Endereço e Horário (Config > Empresa > Padrão)
+        $endereco = $config->endereco
+            ?? ($empresa ? "{$empresa->endereco}, {$empresa->numero} - {$empresa->cidade}/{$empresa->uf}" : null)
+            ?? 'Av. Paulista, 1000 - Bela Vista - SP';
+
+        $horario = $config->horario_atendimento ?? 'Seg à Sex, 09h às 18h';
+
+        $exibirDoc = $config->exibir_documento ?? true;
+
+        // CNPJ
+        $cnpj = $empresa->cnpj ?? $user->cnpj ?? $defaultCnpj;
+
+        // Helper formatação simples
+        $formatPhone = function ($phone) {
+            $phone = preg_replace('/[^0-9]/', '', $phone);
+            if (strlen($phone) > 10)
+                return '(' . substr($phone, 0, 2) . ') ' . substr($phone, 2, 5) . '-' . substr($phone, 7);
+            if (strlen($phone) == 10)
+                return '(' . substr($phone, 0, 2) . ') ' . substr($phone, 2, 4) . '-' . substr($phone, 6);
+            return $phone;
+        };
+    @endphp
+
     <!-- Footer -->
-    <footer class="footer mt-auto">
+    <footer class="footer mt-auto" style="background-color: #1a202c; padding-top: 60px; padding-bottom: 30px;">
         <div class="container">
-            <div class="row">
-                <div class="col-md-12 text-center text-white">
-                    <img src="{{ $logoUrl }}" width="48" height="48" class="mb-3 rounded bg-white p-1"
-                        style="object-fit: contain;"
+            <div class="row text-white text-md-left text-center">
+                <!-- Coluna 1: Empresa -->
+                <div class="col-md-4 mb-4 text-center text-md-left">
+                    <img src="{{ $logoUrl }}" width="48" height="48"
+                        class="mb-3 rounded bg-white p-1 mx-auto mx-md-0 d-block" style="object-fit: contain;"
                         onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
-                    <h5 class="font-weight-bold mb-3 d-block">
-                        {{ $appName }}
-                    </h5>
-                    <p class="text-secondary small max-w-md mx-auto">{{ $slogan }}</p>
+                    <h5 class="font-weight-bold mb-2">{{ $appName }}</h5>
+                    <p class="text-white-50 small mt-3">
+                        @if($exibirDoc) <strong>CNPJ:</strong> {{ $cnpj }}<br> @endif
+                        {{ $endereco }}<br>
+                        {{ $horario }}
+                    </p>
+                </div>
+
+                <!-- Coluna 2: Institucional -->
+                <div class="col-md-2 mb-4 text-center text-md-left">
+                    <h6 class="font-weight-bold text-uppercase mb-3 small text-white" style="letter-spacing: 1px;">
+                        Navegação</h6>
+                    <ul class="list-unstyled text-white-50 small">
+                        <li class="mb-2"><a href="{{ url('/') }}"
+                                class="text-reset text-decoration-none hover-white">Início</a></li>
+                        <li class="mb-2"><a href="{{ route('downloads') }}"
+                                class="text-reset text-decoration-none hover-white">Downloads</a></li>
+                        <li class="mb-2"><a href="{{ url('/seja-parceiro') }}"
+                                class="text-reset text-decoration-none hover-white">Seja Parceiro</a></li>
+                        <li class="mb-2"><a href="{{ url('/login') }}"
+                                class="text-reset text-decoration-none hover-white">Login</a></li>
+                    </ul>
+                </div>
+
+                <!-- Coluna 3: Legal -->
+                <div class="col-md-3 mb-4 text-center text-md-left">
+                    <h6 class="font-weight-bold text-uppercase mb-3 small text-white" style="letter-spacing: 1px;">Legal
+                        & Políticas</h6>
+                    <ul class="list-unstyled text-white-50 small">
+                        @php
+                            try {
+                                $legalPages = \App\Models\LegalPage::where('is_active', true)->get();
+                            } catch (\Exception $e) {
+                                $legalPages = [];
+                            }
+                        @endphp
+
+                        @foreach($legalPages as $page)
+                            <li class="mb-2">
+                                <a href="{{ route('legal.show', $page->slug) }}"
+                                    class="text-reset text-decoration-none hover-white">
+                                    {{ $page->title }}
+                                </a>
+                            </li>
+                        @endforeach
+
+                        @if(empty($legalPages) || $legalPages->isEmpty())
+                            <li class="mb-2 text-white-50 font-italic">Sem documentos públicos.</li>
+                        @endif
+                    </ul>
+                </div>
+
+                <!-- Coluna 4: Contato -->
+                <div class="col-md-3 mb-4 text-center text-md-left">
+                    <h6 class="font-weight-bold text-uppercase mb-3 small text-white" style="letter-spacing: 1px;">
+                        Atendimento</h6>
+                    <ul class="list-unstyled text-white-50 small">
+                        <li class="mb-2"><i class="fas fa-envelope mr-2"></i> {{ $email }}</li>
+                        <li class="mb-2"><i class="fab fa-whatsapp mr-2"></i> {{ $formatPhone($whatsapp) }}</li>
+                    </ul>
+                    <div class="mt-3">
+                        @if($instagram) <a href="{{ $instagram }}" target="_blank"
+                        class="text-white mr-3 hover-opacity"><i class="fab fa-instagram fa-lg"></i></a> @endif
+                        @if($facebook) <a href="{{ $facebook }}" target="_blank"
+                        class="text-white mr-3 hover-opacity"><i class="fab fa-facebook fa-lg"></i></a> @endif
+                        @if($linkedin) <a href="{{ $linkedin }}" target="_blank"
+                        class="text-white mr-3 hover-opacity"><i class="fab fa-linkedin fa-lg"></i></a> @endif
+                        @if($youtube) <a href="{{ $youtube }}" target="_blank" class="text-white hover-opacity"><i
+                        class="fab fa-youtube fa-lg"></i></a> @endif
+                    </div>
                 </div>
             </div>
-            <div class="text-center mt-5 border-top pt-4 border-secondary">
-                <p class="mb-0 text-secondary small">&copy; {{ date('Y') }}
-                    {{ $appName }}. Todos os direitos reservados.
-                </p>
+
+            <div class="row mt-4 pt-4 border-top border-secondary">
+                <div class="col-12 text-center text-white-50 small">
+                    &copy; {{ date('Y') }} {{ $appName }}. Todos os direitos reservados.
+                    <br class="d-md-none"> @if($exibirDoc) CNPJ: {{ $cnpj }} @endif
+                </div>
             </div>
         </div>
     </footer>

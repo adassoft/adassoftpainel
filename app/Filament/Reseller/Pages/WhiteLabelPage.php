@@ -21,6 +21,7 @@ class WhiteLabelPage extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-paint-brush';
     protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 3;
     protected static ?string $navigationLabel = 'Personalização (White Label)';
     protected static ?string $title = 'Personalização do Sistema';
     protected static string $view = 'filament.reseller.pages.white-label-page';

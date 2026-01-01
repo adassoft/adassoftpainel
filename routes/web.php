@@ -38,6 +38,8 @@ Route::get('/login', function () {
     return redirect()->route('filament.app.auth.login');
 })->name('login');
 
+Route::get('/legal/{slug}', [\App\Http\Controllers\LegalPageController::class, 'show'])->name('legal.show');
+
 // === Gerenciador de Redirecionamentos (SEO) ===
 Route::fallback(function () {
     $path = request()->path();

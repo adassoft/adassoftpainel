@@ -12,7 +12,8 @@ return new class extends Migration {
     {
         Schema::create('suggestion_votes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->integer('user_id');
+            $table->foreign('user_id')->references('id')->on('usuario')->cascadeOnDelete();
             $table->foreignId('suggestion_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 

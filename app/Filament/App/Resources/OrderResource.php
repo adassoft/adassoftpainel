@@ -26,9 +26,8 @@ class OrderResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $user = auth()->user();
-        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
-
-        return parent::getEloquentQuery()->where('cnpj', $cnpjLimpo);
+        // Filtra pedidos do usuário logado pelo ID, já que a tabela orders usa user_id
+        return parent::getEloquentQuery()->where('user_id', $user->id);
     }
 
     public static function form(Form $form): Form

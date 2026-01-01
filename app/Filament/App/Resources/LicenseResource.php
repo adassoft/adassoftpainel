@@ -154,11 +154,29 @@ class LicenseResource extends Resource
                     ->color('warning')
                     ->modalContent(function (License $record) {
                         // Busca pedidos PAGOS ou APROVADOS deste cliente para este software
-                        $orders = \App\Models\Order::where('software_id', $record->software_id)
-                            ->where('cnpj', $record->company->cnpj ?? '')
-                            ->whereIn(DB::raw('UPPER(situacao)'), ['PAGO', 'APROVADO'])
-                            ->orderBy('data', 'desc')
-                            ->get();
+                        // Correção: Orders usa user_id e plano_id, não cnpj e software_id direto.
+            
+                        $company = $record->company;
+
+                        if (!$company) {
+                            $orders = collect([]);
+                        } else {
+                            // Busca usuários vinculados a esta empresa
+                            $userIds = \App\Models\User::where('cnpj', $company->cnpj)->pluck('id');
+
+                            $orders = \App\Models\Order::query()
+                                ->whereIn('user_id', $userIds)
+                                ->whereHas('plan', function ($q) use ($record) {
+                                    $q->where('software_id', $record->software_id);
+                                })
+                                ->where(function ($q) {
+                                    $q->whereIn(DB::raw('UPPER(status)'), ['PAGO', 'APROVADO', 'PAID', 'APPROVED']);
+                                    // Fallback para situacao se existir em alguma versao legada ou accessor
+                                    // $q->orWhereIn(DB::raw('UPPER(situacao)'), ['PAGO', 'APROVADO']); 
+                                })
+                                ->orderBy('created_at', 'desc')
+                                ->get();
+                        }
 
                         return view('filament.app.resources.license-resource.pages.history-modal', [
                             'orders' => $orders

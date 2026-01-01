@@ -20,7 +20,8 @@ class TerminalResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
     protected static ?string $modelLabel = 'Terminal';
     protected static ?string $pluralModelLabel = 'Controle de Terminais';
-    protected static ?string $navigationGroup = 'Clientes e Licenças';
+    protected static ?string $navigationGroup = 'Licenciamento e Ativações';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

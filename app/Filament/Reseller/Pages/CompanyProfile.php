@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\Auth;
 class CompanyProfile extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
+    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 1;
     protected static ?string $navigationLabel = 'Minha Empresa';
     protected static ?string $title = 'Dados da Empresa';
     protected static ?string $slug = 'configurar-empresa';
 
-    // Escondido do menu se já tiver empresa, ou mostra sempre? 
-    // Vamos deixar visível para ele poder editar depois.
-    protected static ?string $navigationGroup = 'Configurações';
+
 
     protected static string $view = 'filament.reseller.pages.company-profile';
 

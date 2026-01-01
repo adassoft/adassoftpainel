@@ -21,6 +21,7 @@ class ManagePlansPage extends Page implements HasTable
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
     protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 2;
     protected static ?string $navigationLabel = 'Gerenciar Preços e Planos';
     protected static ?string $title = 'Gerenciar Preços e Planos';
     protected static string $view = 'filament.reseller.pages.manage-plans-page';

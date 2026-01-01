@@ -23,9 +23,10 @@ class GenerateLicense extends Page implements HasForms
     use LegacyLicenseGenerator;
 
     protected static ?string $navigationIcon = 'heroicon-o-key';
+    protected static ?string $navigationGroup = 'Gestão de Clientes';
     protected static ?string $navigationLabel = 'Gerar Licença';
     protected static ?string $title = 'Gerar Licença Manual';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.reseller.pages.generate-license';
 

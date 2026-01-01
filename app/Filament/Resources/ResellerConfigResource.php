@@ -19,7 +19,8 @@ class ResellerConfigResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-swatch';
 
-    protected static ?string $navigationGroup = 'Gestão de Revendas';
+    protected static ?string $navigationGroup = 'Gestão de Usuários e Clientes';
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $modelLabel = 'Configuração White Label';
 
@@ -78,7 +79,29 @@ class ResellerConfigResource extends Resource
                             ->default(false)
                             ->inline(false)
                             ->onColor('success'),
-                    ])->columns(2)
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Contato e Redes Sociais')
+                    ->description('Informações públicas exibidas no rodapé do site.')
+                    ->schema([
+                        Forms\Components\TextInput::make('email_suporte')->label('E-mail de Suporte')->email(),
+                        Forms\Components\TextInput::make('whatsapp')
+                            ->label('WhatsApp Comercial (Números)')
+                            ->helperText('Apenas números, com DDD. Ex: 11999999999'),
+                        Forms\Components\TextInput::make('endereco')->label('Endereço Completo')->columnSpanFull(),
+                        Forms\Components\TextInput::make('horario_atendimento')->label('Horário de Atendimento')->placeholder('Seg à Sex, 09h às 18h'),
+
+                        Forms\Components\Toggle::make('exibir_documento')
+                            ->label('Exibir CPF/CNPJ no Rodapé')
+                            ->default(true),
+
+                        Forms\Components\Group::make()->schema([
+                            Forms\Components\TextInput::make('instagram_url')->label('Instagram (URL)')->url()->prefix('https://'),
+                            Forms\Components\TextInput::make('facebook_url')->label('Facebook (URL)')->url()->prefix('https://'),
+                            Forms\Components\TextInput::make('linkedin_url')->label('LinkedIn (URL)')->url()->prefix('https://'),
+                            Forms\Components\TextInput::make('youtube_url')->label('YouTube (URL)')->url()->prefix('https://'),
+                        ])->columnSpanFull()->columns(2),
+                    ])->columns(2)->collapsible(),
             ]);
     }
 

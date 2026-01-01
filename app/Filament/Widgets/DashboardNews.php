@@ -34,7 +34,7 @@ class DashboardNews extends Widget
             $query->whereIn('publico', ['revenda', 'todos']);
         } elseif (!$this->isAdmin($user)) {
             // Cliente (assumindo que não é admin e não é revenda)
-            $query->where('publico', 'todos');
+            $query->whereIn('publico', ['todos', 'cliente']);
         }
         // Se for Admin, query não tem filtro de público (vê tudo)
 

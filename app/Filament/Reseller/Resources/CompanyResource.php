@@ -20,7 +20,9 @@ class CompanyResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $modelLabel = 'Cliente';
     protected static ?string $pluralModelLabel = 'Meus Clientes';
-    protected static ?string $navigationLabel = 'Meus Clientes';
+    protected static ?string $navigationLabel = 'Clientes';
+    protected static ?string $navigationGroup = 'Gestão de Clientes';
+    protected static ?int $navigationSort = 1;
 
     public static function getEloquentQuery(): Builder
     {

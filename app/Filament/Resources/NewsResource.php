@@ -20,8 +20,9 @@ class NewsResource extends Resource
     protected static ?string $navigationLabel = 'Notícias e Avisos';
     protected static ?string $modelLabel = 'Notícia';
     protected static ?string $pluralModelLabel = 'Notícias e Avisos';
-    protected static ?string $navigationGroup = 'Gestão';
-    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationGroup = 'Suporte e Conteúdo';
+    protected static ?int $navigationSort = 3;
+
 
     public static function form(Form $form): Form
     {
@@ -40,6 +41,7 @@ class NewsResource extends Resource
                                 ->label('Público Alvo')
                                 ->options([
                                     'revenda' => 'Apenas Revendas',
+                                    'cliente' => 'Apenas Clientes',
                                     'todos' => 'Todos (Revendas e Clientes)',
                                 ])
                                 ->required()
@@ -116,10 +118,12 @@ class NewsResource extends Resource
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'revenda' => 'warning',
+                        'cliente' => 'success',
                         'todos' => 'info',
                     })
                     ->formatStateUsing(fn(string $state): string => match ($state) {
                         'revenda' => 'Revendas',
+                        'cliente' => 'Clientes',
                         'todos' => 'Todos',
                         default => $state,
                     }),
@@ -139,6 +143,7 @@ class NewsResource extends Resource
                 Tables\Filters\SelectFilter::make('publico')
                     ->options([
                         'revenda' => 'Revendas',
+                        'cliente' => 'Clientes',
                         'todos' => 'Todos',
                     ]),
                 Tables\Filters\SelectFilter::make('tipo')

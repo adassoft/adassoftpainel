@@ -23,6 +23,11 @@ class Software extends Model
         'api_key_gerada_em'
     ];
 
+    protected $casts = [
+        'api_key_gerada_em' => 'datetime',
+        'data_cadastro' => 'datetime',
+    ];
+
     public function plans()
     {
         return $this->hasMany(Plano::class, 'software_id');

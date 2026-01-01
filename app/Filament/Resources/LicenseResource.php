@@ -20,7 +20,8 @@ class LicenseResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-key';
     protected static ?string $modelLabel = 'Licença';
     protected static ?string $pluralModelLabel = 'Gestão de Licenças';
-    protected static ?string $navigationGroup = 'Licenciamento';
+    protected static ?string $navigationGroup = 'Licenciamento e Ativações';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

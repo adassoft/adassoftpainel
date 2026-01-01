@@ -65,6 +65,13 @@
                             Ver Planos Disponíveis
                             <i class="fas fa-arrow-down ml-2 group-hover:translate-y-1 transition-transform"></i>
                         </a>
+
+                        @if($product->url_download)
+                            <a href="{{ $product->url_download }}" target="_blank"
+                                class="inline-flex items-center justify-center px-8 py-4 bg-gray-100 text-gray-800 font-bold rounded-full hover:bg-gray-200 transition shadow-lg hover:shadow-xl mt-4 md:mt-0 md:ml-4 group">
+                                <i class="fas fa-download mr-2 group-hover:text-blue-600 transition-colors"></i> Baixar Demonstrativo
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

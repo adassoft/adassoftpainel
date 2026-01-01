@@ -33,7 +33,8 @@ class SoftwareResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-cube';
     protected static ?string $modelLabel = 'Software';
     protected static ?string $pluralModelLabel = 'Softwares';
-    protected static ?string $navigationGroup = 'Comercial';
+    protected static ?string $navigationGroup = 'Catálogo de Softwares';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -328,7 +329,7 @@ class SoftwareResource extends Resource
                                     ->schema([
                                         Placeholder::make('created_at')
                                             ->label('Data de Cadastro')
-                                            ->content(fn($record) => $record?->data_cadastro?->format('d/m/Y H:i:s') ?? '-'),
+                                            ->content(fn($record) => $record?->data_cadastro ? \Carbon\Carbon::parse($record->data_cadastro)->format('d/m/Y H:i:s') : '-'),
 
                                         Placeholder::make('id')
                                             ->label('ID do Software')

@@ -19,6 +19,8 @@ class MyWallet extends Page implements HasTable
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-wallet';
+    protected static ?string $navigationGroup = 'Financeiro';
+    protected static ?int $navigationSort = 1;
     protected static ?string $navigationLabel = 'Minha Carteira';
     protected static ?string $title = 'Minha Carteira';
 

@@ -21,11 +21,10 @@ class SerialHistoryResource extends Resource
 
     protected static ?string $navigationLabel = 'Rel. Movimentações';
 
-    protected static ?string $modelLabel = 'Movimentação';
-
-    protected static ?string $pluralModelLabel = 'Histórico de Movimentações';
-
-    protected static ?int $navigationSort = 3;
+    protected static ?string $modelLabel = 'Histórico de Serial';
+    protected static ?string $pluralModelLabel = 'Histórico de Serials';
+    protected static ?string $navigationGroup = 'Financeiro';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

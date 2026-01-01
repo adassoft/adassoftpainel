@@ -20,7 +20,8 @@ class SerialHistoryResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-list-bullet';
     protected static ?string $modelLabel = 'Histórico de Serial';
     protected static ?string $pluralModelLabel = 'Histórico de Seriais';
-    protected static ?string $navigationGroup = 'Licenciamento';
+    protected static ?string $navigationGroup = 'Licenciamento e Ativações';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

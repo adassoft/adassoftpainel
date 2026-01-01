@@ -40,11 +40,7 @@ class OrderResource extends Resource
         return $table
             ->modifyQueryUsing(
                 fn(Builder $query) =>
-                $query->whereIn('cnpj', function ($q) {
-                    $q->select('cnpj')
-                        ->from('empresa')
-                        ->where('cnpj_representante', Auth::user()->cnpj);
-                })
+                $query->where('cnpj_revenda', Auth::user()->cnpj)
             )
             ->contentGrid([
                 'md' => 2,
