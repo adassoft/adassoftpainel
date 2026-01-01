@@ -105,6 +105,13 @@ class FeatureRequests extends Page
 
         if ($this->filterStatus !== 'all') {
             $query->where('status', $this->filterStatus);
+        } else {
+            // Se filtro "Todas", oculta as Pendentes (Moderação)
+            // Mas permite que o usuário veja as SUAS próprias pendentes
+            $query->where(function ($q) {
+                $q->where('status', '!=', 'pending')
+                    ->orWhere('user_id', auth()->id());
+            });
         }
 
         return [

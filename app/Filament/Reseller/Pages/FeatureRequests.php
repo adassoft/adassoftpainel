@@ -105,10 +105,15 @@ class FeatureRequests extends Page
 
         if ($this->filterStatus !== 'all') {
             $query->where('status', $this->filterStatus);
+        } else {
+            // Se filtro "Todas", oculta as Pendentes (Moderação)
+            // Mas permite que o usuário veja as SUAS próprias pendentes
+            $query->where(function ($q) {
+                $q->where('status', '!=', 'pending')
+                    ->orWhere('user_id', auth()->id());
+            });
         }
 
-        // Ordena: Primeiro Status 'voting' ou 'planned', depois por quantidade de votos
-        // Mas geralmente o cliente que ver as mais votadas primeiro.
         return [
             'suggestions' => $query->orderByDesc('votes_count')->paginate(12)
         ];
