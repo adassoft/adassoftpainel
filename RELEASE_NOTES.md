@@ -1,7 +1,7 @@
-# Release Notes - 2026-01-01 12:20
+# Release Notes - 2026-01-01 12:40
 
-- Novo Recurso: Página "Central de Parcerias" (`/parceiros`) criada para segmentar interessados entre Revendedores e Desenvolvedores.
-- Atualização de Menu: Link "Seja Parceiro" agora aponta para a central de escolha.
+- Melhoria de Navegação: O menu "Seja Parceiro" agora é exibido tanto no site principal quanto na Revenda Padrão (Master).
+- Correção Lógica: Revendas white-label de terceiros continuam ocultando este menu para proteger seus leads.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`

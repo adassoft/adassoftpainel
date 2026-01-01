@@ -137,7 +137,7 @@
                         <a class="nav-link {{ Request::routeIs('downloads') ? 'active-link' : '' }}"
                             href="{{ route('downloads') }}">Downloads</a>
                     </li>
-                    @if(!\App\Services\ResellerBranding::getCurrentCnpj())
+                    @if(\App\Services\ResellerBranding::isDefault())
                         <li class="nav-item mx-3">
                             <a class="nav-link btn-partner" href="{{ route('partners.index') }}">
                                 <i class="fas fa-handshake mr-1"></i> Seja Parceiro

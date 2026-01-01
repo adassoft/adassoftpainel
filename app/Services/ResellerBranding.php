@@ -108,8 +108,19 @@ class ResellerBranding
             'nome_sistema' => $config->nome_sistema,
             'slogan' => $config->slogan,
             'logo_url' => $config->logo_path ? Storage::url($config->logo_path) : null,
-            'gradient_start' => $config->cor_primaria_gradient_start,
-            'gradient_end' => $config->cor_primaria_gradient_end,
         ];
+    }
+
+    /**
+     * Verifica se a configuração atual é a padrão do sistema (Master Reseller) ou se é acesso direto.
+     */
+    public static function isDefault(): bool
+    {
+        $config = self::getConfig();
+        // Se não tem config, assume que é o sistema raiz (AdasSoft), então é "Default"
+        if (!$config) {
+            return true;
+        }
+        return (bool) $config->is_default;
     }
 }
