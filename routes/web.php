@@ -2,8 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ShopController;
-
-
+use App\Models\Redirect;
 
 Route::get('/', [ShopController::class, 'index'])->name('home');
 Route::get('/produto/{id}', [\App\Http\Controllers\ProductController::class, 'show'])->name('product.show');
@@ -39,5 +38,24 @@ Route::get('/login', function () {
     return redirect()->route('filament.app.auth.login');
 })->name('login');
 
-// Rota de fallback para imagens antigas se necessário (opcional)
-// Route::get('/img/{path}', ...)
+// === Gerenciador de Redirecionamentos (SEO) ===
+Route::fallback(function () {
+    $path = request()->path();
+    // Garante que o path comece com / se não tiver (request()->path() retorna 'foo/bar')
+    $pathWithSlash = '/' . $path;
+
+    // Tenta encontrar o redirect (cachear isso seria bom em produção com alto tráfego)
+    $redirect = Redirect::where(function ($query) use ($path, $pathWithSlash) {
+        $query->where('path', $path)
+            ->orWhere('path', $pathWithSlash);
+    })->where('is_active', true)->first();
+
+    if ($redirect) {
+        return redirect($redirect->target_url, $redirect->status_code);
+    }
+
+    // Se quiser, descomente abaixo para enviar qualquer 404 para o blog
+    // return redirect('https://blog.adassoft.com/' . $path);
+
+    abort(404);
+});
