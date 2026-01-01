@@ -100,8 +100,8 @@
                             <div class="card-body text-center p-5 d-flex flex-column">
                                 <div class="icon-box">
                                     @if(!empty($soft['imagem']))
-                                        <img src="{{ filter_var($soft['imagem'], FILTER_VALIDATE_URL) ? $soft['imagem'] : asset($soft['imagem']) }}"
-                                            class="img-fluid rounded-circle" style="width:100%; height:100%; object-fit:cover;">
+                                        <img src="{{ $soft['imagem'] }}" class="img-fluid rounded-circle"
+                                            style="width:100%; height:100%; object-fit:cover;">
                                     @else
                                         <i class="fas fa-file-download"></i>
                                     @endif

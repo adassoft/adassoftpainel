@@ -1,7 +1,7 @@
-# Release Notes - 2026-01-01 11:55
+# Release Notes - 2026-01-01 12:00
 
-- Melhoria UX: Campo "Código" do Software agora é gerado automaticamente (ex: SW-XXXXXXXX) ao criar um novo registro, facilitando o cadastro.
-- Ajustes finos no formulário de Software.
+- Correção de Imagens: As imagens e ícones na página de Downloads agora são carregadas corretamente, corrigindo problemas com caminhos relativos ao storage.
+- Auto-Geração de Código: Melhoria no cadastro de softwares.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`

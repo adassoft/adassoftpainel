@@ -52,7 +52,7 @@ class DownloadController extends Controller
                     'tamanho_arquivo' => $tamanho,
                     'url_download' => $url,
                     'data_info' => $dataInfo,
-                    'imagem' => $soft->imagem ?: $soft->imagem_destaque,
+                    'imagem' => $this->resolveImageUrl($soft->imagem ?: $soft->imagem_destaque),
                     'contador' => $contador
                 ]);
             }
@@ -91,5 +91,23 @@ class DownloadController extends Controller
         }
 
         return view('shop.download-details', compact('download'));
+    }
+
+    private function resolveImageUrl($path)
+    {
+        if (!$path)
+            return null;
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        // Se começar com 'img/', assume que está na pasta public raiz (ex: ícones gerados)
+        if (str_starts_with($path, 'img/')) {
+            return asset($path);
+        }
+
+        // Caso contrário, assume que é um upload do Filament (Storage)
+        return asset('storage/' . $path);
     }
 }
