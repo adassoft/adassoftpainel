@@ -267,9 +267,10 @@ class SoftwareResource extends Resource
                                             ->rows(3)
                                             ->columnSpanFull(),
 
-                                        RichEditor::make('pagina_vendas_html')
-                                            ->label('Landing Page Personalizada (HTML)')
-                                            ->helperText('Conteúdo rico HTML para a página de vendas. Se vazio, exibe o padrão.')
+                                        Textarea::make('pagina_vendas_html')
+                                            ->label('Landing Page Personalizada (HTML Puro)')
+                                            ->helperText('Cole o HTML bruto aqui. O sistema renderizará exatamente como estiver.')
+                                            ->rows(15)
                                             ->columnSpanFull()
                                             ->hintAction(
                                                 Action::make('gerar_html_ia')
