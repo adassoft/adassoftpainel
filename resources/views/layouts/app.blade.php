@@ -11,6 +11,23 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    {{-- SEO Canonical: Evita conteúdo duplicado em revendas --}}
+    @php
+        $currentUrl = url()->current();
+        // Pega a URL base do sistema principal (ex: https://adassoft.com.br)
+        $baseUrl = config('app.url');
+        
+        // Verifica se é o domínio principal
+        $isMainDomain = \App\Services\ResellerBranding::isDefault();
+        
+        // Se estiver numa revenda, forçamos o canonical para o domínio principal (para produtos/paginas padrão)
+        // A menos que a view defina um canonical específico (ex: conteudo exclusivo da revenda)
+        $canonical = $isMainDomain ? $currentUrl : str_replace(request()->root(), $baseUrl, $currentUrl);
+    @endphp
+    
+    <link rel="canonical" href="@yield('canonical', $canonical)" />
+
     <title>@yield('title', $appName . ' | Store')</title>
 
     <!-- Favicon -->
