@@ -1,7 +1,7 @@
-# Release Notes - 2026-01-01 12:50
+# Release Notes - 2026-01-01 13:30
 
-- Correção Crítica: Campos como "Landing Page HTML" e "Código" não estavam sendo salvos corretamente. O problema foi corrigido. **Por favor, edite e salve novamente os softwares afetados.**
-- Nova Página: Central de Parcerias (`/parceiros`) adicionada.
+- Melhoria no Cadastro: O campo "Landing Page HTML" agora aceita HTML puro (Raw) sem formatação automática, ideal para colar designs gerados por IA.
+- Importante: Se sua landing page estava com visual quebrado, edite o software e cole o código HTML novamente neste novo campo.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`
