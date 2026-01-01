@@ -1,3 +1,5 @@
+<?php
+
 namespace App\Filament\Reseller\Pages;
 
 use Filament\Pages\Page;
