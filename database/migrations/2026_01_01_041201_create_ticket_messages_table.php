@@ -16,7 +16,7 @@ return new class extends Migration {
 
             $table->id();
             $table->foreignId('ticket_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable(); // Constraint via migration separada ou manual por segurança
+            $table->unsignedBigInteger('user_id')->nullable(); // Constraint via migration separada ou manual por segurança
 
             $table->longText('content');
             $table->json('attachments')->nullable();

@@ -42,7 +42,7 @@ return new class extends Migration {
 
                 $table->id();
                 // user_id sem constraint rígida para evitar falhas se usuario/users diferir em prod
-                $table->integer('user_id')->index();
+                $table->unsignedBigInteger('user_id')->index();
 
                 // software_id
                 $table->unsignedBigInteger('software_id')->nullable();
@@ -70,7 +70,7 @@ return new class extends Migration {
 
                 $table->id();
                 $table->foreignId('ticket_id')->constrained('tickets')->cascadeOnDelete();
-                $table->integer('user_id')->nullable();
+                $table->unsignedBigInteger('user_id')->nullable();
 
                 $table->longText('content');
                 $table->json('attachments')->nullable();
@@ -86,10 +86,10 @@ return new class extends Migration {
 
                 // Check user table
                 if (Schema::hasTable('usuario')) {
-                    $table->integer('user_id');
+                    $table->unsignedBigInteger('user_id');
                     $table->foreign('user_id')->references('id')->on('usuario')->cascadeOnDelete();
                 } else {
-                    $table->integer('user_id');
+                    $table->unsignedBigInteger('user_id');
                 }
 
                 // Check suggestions table (created in previous migration step)

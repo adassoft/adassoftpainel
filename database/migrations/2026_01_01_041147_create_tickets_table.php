@@ -15,9 +15,9 @@ return new class extends Migration {
             $table->collation = 'utf8_unicode_ci';
 
             $table->id();
-            $table->foreignId('user_id'); // Sem constraint referencial por enquanto (evitar erro 1005/1452)
+            $table->unsignedBigInteger('user_id'); // Referência manual à tabela usuario
             $table->index('user_id');
-            $table->foreignId('software_id')->nullable(); // Constraint desativada para debug de Erro 1005
+            $table->foreignId('software_id')->nullable(); // Softwares usa padrão Laravel (users), mas aqui é 'softwares' (plural). foreignId assume singular_id.
 
             $table->string('subject');
             $table->longText('description'); // Descrição inicial do problema

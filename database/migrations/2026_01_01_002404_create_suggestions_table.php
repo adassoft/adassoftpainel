@@ -13,9 +13,9 @@ return new class extends Migration {
         if (!Schema::hasTable('suggestions')) {
             Schema::create('suggestions', function (Blueprint $table) {
                 $table->id();
-                $table->integer('user_id');
+                $table->unsignedBigInteger('user_id');
                 $table->foreign('user_id')->references('id')->on('usuario')->cascadeOnDelete();
-                $table->integer('software_id')->nullable();
+                $table->unsignedBigInteger('software_id')->nullable();
                 $table->foreign('software_id')->references('id')->on('softwares')->nullOnDelete();
                 $table->string('title');
                 $table->text('description');

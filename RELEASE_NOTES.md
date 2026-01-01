@@ -1,8 +1,7 @@
-# Release Notes - 2026-01-01 07:05
+# Release Notes - 2026-01-01 07:44
 
-- Correção crítica de banco de dados: Adicionado migrações de segurança para criar tabelas ausentes (redirects, suggestions, tickets, etc).
-- Ajustes no menu administrativo.
+- Correção CRÍTICA: Ajuste nos tipos das colunas de chave estrangeira (user_id) de Integer para UnsignedBigInteger em todas as novas tabelas (suggestions, tickets, votes, messages) para corrigir o erro "Foreign key constraint is incorrectly formed".
 
-Por favor, execute:
-1. `git pull`
-2. `php artisan migrate`
+Instruções para correção no servidor:
+1. Execute `git pull`
+2. Execute `php artisan migrate`
