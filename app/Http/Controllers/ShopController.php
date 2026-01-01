@@ -34,6 +34,8 @@ class ShopController extends Controller
 
         // 1. Categorias
         $categorias = Software::where('status', 1)
+            ->whereNotNull('categoria')
+            ->where('categoria', '!=', '')
             ->distinct()
             ->orderBy('categoria')
             ->pluck('categoria');
