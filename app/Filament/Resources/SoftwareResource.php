@@ -50,12 +50,10 @@ class SoftwareResource extends Resource
                                     ->schema([
                                         TextInput::make('codigo')
                                             ->label('Código')
-                                            ->default('Gerado Automaticamente')
-                                            ->disabled(fn($operation) => $operation === 'create')
-                                            ->dehydrated()
-                                            ->readOnly(fn($operation) => $operation === 'create')
+                                            ->default(fn() => 'SW-' . strtoupper(\Illuminate\Support\Str::random(8)))
                                             ->unique(ignoreRecord: true)
                                             ->required()
+                                            ->maxLength(50)
                                             ->helperText('Código único para identificação do software (máximo 50 caracteres).'),
 
                                         TextInput::make('nome_software')

@@ -1,7 +1,7 @@
-# Release Notes - 2026-01-01 07:44
+# Release Notes - 2026-01-01 11:55
 
-- Correção CRÍTICA: Ajuste nos tipos das colunas de chave estrangeira (user_id) de Integer para UnsignedBigInteger em todas as novas tabelas (suggestions, tickets, votes, messages) para corrigir o erro "Foreign key constraint is incorrectly formed".
+- Melhoria UX: Campo "Código" do Software agora é gerado automaticamente (ex: SW-XXXXXXXX) ao criar um novo registro, facilitando o cadastro.
+- Ajustes finos no formulário de Software.
 
-Instruções para correção no servidor:
+Instruções para atualização no servidor:
 1. Execute `git pull`
-2. Execute `php artisan migrate`
