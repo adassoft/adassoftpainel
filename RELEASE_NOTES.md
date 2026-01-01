@@ -1,7 +1,7 @@
-# Release Notes - 2026-01-01 12:40
+# Release Notes - 2026-01-01 12:50
 
-- Melhoria de Navegação: O menu "Seja Parceiro" agora é exibido tanto no site principal quanto na Revenda Padrão (Master).
-- Correção Lógica: Revendas white-label de terceiros continuam ocultando este menu para proteger seus leads.
+- Correção Crítica: Campos como "Landing Page HTML" e "Código" não estavam sendo salvos corretamente. O problema foi corrigido. **Por favor, edite e salve novamente os softwares afetados.**
+- Nova Página: Central de Parcerias (`/parceiros`) adicionada.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`

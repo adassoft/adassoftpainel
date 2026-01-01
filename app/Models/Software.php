@@ -11,11 +11,18 @@ class Software extends Model
 
     protected $fillable = [
         'nome_software',
+        'codigo', // Novo
         'descricao',
+        'pagina_vendas_html', // Novo
+        'categoria', // Novo
+        'imagem_destaque', // Novo
         'linguagem',
         'plataforma',
         'imagem',
         'url_download',
+        'arquivo_software', // Novo
+        'tamanho_arquivo', // Novo
+        'id_download_repo', // Novo
         'versao',
         'status',
         'api_key_hash',
