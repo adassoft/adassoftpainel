@@ -78,8 +78,15 @@
         </div>
     @endif
 
+    <!-- Separator Transition -->
+    <div style="height: 100px; overflow: hidden; margin-top: -1px;">
+        <svg preserveAspectRatio="none" viewBox="0 0 1440 320" style="height: 100%; width: 100%;">
+            <path fill="#f8f9fc" fill-opacity="1" d="M0,96L80,112C160,128,320,160,480,165.3C640,171,800,149,960,133.3C1120,117,1280,107,1360,101.3L1440,96L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
+        </svg>
+    </div>
+
     <!-- Base Pricing Section (Always Visible underneath custom HTML, or standalone) -->
-    <div class="container mx-auto px-4 pb-20 pt-10" id="planos">
+    <div class="container mx-auto px-4 pb-20 pt-10" id="planos" style="background-color: #f8f9fc;">
         <div class="text-center mb-12">
             <h2 class="text-3xl font-bold text-gray-800 mb-2">Escolha o plano ideal</h2>
             <p class="text-gray-500">Desbloqueie todo o potencial do {{ $product->nome_software }}</p>
