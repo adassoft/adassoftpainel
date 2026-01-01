@@ -317,6 +317,23 @@ class SoftwareResource extends Resource
                                                     })
                                             ),
                                     ]),
+
+                                Section::make('Integrações (Google Shopping / Meta)')
+                                    ->collapsible()
+                                    ->collapsed()
+                                    ->icon('heroicon-o-globe-alt')
+                                    ->schema([
+                                        TextInput::make('gtin')
+                                            ->label('GTIN / EAN')
+                                            ->placeholder('EAN-13 ou deixe vazio')
+                                            ->helperText('Se vazio, será enviado "identifier_exists=no".'),
+                                        TextInput::make('google_product_category')
+                                            ->label('ID Categoria Google')
+                                            ->placeholder('Ex: 316 (Software)'),
+                                        TextInput::make('brand')
+                                            ->label('Marca')
+                                            ->default('AdasSoft'),
+                                    ])->columns(3),
                             ]),
 
                         // Coluna Lateral (Direita - 1/3)

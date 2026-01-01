@@ -16,6 +16,8 @@ Route::get('/parceiros', function () {
     return view('shop.partners-selector');
 })->name('partners.index');
 
+Route::get('/feeds/google.xml', [\App\Http\Controllers\FeedController::class, 'google'])->name('feeds.google');
+
 // Checkout routes public (auth handled inside)
 Route::get('/checkout/{planId}', [\App\Http\Controllers\CheckoutController::class, 'start'])->name('checkout.start');
 Route::post('/checkout/{planId}/pix', [\App\Http\Controllers\CheckoutController::class, 'processPix'])->name('checkout.pix');

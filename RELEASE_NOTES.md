@@ -1,8 +1,10 @@
-# Release Notes - 2026-01-01 14:55
+# Release Notes - 2026-01-01 15:20
 
-- SEO Protegido: Implementada Tag Canônica (`rel="canonical"`) inteligente.
-    - Se acessado via Revenda White-Label, o SEO aponta para o domínio original (AdasSoft), prevenindo punições do Google por conteúdo duplicado.
-    - Se acessado via Domínio Principal, funciona normalmente.
+- Integração Google Shopping:
+    - Adicionados campos GTIN, Categoria Google e Marca no cadastro de Softwares.
+    - Criada rota de Feed XML Automático: `/feeds/google.xml`.
+    - Lógica de fallback inteligente para aprovação de produtos digitais (SaaS).
 
 Instruções para atualização no servidor:
 1. Execute `git pull`
+2. Execute `php artisan migrate` (ESSENCIAL para criar as novas colunas no banco)

@@ -12,6 +12,9 @@ class Software extends Model
     protected $fillable = [
         'nome_software',
         'codigo', // Novo
+        'gtin', // Google Shopping
+        'google_product_category', // Google Shopping
+        'brand', // Google Shopping
         'descricao',
         'pagina_vendas_html', // Novo
         'categoria', // Novo
