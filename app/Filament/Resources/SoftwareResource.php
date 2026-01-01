@@ -71,6 +71,22 @@ class SoftwareResource extends Resource
                                             ->maxLength(50)
                                             ->helperText('Versão atual do software (máximo 50 caracteres).'),
 
+                                        Grid::make(2)
+                                            ->schema([
+                                                TextInput::make('linguagem')
+                                                    ->label('Linguagem de Programação')
+                                                    ->placeholder('Ex: Delphi, PHP')
+                                                    ->maxLength(50),
+                                                Select::make('plataforma')
+                                                    ->label('Plataforma')
+                                                    ->options([
+                                                        'desktop' => 'Desktop (Windows)',
+                                                        'web' => 'Web App (Nuvem)',
+                                                        'mobile' => 'Mobile (Android/iOS)',
+                                                        'api' => 'API / Backend'
+                                                    ]),
+                                            ]),
+
                                         Tabs::make('Origem do Arquivo')
                                             ->tabs([
                                                 Tabs\Tab::make('Upload Direto')

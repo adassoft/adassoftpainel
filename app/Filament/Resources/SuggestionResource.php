@@ -58,7 +58,7 @@ class SuggestionResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('user_id')
                             ->label('Sugerido por')
-                            ->relationship('user', 'name')
+                            ->relationship('user', 'login')
                             ->disabled(),
                         Forms\Components\TextInput::make('votes_count')
                             ->label('Total de Votos')
@@ -80,14 +80,27 @@ class SuggestionResource extends Resource
                                         $description = $get('description');
                                         // Tenta pegar o nome do software. Software ID pode ser null.
                                         $softwareId = $get('software_id');
-                                        $softwareName = $softwareId ? \App\Models\Software::find($softwareId)?->nome_software : 'Sistema Geral';
+                                        $softwareObj = $softwareId ? \App\Models\Software::find($softwareId) : null;
+                                        $softwareName = $softwareObj?->nome_software ?? 'Sistema Geral';
 
                                         if (!$title || !$description) {
                                             Notification::make()->warning()->title('Preencha título e descrição primeiro.')->send();
                                             return;
                                         }
 
-                                        $prompt = "Atue como um CTO e Arquiteto de Software Sênior. Analise a seguinte sugestão de melhoria para o software '{$softwareName}':\n\n";
+                                        $techContext = "";
+                                        if ($softwareObj) {
+                                            if ($softwareObj->linguagem)
+                                                $techContext .= "Linguagem: {$softwareObj->linguagem}. ";
+                                            if ($softwareObj->plataforma)
+                                                $techContext .= "Plataforma: {$softwareObj->plataforma}. ";
+                                        }
+
+                                        $prompt = "Atue como um CTO e Arquiteto de Software Sênior. Analise a seguinte sugestão de melhoria para o software '{$softwareName}':\n";
+                                        if ($techContext) {
+                                            $prompt .= "Stack Tecnológica: {$techContext}\n";
+                                        }
+                                        $prompt .= "\n";
                                         $prompt .= "Título: {$title}\n";
                                         $prompt .= "Descrição: {$description}\n\n";
                                         $prompt .= "Por favor, forneça:\n";
