@@ -7,6 +7,7 @@ use App\Filament\Resources\SuggestionResource\RelationManagers;
 use Illuminate\Support\Str;
 use App\Models\Suggestion;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -63,6 +64,52 @@ class SuggestionResource extends Resource
                             ->label('Total de Votos')
                             ->disabled(),
                     ])->columns(2)->collapsed(),
+
+                Forms\Components\Section::make('Análise Técnica (IA)')
+                    ->schema([
+                        Forms\Components\RichEditor::make('ai_analysis')
+                            ->label('Parecer de Viabilidade & Implementação')
+                            ->hintAction(
+                                Forms\Components\Actions\Action::make('analyze')
+                                    ->label('Gerar Análise com IA')
+                                    ->icon('heroicon-m-sparkles')
+                                    ->color('primary')
+                                    ->action(function (Forms\Get $get, Forms\Set $set, \App\Services\GeminiService $gemini) {
+
+                                        $title = $get('title');
+                                        $description = $get('description');
+                                        // Tenta pegar o nome do software. Software ID pode ser null.
+                                        $softwareId = $get('software_id');
+                                        $softwareName = $softwareId ? \App\Models\Software::find($softwareId)?->nome_software : 'Sistema Geral';
+
+                                        if (!$title || !$description) {
+                                            Notification::make()->warning()->title('Preencha título e descrição primeiro.')->send();
+                                            return;
+                                        }
+
+                                        $prompt = "Atue como um CTO e Arquiteto de Software Sênior. Analise a seguinte sugestão de melhoria para o software '{$softwareName}':\n\n";
+                                        $prompt .= "Título: {$title}\n";
+                                        $prompt .= "Descrição: {$description}\n\n";
+                                        $prompt .= "Por favor, forneça:\n";
+                                        $prompt .= "1. Análise de Viabilidade Técnica (Baixa/Média/Alta e porquê).\n";
+                                        $prompt .= "2. Impacto no Negócio (Valor para o cliente).\n";
+                                        $prompt .= "3. Plano Macro de Implementação (Passos técnicos sugeridos).\n";
+                                        $prompt .= "Responda em formato HTML amigável para leitura.";
+
+                                        Notification::make()->info()->title('Consultando a IA... aguarde.')->send();
+
+                                        $result = $gemini->generateContent($prompt);
+
+                                        if ($result['success']) {
+                                            $set('ai_analysis', $result['reply']);
+                                            Notification::make()->success()->title('Análise Gerada com Sucesso!')->send();
+                                        } else {
+                                            Notification::make()->danger()->title('Erro na IA')->body($result['error'])->send();
+                                        }
+                                    })
+                            )
+                            ->columnSpanFull(),
+                    ])->collapsible(),
             ]);
     }
 
