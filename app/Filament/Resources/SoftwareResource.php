@@ -59,9 +59,19 @@ class SoftwareResource extends Resource
                                         TextInput::make('nome_software')
                                             ->label('Nome do Software')
                                             ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
                                             ->placeholder('Ex: Dev PDV Delphi')
                                             ->maxLength(255)
                                             ->helperText('Nome completo do software (máximo 255 caracteres).'),
+
+                                        TextInput::make('slug')
+                                            ->label('URL Amigável (Slug)')
+                                            ->unique(ignoreRecord: true)
+                                            ->required()
+                                            ->placeholder('ex: dev-pdv-delphi')
+                                            ->maxLength(255)
+                                            ->helperText('Identificador na URL: adassoft.com/produto/SEU-SLUG'),
 
                                         TextInput::make('versao')
                                             ->label('Versão')

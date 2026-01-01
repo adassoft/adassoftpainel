@@ -7,10 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 class Software extends Model
 {
     protected $table = 'softwares';
-    public $timestamps = false;
+    public $timestamps = false; // Se quiser createdAt/updatedAt, mude para true
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->slug)) {
+                $slug = \Illuminate\Support\Str::slug($model->nome_software);
+                $count = static::whereRaw("slug RLIKE '^{$slug}(-[0-9]+)?$'")->count();
+                $model->slug = $count ? "{$slug}-{$count}" : $slug;
+            }
+        });
+    }
 
     protected $fillable = [
         'nome_software',
+        'slug', // URL Amigável
         'codigo', // Novo
         'gtin', // Google Shopping
         'google_product_category', // Google Shopping

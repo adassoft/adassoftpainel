@@ -15,13 +15,19 @@ class ProductController extends Controller
             'logo_path' => asset('favicon.svg'),
         ];
 
-        $product = \App\Models\Software::with([
+        $query = \App\Models\Software::with([
             'plans' => function ($query) {
                 $query->where('status', '!=', 'inativo')
                     ->orWhereNull('status')
                     ->orderBy('valor', 'asc');
             }
-        ])->findOrFail($id);
+        ]);
+
+        if (is_numeric($id)) {
+            $product = $query->where('id', $id)->firstOrFail();
+        } else {
+            $product = $query->where('slug', $id)->firstOrFail();
+        }
 
         $plans = $product->plans;
 
