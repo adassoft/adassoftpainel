@@ -34,7 +34,7 @@ class ResellerPanelProvider extends PanelProvider
                 'success' => Color::Emerald,
                 'warning' => Color::Orange,
             ])
-            ->viteTheme('resources/css/filament/admin/theme.css')
+            // ->viteTheme('resources/css/filament/admin/theme.css')
             ->brandLogo(fn() => view('filament.logo'))
             ->brandLogoHeight('3.5rem')
             ->font('Nunito')

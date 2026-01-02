@@ -30,7 +30,7 @@ class AppPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Blue,
             ])
-            ->viteTheme('resources/css/filament/admin/theme.css') // Usando o mesmo tema do Admin
+            // ->viteTheme('resources/css/filament/admin/theme.css') // Usando o mesmo tema do Admin
             ->brandLogo(fn() => view('filament.logo'))
             ->brandLogoHeight('3.5rem')
             ->font('Nunito')
