@@ -84,15 +84,10 @@ class WhiteLabelPage extends Page implements HasForms
                             ->label('Logotipo Principal (Arrastar e Soltar)')
                             ->disk('public')
                             ->directory('logos-revenda')
-                            ->visibility('public')
                             ->image()
-                            ->imagePreviewHeight('150')
-                            ->openable()
-                            ->downloadable()
                             ->maxSize(2048)
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
                             ->helperText('Formatos: PNG, JPG, SVG. Tamanho máx: 2MB.')
-                            ->live()
                             ->columnSpanFull(),
 
                         // Ícone (Quadrado)
@@ -100,15 +95,10 @@ class WhiteLabelPage extends Page implements HasForms
                             ->label('Símbolo/Ícone (Arrastar e Soltar)')
                             ->disk('public')
                             ->directory('icones-revenda')
-                            ->visibility('public')
                             ->image()
-                            ->imagePreviewHeight('150')
-                            ->openable()
-                            ->downloadable()
                             ->maxSize(1024)
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
                             ->helperText('Formatos: PNG, JPG, SVG. Tamanho máx: 1MB. Proporção 1:1.')
-                            ->live()
                             ->columnSpanFull(),
 
                         // Cores
