@@ -4,7 +4,6 @@ namespace App\Filament\Reseller\Pages;
 
 use App\Models\ResellerConfig;
 use App\Models\ResellerConfigHistory;
-use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -111,12 +110,15 @@ class WhiteLabelPage extends Page implements HasForms
                             ->live(),
 
                         // Cores
-                        ColorPicker::make('cor_primaria_gradient_start')
+                        // Cores (Usando TextInput type color nativo para garantir compatibilidade)
+                        TextInput::make('cor_primaria_gradient_start')
                             ->label('Cor Degradê Início')
+                            ->type('color')
                             ->required()
                             ->live(),
-                        ColorPicker::make('cor_primaria_gradient_end')
+                        TextInput::make('cor_primaria_gradient_end')
                             ->label('Cor Degradê Fim')
+                            ->type('color')
                             ->required()
                             ->live(),
                     ])->columns(2),
