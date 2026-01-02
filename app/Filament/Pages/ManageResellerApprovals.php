@@ -82,12 +82,19 @@ class ManageResellerApprovals extends Page
         }
 
         // Sucesso -> Atualiza Config
-        $config->update(array_merge($dados, [
+        $updateData = array_merge($dados, [
             'status_aprovacao' => 'aprovado',
             'dados_pendentes' => null,
             'mensagem_rejeicao' => null,
             'ativo' => true,
-        ]));
+        ]);
+
+        // Fix: Tratar campos nulos para evitar erro SQL 1048 se colunas não forem nullable
+        $updateData['logo_path'] = $updateData['logo_path'] ?? '';
+        $updateData['icone_path'] = $updateData['icone_path'] ?? ''; // Garante que não é null
+        $updateData['dominios'] = $updateData['dominios'] ?? '';
+
+        $config->update($updateData);
 
         // Log Histórico
         ResellerConfigHistory::create([
