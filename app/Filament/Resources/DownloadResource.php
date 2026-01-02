@@ -73,9 +73,30 @@ class DownloadResource extends Resource
                     ->disk('public')
                     ->directory('downloads')
                     ->required()
-                    ->maxSize(512000) // 500MB
+                    ->maxSize(512000) // 512MB
                     ->columnSpanFull()
-                    ->preserveFilenames(),
+                    ->preserveFilenames()
+                    ->live()
+                    ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
+                        if (empty($state))
+                            return;
+
+                        // Handle single file (not multiple)
+                        $file = is_array($state) ? reset($state) : $state;
+
+                        // Only process if it's a new upload (TemporaryUploadedFile)
+                        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                            $bytes = $file->getSize();
+                            $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+                            for ($i = 0; $bytes > 1024; $i++) {
+                                $bytes /= 1024;
+                            }
+
+                            $humanSize = round($bytes, 2) . ' ' . ($units[$i] ?? 'B');
+                            $set('tamanho', $humanSize);
+                        }
+                    }),
 
                 Forms\Components\Textarea::make('descricao')
                     ->label('Descrição')
