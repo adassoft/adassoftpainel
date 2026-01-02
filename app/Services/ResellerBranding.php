@@ -108,6 +108,7 @@ class ResellerBranding
             'nome_sistema' => $config->nome_sistema,
             'slogan' => $config->slogan,
             'logo_url' => $config->logo_path ? Storage::url($config->logo_path) : null,
+            'icone_url' => $config->icone_path ? Storage::url($config->icone_path) : asset('favicon.svg'),
         ];
     }
 

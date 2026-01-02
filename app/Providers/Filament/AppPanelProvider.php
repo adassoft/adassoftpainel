@@ -36,6 +36,16 @@ class AppPanelProvider extends PanelProvider
             ->font('Nunito')
             ->sidebarCollapsibleOnDesktop()
             ->renderHook(
+                'panels::head.start',
+                function () {
+                    $iconeUrl = \App\Services\ResellerBranding::getCurrent()['icone_url'] ?? asset('favicon.svg');
+                    return \Illuminate\Support\Facades\Blade::render(
+                        '<link rel="icon" href="{{ $iconeUrl }}" />',
+                        ['iconeUrl' => $iconeUrl]
+                    );
+                }
+            )
+            ->renderHook(
                 'panels::body.end',
                 fn() => view('filament.custom-styles'),
             )

@@ -2,6 +2,7 @@
     $branding = \App\Services\ResellerBranding::getCurrent();
     $appName = $branding['nome_sistema'] ?? 'Adassoft';
     $logoUrl = $branding['logo_url'] ?? asset('favicon.svg');
+    $iconeUrl = $branding['icone_url'] ?? asset('favicon.svg'); // Novo
     $slogan = $branding['slogan'] ?? 'Tecnologia que impulsiona';
 @endphp
 
@@ -31,7 +32,7 @@
     <title>@yield('title', $appName . ' | Store')</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="{{ $logoUrl }}">
+    <link rel="icon" type="image/svg+xml" href="{{ $iconeUrl }}">
 
     <!-- Fonts -->
     <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -69,6 +70,13 @@
             display: flex;
             align-items: center;
             font-weight: 800;
+        }
+
+        /* Ajuste para logo não distorcer */
+        .navbar-brand img {
+            max-height: 40px; 
+            width: auto;      
+            object-fit: contain;
         }
 
         .nav-link {
@@ -135,7 +143,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top navbar-landing">
         <div class="container">
             <a class="navbar-brand font-weight-bold" href="{{ url('/') }}">
-                <img src="{{ $logoUrl }}" width="32" height="32" class="mr-2 rounded object-contain" alt="Logo"
+                <img src="{{ $logoUrl }}" class="mr-2" alt="Logo"
                     onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                 <span>{{ $appName }}</span>
             </a>
@@ -241,7 +249,7 @@
             <div class="row text-white text-md-left text-center">
                 <!-- Coluna 1: Empresa -->
                 <div class="col-md-4 mb-4 text-center text-md-left">
-                    <img src="{{ $logoUrl }}" width="48" height="48"
+                    <img src="{{ $iconeUrl }}" width="48" height="48"
                         class="mb-3 rounded bg-white p-1 mx-auto mx-md-0 d-block" style="object-fit: contain;"
                         onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                     <h5 class="font-weight-bold mb-2">{{ $appName }}</h5>

@@ -17,6 +17,7 @@ class ResellerConfig extends Model
         'nome_sistema',
         'slogan',
         'logo_path',
+        'icone_path',
         'cor_primaria_gradient_start',
         'cor_primaria_gradient_end',
         'dominios',

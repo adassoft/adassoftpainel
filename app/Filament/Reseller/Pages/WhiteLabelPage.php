@@ -57,6 +57,7 @@ class WhiteLabelPage extends Page implements HasForms
         $dadosIniciais['cor_primaria_gradient_start'] = $dadosIniciais['cor_primaria_gradient_start'] ?? '#1a2980';
         $dadosIniciais['cor_primaria_gradient_end'] = $dadosIniciais['cor_primaria_gradient_end'] ?? '#26d0ce';
         $dadosIniciais['logo_path'] = $dadosIniciais['logo_path'] ?? '';
+        $dadosIniciais['icone_path'] = $dadosIniciais['icone_path'] ?? ''; // Novo
         $dadosIniciais['dominios'] = $dadosIniciais['dominios'] ?? '';
 
         $this->form->fill($dadosIniciais);
@@ -79,20 +80,35 @@ class WhiteLabelPage extends Page implements HasForms
                             ->maxLength(255)
                             ->live(),
 
+                        // Logo Principal (Retangular)
                         \Filament\Forms\Components\FileUpload::make('logo_path')
-                            ->label('Logotipo do Sistema')
+                            ->label('Logotipo Principal (Retangular/Livre)')
                             ->image()
                             ->imageEditor()
-                            ->maxSize(512) // 512 KB
+                            ->maxSize(1024)
                             ->imageResizeMode('contain')
                             ->imageResizeTargetWidth('400')
                             ->imageResizeTargetHeight('150')
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
                             ->directory('logos-revenda')
                             ->visibility('public')
-                            ->helperText('Máx: 512KB. Otimizado automaticamente (400x150px). Fundo transp. recomendado.')
-                            ->columnSpanFull()
-                            ->live(), // Importante para o preview
+                            ->helperText('Ideal para telas de Login e Topo. Fundo transp. recomendado.')
+                            ->live(),
+
+                        // Ícone (Quadrado)
+                        \Filament\Forms\Components\FileUpload::make('icone_path')
+                            ->label('Símbolo/Ícone (Quadrado)')
+                            ->image()
+                            ->imageEditor()
+                            ->maxSize(512)
+                            ->imageResizeMode('cover')
+                            ->imageResizeTargetWidth('150')
+                            ->imageResizeTargetHeight('150')
+                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
+                            ->directory('icones-revenda')
+                            ->visibility('public')
+                            ->helperText('Usado para Favicon, Avatar e menu Mobile. Proporção 1:1.')
+                            ->live(),
 
                         // Cores
                         ColorPicker::make('cor_primaria_gradient_start')
