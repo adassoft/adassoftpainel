@@ -75,7 +75,7 @@
                                         class="px-4 py-4 font-bold bg-gray-50/50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
                                         Nome do Sistema</td>
                                     <td class="px-4 py-4 border-r border-gray-200 dark:border-gray-700">
-                                        {{ $item->nome_sistema ?? 'Shield System' }}
+                                        {{ $item->nome_sistema ?? 'Adassoft System' }}
                                     </td>
                                     <td
                                         class="px-4 py-4 @if(($item->nome_sistema ?? '') != ($novos['nome_sistema'] ?? '')) text-primary-600 font-bold @endif">
@@ -181,12 +181,12 @@
                             <x-filament::button color="info" icon="heroicon-m-sparkles"
                                 class="w-full justify-center shadow-md bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
                                 @click="
-                                                loading = true;
-                                                $wire.analyzeIA({{ $item->id }}).then(res => {
-                                                    analysis = res;
-                                                    loading = false;
-                                                })
-                                            " x-show="!analysis && !loading">
+                                                    loading = true;
+                                                    $wire.analyzeIA({{ $item->id }}).then(res => {
+                                                        analysis = res;
+                                                        loading = false;
+                                                    })
+                                                " x-show="!analysis && !loading">
                                 Usar Assistente de IA para Analisar Risco
                             </x-filament::button>
 
@@ -286,9 +286,9 @@
                                     <div class="flex justify-end gap-3">
                                         <x-filament::button color="gray" @click="close">Cancelar</x-filament::button>
                                         <x-filament::button color="warning" @click="
-                                                            $wire.requestCorrection({{ $item->id }}, $refs.correction_text.value);
-                                                            close();
-                                                        ">
+                                                                $wire.requestCorrection({{ $item->id }}, $refs.correction_text.value);
+                                                                close();
+                                                            ">
                                             Enviar Solicitação
                                         </x-filament::button>
                                     </div>
@@ -322,9 +322,9 @@
                                     <div class="flex justify-end gap-3">
                                         <x-filament::button color="gray" @click="close">Cancelar</x-filament::button>
                                         <x-filament::button color="danger" @click="
-                                                            $wire.reject({{ $item->id }}, $refs.rejection_text.value);
-                                                            close();
-                                                        ">
+                                                                $wire.reject({{ $item->id }}, $refs.rejection_text.value);
+                                                                close();
+                                                            ">
                                             Confirmar Rejeição
                                         </x-filament::button>
                                     </div>
