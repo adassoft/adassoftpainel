@@ -196,7 +196,7 @@
 
                             <!-- Overlay Hover -->
                             <div class="product-img-overlay">
-                                <a href="{{ route('product.show', $prod->id) }}"
+                                <a href="{{ route('product.show', $prod->slug ?? $prod->id) }}"
                                     class="btn btn-light rounded-pill px-4 font-weight-bold shadow-sm">
                                     <i class="fas fa-eye mr-2"></i> Ver Detalhes
                                 </a>
@@ -220,7 +220,7 @@
                                                 {{ number_format($prod->min_price ?: 0, 2, ',', '.') }}</span>
                                         </div>
                                         <div class="btn-group-buy">
-                                            <a href="{{ route('product.show', $prod->id) }}#planos"
+                                            <a href="{{ route('product.show', $prod->slug ?? $prod->id) }}#planos"
                                                 class="btn btn-buy shadow-sm text-decoration-none text-center">
                                                 Comprar
                                             </a>

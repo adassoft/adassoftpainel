@@ -135,12 +135,12 @@
 
                                 <div class="mt-3">
                                     @if($soft['tipo'] == 'software')
-                                        <a href="{{ route('product.show', $soft['id']) }}"
+                                        <a href="{{ route('product.show', $soft['slug'] ?? $soft['id']) }}"
                                             class="small text-primary font-weight-bold text-decoration-none hover:underline">
                                             <i class="fas fa-info-circle mr-1"></i> Detalhes do Produto
                                         </a>
                                     @else
-                                        <a href="{{ route('download.show', $soft['id']) }}"
+                                        <a href="{{ route('download.show', $soft['slug'] ?? $soft['id']) }}"
                                             class="small text-secondary font-weight-bold text-decoration-none hover:underline">
                                             <i class="fas fa-info-circle mr-1"></i> Detalhes do Download
                                         </a>

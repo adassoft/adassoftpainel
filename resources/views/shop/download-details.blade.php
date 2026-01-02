@@ -74,6 +74,17 @@
                         class="btn btn-primary btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg">
                         <i class="fas fa-cloud-download-alt mr-2"></i> Baixar Agora
                     </a>
+
+                    @if(isset($software))
+                        <div class="mt-5 pt-4 border-top">
+                            <p class="text-muted small text-uppercase font-weight-bold mb-2">Software Relacionado</p>
+                            <h5 class="font-weight-bold text-dark">{{ $software->nome_software }}</h5>
+                            <a href="{{ route('product.show', $software->slug ?? $software->id) }}"
+                                class="btn btn-outline-primary btn-sm rounded-pill mt-2">
+                                <i class="fas fa-box-open mr-1"></i> Ver detalhes do Produto
+                            </a>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="col-lg-4 offset-lg-1 mt-5 mt-lg-0">

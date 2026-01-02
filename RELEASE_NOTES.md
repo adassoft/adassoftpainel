@@ -1,9 +1,8 @@
-# Release Notes - 2026-01-01 16:30
+# Release Notes - 2026-01-02 02:00
 
-- URLs Amigáveis para Downloads:
-    - Mesma lógica de produtos aplicada aos downloads (ex: `/download/manual-instalacao`).
-    - Campo "URL Amigável" adicionado ao cadastro de Downloads.
+- UX e Links:
+    - Botões "Ver Detalhes" agora utilizam links amigáveis (Slug).
+    - Detalhes de Downloads agora exibem a página do arquivo primeiro, com link opcional para o Produto Relacionado, melhorando a navegação.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`
-2. Execute `php artisan migrate`

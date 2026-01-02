@@ -46,6 +46,7 @@ class DownloadController extends Controller
 
                 $downloadsCollection->push([
                     'id' => $soft->id,
+                    'slug' => $soft->slug,
                     'tipo' => 'software',
                     'nome_software' => $soft->nome_software,
                     'versao' => $soft->versao,
@@ -63,6 +64,7 @@ class DownloadController extends Controller
             if (!in_array($extra->id, $vinculadosIds)) {
                 $downloadsCollection->push([
                     'id' => $extra->id,
+                    'slug' => $extra->slug,
                     'tipo' => 'extra',
                     'nome_software' => $extra->titulo,
                     'versao' => $extra->versao,
@@ -88,13 +90,10 @@ class DownloadController extends Controller
             $download = Download::where('slug', $id)->firstOrFail();
         }
 
-        // Se este download for vinculado a um software, redireciona para a página do produto
+        // Se este download for vinculado a um software, PASSAMOS a info para a view (não redireciona mais)
         $software = Software::where('id_download_repo', $download->id)->first();
-        if ($software) {
-            return redirect()->route('product.show', $software->slug ?? $software->id);
-        }
 
-        return view('shop.download-details', compact('download'));
+        return view('shop.download-details', compact('download', 'software'));
     }
 
     private function resolveImageUrl($path)
