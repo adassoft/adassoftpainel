@@ -96,12 +96,16 @@ class CompanyResource extends Resource
                                     ->label('Status')
                                     ->required()
                                     ->maxLength(20)
-                                    ->default('Ativo'),
+                                    ->default('Ativo')
+                                    ->disabled(fn($record) => $record?->revenda_padrao)
+                                    ->dehydrated(), // Garante que envia o valor mesmo disabled
 
                                 Forms\Components\Select::make('bloqueado')
                                     ->label('Bloqueio')
                                     ->options(['S' => 'Sim', 'N' => 'Não'])
-                                    ->default('N'),
+                                    ->default('N')
+                                    ->disabled(fn($record) => $record?->revenda_padrao)
+                                    ->dehydrated(),
 
                                 Forms\Components\DatePicker::make('validade_licenca')
                                     ->label('Validade Licença'),
@@ -128,7 +132,9 @@ class CompanyResource extends Resource
                                     ->maxLength(255),
 
                                 Forms\Components\Toggle::make('revenda_padrao')
-                                    ->label('É Revenda Padrão?'),
+                                    ->label('É Revenda Padrão?')
+                                    ->disabled(fn($record) => $record?->revenda_padrao)
+                                    ->dehydrated(),
                             ]),
                     ]),
             ])->columns(3);
@@ -208,12 +214,17 @@ class CompanyResource extends Resource
                     ->tooltip('Acessar Painel do Cliente')
                     ->color('gray')
                     ->url('#'), // Implementar lógica de impersonate futuramente se necessário
+
+                // Oculta Delete para Revenda Padrão
+                Tables\Actions\DeleteAction::make()
+                    ->hidden(fn(Company $record) => $record->revenda_padrao),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->checkIfRecordIsSelectableUsing(fn($record) => !$record->revenda_padrao); // Impede selecionar revenda padrão em bulk
     }
 
     public static function getRelations(): array
