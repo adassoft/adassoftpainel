@@ -27,6 +27,7 @@ class AppPanelProvider extends PanelProvider
             ->path('app')
             ->login(\App\Filament\App\Pages\Auth\Login::class) // Custom Login Page
             ->registration(\App\Filament\App\Pages\Auth\Register::class)
+            ->passwordReset(\App\Filament\App\Pages\Auth\ForgotPassword::class)
             ->colors([
                 'primary' => Color::Blue,
             ])
