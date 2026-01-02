@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 
 class GeminiService
 {
-    public function generateContent(string $prompt): array
+    public function generateContent(string $prompt, ?string $imageBase64 = null, string $mimeType = 'image/png'): array
     {
         $config = Configuration::where('chave', 'google_config')->first();
 
@@ -17,13 +17,33 @@ class GeminiService
 
         $configData = json_decode($config->valor, true);
         $apiKey = $configData['gemini_api_key'] ?? '';
-        $model = $configData['gemini_model'] ?? 'gemini-1.5-flash';
+        $model = $configData['gemini_model'] ?? 'gemini-1.5-flash'; // 1.5 Flash suporta visão
 
         if (empty($apiKey)) {
             return ['success' => false, 'error' => 'API Key do Gemini não configurada.'];
         }
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
+
+        // Build Payload
+        $parts = [
+            ["text" => $prompt]
+        ];
+
+        // Se tem imagem, adiciona ao payload
+        if ($imageBase64) {
+            // Remove header se existir "data:image/png;base64,"
+            if (strpos($imageBase64, ',') !== false) {
+                $imageBase64 = explode(',', $imageBase64)[1];
+            }
+
+            $parts[] = [
+                "inlineData" => [
+                    "mimeType" => $mimeType,
+                    "data" => $imageBase64
+                ]
+            ];
+        }
 
         try {
             $response = Http::withHeaders([
@@ -33,9 +53,7 @@ class GeminiService
                 ->post($url, [
                     "contents" => [
                         [
-                            "parts" => [
-                                ["text" => $prompt]
-                            ]
+                            "parts" => $parts
                         ]
                     ]
                 ]);

@@ -1,8 +1,8 @@
 @php
     // Lógica de Branding diretamente no Layout para garantir que carregue sempre
     $branding = \App\Services\ResellerBranding::getCurrent();
-    $gradientStart = $branding['gradient_start'] ?? '#1a2980';
-    $gradientEnd = $branding['gradient_end'] ?? '#26d0ce';
+    $gradientStart = $branding['cor_start'] ?? '#1a2980';
+    $gradientEnd = $branding['cor_end'] ?? '#26d0ce';
     $appName = $branding['nome_sistema'] ?? config('app.name', 'Adassoft');
     $slogan = $branding['slogan'] ?? 'Segurança e Gestão de Licenças';
     $logoUrl = $branding['logo_url'] ?? asset('favicon.svg');

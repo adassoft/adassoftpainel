@@ -13,6 +13,9 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Exceptions\Halt;
 use Illuminate\Support\Facades\Auth;
+use App\Services\GeminiService;
+use Filament\Forms\Components\Grid;
+use Illuminate\Support\Facades\Storage;
 
 class WhiteLabelPage extends Page implements HasForms
 {
@@ -105,17 +108,29 @@ class WhiteLabelPage extends Page implements HasForms
 
                         // Cores
                         // Cores (Usando TextInput type color nativo para garantir compatibilidade)
-                        TextInput::make('cor_primaria_gradient_start')
-                            ->label('Cor Degradê Início')
-                            ->type('color')
-                            ->required()
-                            ->live(),
-                        TextInput::make('cor_primaria_gradient_end')
-                            ->label('Cor Degradê Fim')
-                            ->type('color')
-                            ->required()
-                            ->live(),
-                    ])->columns(2),
+                        // Cores
+                        \Filament\Forms\Components\Actions::make([
+                            \Filament\Forms\Components\Actions\Action::make('suggestColors')
+                                ->label('🎨 Sugerir Cores com Inteligência Artificial')
+                                ->action('analyzeLogoColor')
+                                ->tooltip('A IA analisará sua logo e sugerirá um gradiente perfeito para sua marca.')
+                                ->color('violet')
+                                ->icon('heroicon-m-sparkles'),
+                        ])->fullWidth(),
+
+                        Grid::make(2)->schema([
+                            TextInput::make('cor_primaria_gradient_start')
+                                ->label('Cor Degradê Início')
+                                ->type('color')
+                                ->required()
+                                ->live(),
+                            TextInput::make('cor_primaria_gradient_end')
+                                ->label('Cor Degradê Fim')
+                                ->type('color')
+                                ->required()
+                                ->live(),
+                        ]),
+                    ]),
 
                 Section::make('Configuração de Domínio')
                     ->schema([
@@ -183,5 +198,75 @@ class WhiteLabelPage extends Page implements HasForms
         if (!$this->record)
             return [];
         return $this->record->history()->orderBy('data_registro', 'desc')->get();
+    }
+
+    public function analyzeLogoColor(): void
+    {
+        // 1. Obter Logo
+        $data = $this->form->getState();
+        $logoPath = $data['logo_path'] ?? null;
+
+        // Trata caso seja array (comportamento padrão FileUpload)
+        if (is_array($logoPath)) {
+            $logoPath = reset($logoPath);
+        }
+
+        if (!$logoPath) {
+            Notification::make()->warning()->title('Logo não encontrada')->body('Faça o upload da logo primeiro e aguarde carregar.')->send();
+            return;
+        }
+
+        // 2. Resolver Caminho Real
+        // O FileUpload armazena caminho relativo ao disco public
+        $fullPath = Storage::disk('public')->path($logoPath);
+
+        if (!file_exists($fullPath)) {
+            Notification::make()->danger()->title('Arquivo inacessível')->body('Não foi possível ler o arquivo da imagem. Salve o formulário primeiro se acabou de enviar.')->send();
+            return;
+        }
+
+        // 3. Preparar Imagem para Gemini
+        try {
+            $imageData = file_get_contents($fullPath);
+            $base64 = base64_encode($imageData);
+            $mimeType = mime_content_type($fullPath);
+
+            Notification::make()->info()->title('Analisando cores com IA...')->body('Por favor aguarde alguns segundos.')->send();
+
+            // 4. Chamar IA
+            $service = new GeminiService();
+            $prompt = "Atue como um Designer de UI Sênior. Analise esta logo. Identifique a cor dominante principal e uma cor secundária harmônica para criar um degradê (gradiente) moderno e profissional. Retorne APENAS um JSON estrito (sem markdown) no formato: {\"start\": \"#colorHex\", \"end\": \"#colorHex\"}. Exemplo: {\"start\": \"#1a2980\", \"end\": \"#26d0ce\"}.";
+
+            $response = $service->generateContent($prompt, $base64, $mimeType);
+
+            if (!$response['success']) {
+                throw new \Exception($response['error'] ?? 'Erro desconhecido na IA.');
+            }
+
+            // 5. Processar Resposta
+            $reply = $response['reply'];
+
+            // Limpeza básica para garantir JSON válido (remove markdown ```json ... ``` se houver)
+            $jsonString = preg_replace('/^`{3}json\s*|\s*`{3}$/m', '', $reply);
+            $colors = json_decode($jsonString, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && isset($colors['start']) && isset($colors['end'])) {
+
+                // Aplica colors
+                $this->form->fill([
+                    ...$data,
+                    'cor_primaria_gradient_start' => $colors['start'],
+                    'cor_primaria_gradient_end' => $colors['end'],
+                ]);
+
+                Notification::make()->success()->title('Sucesso!')->body("Cores sugeridas aplicadas: {$colors['start']} -> {$colors['end']}")->send();
+
+            } else {
+                throw new \Exception("A IA não retornou um formato válido. Resposta: " . substr($reply, 0, 100));
+            }
+
+        } catch (\Exception $e) {
+            Notification::make()->danger()->title('Falha na Análise')->body($e->getMessage())->send();
+        }
     }
 }
