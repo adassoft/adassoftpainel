@@ -25,6 +25,11 @@ class EnsureUserHasCompany
         $user = Auth::user();
         $panel = Filament::getCurrentPanel();
 
+        // Admin bypass: Admin não precisa ter empresa para acessar o painel de revenda
+        if ($user->acesso === 1) {
+            return $next($request);
+        }
+
         // Só aplica no painel de revenda
         if ($panel && $panel->getId() === 'reseller') {
 
