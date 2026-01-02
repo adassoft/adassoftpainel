@@ -1,3 +1,29 @@
+@php
+    $branding = \App\Services\ResellerBranding::getCurrent();
+    $corStart = $branding['cor_start'] ?? '#1e293b'; // Fallback
+    $corEnd = $branding['cor_end'] ?? '#06b6d4';     // Fallback (Cyan 500)
+
+    // Função helper para converter hex para rgb (para opacidade)
+    if (!function_exists('hexToRgb')) {
+        function hexToRgb($hex)
+        {
+            $hex = str_replace('#', '', $hex);
+            if (strlen($hex) == 3) {
+                $r = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
+                $g = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
+                $b = hexdec(substr($hex, 2, 1) . substr($hex, 2, 1));
+            } else {
+                $r = hexdec(substr($hex, 0, 2));
+                $g = hexdec(substr($hex, 2, 2));
+                $b = hexdec(substr($hex, 4, 2));
+            }
+            return "$r, $g, $b"; // Retorna string "R, G, B"
+        }
+    }
+
+    $rgbEnd = hexToRgb($corEnd);
+@endphp
+
 <style>
     /* Forçar Grid na Tabela de Pedidos */
     .fi-ta-content-grid {
@@ -70,7 +96,7 @@
         /* Fundo escuro com leve toque azulado */
         background-color: rgba(30, 41, 59, 1) !important;
         /* Base date */
-        background: linear-gradient(90deg, rgba(6, 182, 212, 0.1) 0%, rgba(30, 41, 59, 0) 100%) !important;
+        background: linear-gradient(90deg, rgba({{ $rgbEnd }}, 0.1) 0%, rgba(30, 41, 59, 0) 100%) !important;
 
         position: relative;
         color: white !important;
@@ -87,8 +113,8 @@
     .fi-sidebar-item-button:hover .fi-sidebar-item-icon,
     .fi-sidebar-item-button.fi-active .fi-sidebar-item-icon,
     .fi-sidebar-item-active .fi-sidebar-item-icon {
-        color: #06b6d4 !important;
-        /* Cyan 500 */
+        color: {{ $corEnd }} !important;
+        /* Custom Highlight */
     }
 
     /* 4. A BARRA LATERAL (DESTQUE) - Appears on Hover AND Active */
@@ -102,8 +128,8 @@
         bottom: 0;
         width: 4px;
         /* Largura da barra */
-        background-color: #06b6d4;
-        /* Cyan 500 */
+        background-color: {{ $corEnd }};
+        /* Custom Highlight */
         border-top-right-radius: 4px;
         /* Pontinha arredondada só na barra fica elegante */
         border-bottom-right-radius: 4px;
