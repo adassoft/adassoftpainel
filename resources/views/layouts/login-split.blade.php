@@ -15,9 +15,9 @@
         <div class="hidden lg:flex w-1/2 relative flex-col items-center p-12 text-center text-white overflow-hidden"
             style="background: linear-gradient(135deg, {{ $gradientStart }}, {{ $gradientEnd }});">
 
-            <!-- Efeitos de Fundo (Círculos) -->
-            <div class="absolute -top-12 -left-12 w-48 h-48 bg-white opacity-10 rounded-full blur-2xl"></div>
-            <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+            <!-- Efeitos de Fundo removidos para evitar bugs visuais (Bola Branca) -->
+            {{-- <div class="absolute -top-12 -left-12 w-48 h-48 bg-white opacity-10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div> --}}
 
             <!-- Conteúdo Principal: flex-grow faz ocupar todo espaço disponível, empurrando o footer para baixo e centralizando o conteúdo -->
             <div class="flex-grow flex flex-col justify-center items-center relative z-10 w-full animate-fade-in-up">
