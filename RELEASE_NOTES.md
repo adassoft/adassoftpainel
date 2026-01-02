@@ -1,11 +1,8 @@
-# Release Notes - 2026-01-02 03:50
+# Release Notes - 2026-01-02 04:00
 
-- Correções de Banco de Dados:
-    - Adicionada migration de segurança para garantir a existência da coluna `icone_path`, resolvendo erro 500 na aprovação de revendas.
-- Melhorias de UX:
-    - Alterados os campos de seleção de cor na tela de White Label para usar o seletor nativo do navegador.
-    - Substituído texto "Shield System" por "Adassoft System" nas telas de aprovação.
+- Correções Críticas de Banco de Dados:
+    - Alteradas colunas `logo_path`, `icone_path` e `dominios` para permitirem valores nulos (`NULL`), corrigindo erro 500 ao aprovar revendas sem logo ou configurações parciais.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`
-2. **Essencial:** Execute `php artisan migrate --force` para aplicar a correção do banco de dados.
+2. **Essencial:** Execute `php artisan migrate --force` para corrigir a estrutura da tabela.
