@@ -214,6 +214,45 @@ class LicenseResource extends Resource
                         'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
                         'style' => 'cursor: pointer;',
                     ]),
+
+                // Ação Download (Novo)
+                Tables\Actions\Action::make('download')
+                    ->label('Baixar')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('primary')
+                    ->url(function (License $record) {
+                        $sw = $record->software;
+                        if (!$sw)
+                            return null;
+
+                        // 1. Repositório Vinculado
+                        if ($sw->id_download_repo) {
+                            $dl = \App\Models\Download::find($sw->id_download_repo);
+                            if ($dl && $dl->arquivo_path) {
+                                // Incrementa contador se desejar (opcional, requer controller separado ou ignored no get)
+                                return '/storage/' . $dl->arquivo_path;
+                            }
+                        }
+
+                        // 2. Upload Direto
+                        if ($sw->arquivo_software) {
+                            return '/storage/' . $sw->arquivo_software;
+                        }
+
+                        // 3. Link Externo
+                        if ($sw->url_download) {
+                            return $sw->url_download;
+                        }
+
+                        return null;
+                    })
+                    ->visible(
+                        fn(License $record) =>
+                        $record->software?->id_download_repo
+                        || $record->software?->arquivo_software
+                        || $record->software?->url_download
+                    )
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
             ]);
