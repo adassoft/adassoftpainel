@@ -44,13 +44,13 @@ Ocorre quando o arquivo enviado é maior que o permitido. O ajuste precisa ser f
 O Nginx bloqueia uploads grandes antes mesmo de chegarem no PHP. A interface do Easypanel *não* ajusta isso, então precisamos rodar o comando:
 
 ```bash
-# Rodar no Console
-bash setup_production.sh
+# Rodar no Console (Solução Definitiva)
+echo "client_max_body_size 512M;" > /etc/nginx/conf.d/upload_limiter.conf && nginx -s reload
 ```
 
-Ou manualmente:
+Ou simplesmente rode o script atualizado:
 ```bash
-sed -i '/server_name _;/a \  client_max_body_size 500M;' /etc/nginx/sites-enabled/default && nginx -s reload
+cd /code && git pull && bash setup_production.sh
 ```
 
 ### 2. Assets 404 (Livewire/Filament não carregam)
