@@ -23,7 +23,7 @@ class WhiteLabelPage extends Page implements HasForms
     protected static ?int $navigationSort = 3;
     protected static ?string $navigationLabel = 'Personalização (White Label)';
     protected static ?string $title = 'Personalização do Sistema';
-    // protected static string $view = 'filament.reseller.pages.white-label-page';
+    protected static string $view = 'filament.reseller.pages.white-label-page';
 
     public function getMaxContentWidth(): ?string
     {
@@ -88,6 +88,7 @@ class WhiteLabelPage extends Page implements HasForms
                             ->maxSize(2048)
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
                             ->helperText('Formatos: PNG, JPG, SVG. Tamanho máx: 2MB.')
+                            ->live()
                             ->columnSpanFull(),
 
                         // Ícone (Quadrado)
@@ -99,6 +100,7 @@ class WhiteLabelPage extends Page implements HasForms
                             ->maxSize(1024)
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
                             ->helperText('Formatos: PNG, JPG, SVG. Tamanho máx: 1MB. Proporção 1:1.')
+                            ->live()
                             ->columnSpanFull(),
 
                         // Cores
