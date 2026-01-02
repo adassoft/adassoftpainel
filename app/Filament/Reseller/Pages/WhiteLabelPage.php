@@ -92,7 +92,8 @@ class WhiteLabelPage extends Page implements HasForms
                             ->maxSize(2048)
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
                             ->helperText('Formatos: PNG, JPG, SVG. Tamanho máx: 2MB.')
-                            ->live(),
+                            ->live()
+                            ->columnSpanFull(),
 
                         // Ícone (Quadrado)
                         \Filament\Forms\Components\FileUpload::make('icone_path')
@@ -107,7 +108,8 @@ class WhiteLabelPage extends Page implements HasForms
                             ->maxSize(1024)
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
                             ->helperText('Formatos: PNG, JPG, SVG. Tamanho máx: 1MB. Proporção 1:1.')
-                            ->live(),
+                            ->live()
+                            ->columnSpanFull(),
 
                         // Cores
                         // Cores (Usando TextInput type color nativo para garantir compatibilidade)
