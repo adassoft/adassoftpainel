@@ -23,7 +23,7 @@ class WhiteLabelPage extends Page implements HasForms
     protected static ?int $navigationSort = 3;
     protected static ?string $navigationLabel = 'Personalização (White Label)';
     protected static ?string $title = 'Personalização do Sistema';
-    protected static string $view = 'filament.reseller.pages.white-label-page';
+    // protected static string $view = 'filament.reseller.pages.white-label-page';
 
     public function getMaxContentWidth(): ?string
     {
