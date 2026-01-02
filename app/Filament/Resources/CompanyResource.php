@@ -27,135 +27,187 @@ class CompanyResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('cnpj')
-                    ->required()
-                    ->maxLength(20),
-                Forms\Components\TextInput::make('razao')
-                    ->required()
-                    ->maxLength(50),
-                Forms\Components\TextInput::make('endereco')
-                    ->required()
-                    ->maxLength(50),
-                Forms\Components\TextInput::make('cidade')
-                    ->required()
-                    ->maxLength(35),
-                Forms\Components\TextInput::make('bairro')
-                    ->required()
-                    ->maxLength(35),
-                Forms\Components\TextInput::make('cep')
-                    ->maxLength(20)
-                    ->default(null),
-                Forms\Components\TextInput::make('uf')
-                    ->required()
-                    ->maxLength(2),
-                Forms\Components\TextInput::make('fone')
-                    ->maxLength(20)
-                    ->default(null),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->maxLength(120)
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('data')
-                    ->required(),
-                Forms\Components\TextInput::make('nterminais')
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('serial')
-                    ->maxLength(200)
-                    ->default(null),
-                Forms\Components\TextInput::make('software_principal_id')
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\DateTimePicker::make('data_ultima_ativacao'),
-                Forms\Components\DatePicker::make('validade_licenca'),
-                Forms\Components\TextInput::make('bloqueado')
-                    ->maxLength(1)
-                    ->default(null),
-                Forms\Components\TextInput::make('cnpj_representante')
-                    ->maxLength(20)
-                    ->default(null),
-                Forms\Components\Toggle::make('app_alerta_vencimento'),
-                Forms\Components\TextInput::make('app_dias_alerta')
-                    ->numeric()
-                    ->default(5),
-                Forms\Components\TextInput::make('status')
-                    ->required()
-                    ->maxLength(20)
-                    ->default('Ativo'),
-                Forms\Components\TextInput::make('saldo')
-                    ->required()
-                    ->numeric()
-                    ->default(0.00),
-                Forms\Components\Toggle::make('revenda_padrao'),
-                Forms\Components\TextInput::make('asaas_wallet_id')
-                    ->maxLength(255)
-                    ->default(null),
-            ]);
+                Forms\Components\Group::make()
+                    ->columnSpan(2)
+                    ->schema([
+                        Forms\Components\Section::make('Dados da Empresa')
+                            ->description('Informações cadastrais principais.')
+                            ->icon('heroicon-o-building-office')
+                            ->columns(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('razao')
+                                    ->label('Razão Social')
+                                    ->required()
+                                    ->columnSpanFull()
+                                    ->maxLength(50),
+
+                                Forms\Components\TextInput::make('cnpj')
+                                    ->label('CNPJ')
+                                    ->mask('99.999.999/9999-99')
+                                    ->required()
+                                    ->maxLength(20),
+
+                                Forms\Components\TextInput::make('email')
+                                    ->label('E-mail')
+                                    ->email()
+                                    ->prefixIcon('heroicon-m-envelope')
+                                    ->maxLength(120),
+
+                                Forms\Components\TextInput::make('fone')
+                                    ->label('Telefone / WhatsApp')
+                                    ->mask('(99) 99999-9999')
+                                    ->prefixIcon('heroicon-m-phone')
+                                    ->maxLength(20),
+                            ]),
+
+                        Forms\Components\Section::make('Endereço')
+                            ->icon('heroicon-o-map-pin')
+                            ->columns(3)
+                            ->collapsed()
+                            ->schema([
+                                Forms\Components\TextInput::make('cidade')
+                                    ->required()
+                                    ->maxLength(35),
+                                Forms\Components\TextInput::make('uf')
+                                    ->label('UF')
+                                    ->required()
+                                    ->maxLength(2),
+                                Forms\Components\TextInput::make('cep')
+                                    ->mask('99999-999')
+                                    ->maxLength(20),
+                                Forms\Components\TextInput::make('endereco')
+                                    ->label('Logradouro')
+                                    ->columnSpan(2)
+                                    ->required()
+                                    ->maxLength(50),
+                                Forms\Components\TextInput::make('bairro')
+                                    ->required()
+                                    ->maxLength(35),
+                            ]),
+                    ]),
+
+                Forms\Components\Group::make()
+                    ->columnSpan(1)
+                    ->schema([
+                        Forms\Components\Section::make('Licenciamento e Status')
+                            ->icon('heroicon-o-key')
+                            ->schema([
+                                Forms\Components\TextInput::make('status')
+                                    ->label('Status')
+                                    ->required()
+                                    ->maxLength(20)
+                                    ->default('Ativo'),
+
+                                Forms\Components\Select::make('bloqueado')
+                                    ->label('Bloqueio')
+                                    ->options(['S' => 'Sim', 'N' => 'Não'])
+                                    ->default('N'),
+
+                                Forms\Components\DatePicker::make('validade_licenca')
+                                    ->label('Validade Licença'),
+
+                                Forms\Components\TextInput::make('nterminais')
+                                    ->label('Nº Terminais')
+                                    ->numeric(),
+
+                                Forms\Components\DateTimePicker::make('data_ultima_ativacao')
+                                    ->label('Última Ativação')
+                                    ->disabled(),
+                            ]),
+
+                        Forms\Components\Section::make('Financeiro')
+                            ->icon('heroicon-o-currency-dollar')
+                            ->collapsed()
+                            ->schema([
+                                Forms\Components\TextInput::make('saldo')
+                                    ->numeric()
+                                    ->prefix('R$')
+                                    ->default(0.00),
+                                Forms\Components\TextInput::make('asaas_wallet_id')
+                                    ->label('ID Carteira Asaas')
+                                    ->maxLength(255),
+
+                                Forms\Components\Toggle::make('revenda_padrao')
+                                    ->label('É Revenda Padrão?'),
+                            ]),
+                    ]),
+            ])->columns(3);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('cnpj')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('razao')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('endereco')
-                    ->searchable(),
+                    ->label('Empresa')
+                    ->description(fn(Company $record) => $record->cnpj)
+                    ->searchable(['razao', 'cnpj'])
+                    ->sortable()
+                    ->weight(\Filament\Support\Enums\FontWeight::Bold),
+
                 Tables\Columns\TextColumn::make('cidade')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('bairro')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('cep')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('uf')
-                    ->searchable(),
+                    ->label('Localização')
+                    ->formatStateUsing(fn($state, Company $record) => "{$state} / {$record->uf}")
+                    ->searchable()
+                    ->icon('heroicon-m-map-pin')
+                    ->color('gray'),
+
                 Tables\Columns\TextColumn::make('fone')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('data')
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('nterminais')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('serial')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('software_principal_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('data_ultima_ativacao')
-                    ->dateTime()
-                    ->sortable(),
+                    ->label('Contato')
+                    ->searchable()
+                    ->icon('heroicon-m-phone')
+                    ->copyable(),
+
                 Tables\Columns\TextColumn::make('validade_licenca')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('bloqueado')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('cnpj_representante')
-                    ->searchable(),
-                Tables\Columns\IconColumn::make('app_alerta_vencimento')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('app_dias_alerta')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Validade')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->color(fn($state) => $state < now() ? 'danger' : 'success')
+                    ->tooltip(fn($state) => $state < now() ? 'Licença Vencida' : 'Licença Ativa'),
+
                 Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn(string $state): string => match (strtolower($state)) {
+                        'ativo' => 'success',
+                        'inativo' => 'gray',
+                        'bloqueado', 'cancelado' => 'danger',
+                        default => 'warning',
+                    }),
+
+                Tables\Columns\IconColumn::make('bloqueado')
+                    ->label('Bloq.')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-lock-closed')
+                    ->falseIcon('heroicon-o-lock-open')
+                    ->trueColor('danger')
+                    ->falseColor('success')
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('saldo')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\IconColumn::make('revenda_padrao')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('asaas_wallet_id')
-                    ->searchable(),
+                    ->label('Saldo')
+                    ->money('BRL')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('data')
+                    ->label('Cadastro')
+                    ->dateTime('d/m/Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('data', 'desc')
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('login_as')
+                    ->label('')
+                    ->icon('heroicon-o-arrow-right-end-on-rectangle')
+                    ->tooltip('Acessar Painel do Cliente')
+                    ->color('gray')
+                    ->url('#'), // Implementar lógica de impersonate futuramente se necessário
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
