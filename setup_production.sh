@@ -43,20 +43,20 @@ EOF
 echo "📦 Ajustando limites de upload (100MB)..."
 
 # Ajustar Nginx (Limite de 500MB)
-NGINX_SITE="/etc/nginx/sites-enabled/default"
-if [ -f "$NGINX_SITE" ]; then
-    echo "  -> Nginx site config found at $NGINX_SITE"
-    
-    # Remove qualquer limite antigo para não duplicar
-    sed -i '/client_max_body_size/d' "$NGINX_SITE"
-    
-    # Insere o limite logo após a linha 'server_name _;' (que sabemos que existe)
-    sed -i '/server_name _;/a \    client_max_body_size 500M;' "$NGINX_SITE"
-    
+# Ajustar Nginx (Limite de 512MB) - Método Global (Mais seguro)
+if [ -d "/etc/nginx/conf.d" ]; then
+    echo "client_max_body_size 512M;" > /etc/nginx/conf.d/upload_limit.conf
     nginx -t && nginx -s reload
-    echo "  ✅ Nginx atualizado para 500MB."
+    echo "  ✅ Nginx atualizado (conf.d) para 512MB."
 else
-    echo "  ⚠️ CUIDADO: Arquivo de site padrão não encontrado."
+    # Fallback para o método antigo (sed) se conf.d não existir
+    NGINX_SITE="/etc/nginx/sites-enabled/default"
+    if [ -f "$NGINX_SITE" ]; then
+        sed -i '/client_max_body_size/d' "$NGINX_SITE"
+        sed -i '/server_name _;/a \    client_max_body_size 512M;' "$NGINX_SITE"
+        nginx -t && nginx -s reload
+        echo "  ✅ Nginx atualizado (sed) para 512MB."
+    fi
 fi
 
 # Ajustar PHP (php.ini)
