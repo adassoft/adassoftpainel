@@ -69,6 +69,7 @@ class AdminPanelProvider extends PanelProvider
                 fn() => view('partials.chatwoot')
             )
             ->navigationGroups([
+                'Gestão de Revendas',
                 'Gestão de Usuários e Clientes',
                 'Catálogo de Softwares',
                 'Licenciamento e Ativações',
