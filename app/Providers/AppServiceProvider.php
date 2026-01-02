@@ -24,6 +24,16 @@ class AppServiceProvider extends ServiceProvider
             $this->app['request']->server->set('HTTPS', 'on');
         }
 
+        // Fix para White Label: Ajusta APP_URL dinamicamente conforme o domínio de acesso
+        // Isso previne erros de CORS/Livewire quando acessado via domínio da revenda
+        if (!app()->runningInConsole() && isset($_SERVER['HTTP_HOST'])) {
+            $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://';
+            $currentUrl = $scheme . $_SERVER['HTTP_HOST'];
+
+            \Illuminate\Support\Facades\Config::set('app.url', $currentUrl);
+            \Illuminate\Support\Facades\URL::forceRootUrl($currentUrl);
+        }
+
         \App\Models\Software::observe(\App\Observers\SoftwareObserver::class);
         \App\Models\Plan::observe(\App\Observers\PlanObserver::class);
         \App\Models\ResellerConfig::observe(\App\Observers\ResellerConfigObserver::class);
