@@ -31,6 +31,9 @@ class DownloadController extends Controller
                 $contador = 0;
                 $dataInfo = $soft->data_cadastro ? $soft->data_cadastro->format('d/m/Y') : null;
 
+                $repoSlug = null;
+                $repoId = null;
+
                 // Se estiver vinculado ao repositório, pegamos os dados reais do arquivo
                 if ($soft->id_download_repo) {
                     $repoFile = $extras->firstWhere('id', $soft->id_download_repo);
@@ -39,6 +42,9 @@ class DownloadController extends Controller
                         $tamanho = $repoFile->tamanho_arquivo;
                         $contador = $repoFile->contador;
                         $dataInfo = $repoFile->data_atualizacao ? $repoFile->data_atualizacao->format('d/m/Y') : $dataInfo;
+
+                        $repoSlug = $repoFile->slug;
+                        $repoId = $repoFile->id;
                     }
                 } elseif ($soft->arquivo_software) {
                     $url = asset('storage/' . $soft->arquivo_software);
@@ -48,6 +54,8 @@ class DownloadController extends Controller
                     'id' => $soft->id,
                     'slug' => $soft->slug,
                     'tipo' => 'software',
+                    'repo_id' => $repoId,
+                    'repo_slug' => $repoSlug,
                     'nome_software' => $soft->nome_software,
                     'versao' => $soft->versao,
                     'tamanho_arquivo' => $tamanho,

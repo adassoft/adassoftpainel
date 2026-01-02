@@ -1,8 +1,8 @@
-# Release Notes - 2026-01-02 02:00
+# Release Notes - 2026-01-02 02:10
 
-- UX e Links:
-    - Botões "Ver Detalhes" agora utilizam links amigáveis (Slug).
-    - Detalhes de Downloads agora exibem a página do arquivo primeiro, com link opcional para o Produto Relacionado, melhorando a navegação.
+- Melhoria na UX de Downloads:
+    - Card de Download agora prioriza link para "Detalhes do Arquivo" (/download/...) se existir.
+    - Mantém fallback para "Detalhes do Produto" apenas se não houver um arquivo de repositório vinculado.
 
 Instruções para atualização no servidor:
 1. Execute `git pull`
