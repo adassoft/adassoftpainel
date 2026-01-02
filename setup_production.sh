@@ -75,14 +75,15 @@ if [ -f "$PHP_INI" ]; then
     grep -q "upload_max_filesize" "$PHP_INI" && sed -i 's/upload_max_filesize.*/upload_max_filesize = 512M/' "$PHP_INI" || echo "upload_max_filesize = 512M" >> "$PHP_INI"
     grep -q "post_max_size" "$PHP_INI" && sed -i 's/post_max_size.*/post_max_size = 512M/' "$PHP_INI" || echo "post_max_size = 512M" >> "$PHP_INI"
     
-    # Reiniciar processos PHP
-    pkill php-fpm || true
+    # Reload gracioso do PHP-FPM (evita matar o processo se não houver supervisor)
+    echo "  🔄 Recarregando configurações do PHP..."
+    pkill -USR2 php-fpm || echo "  ⚠️ Não foi possível recarregar o PHP (pode ser necessário reiniciar o container)."
 else
     echo "  -> PHP config not found. Creating custom config..."
     mkdir -p /etc/php/8.2/fpm/conf.d/
     echo "upload_max_filesize = 512M" > /etc/php/8.2/fpm/conf.d/99-custom.ini
     echo "post_max_size = 512M" >> /etc/php/8.2/fpm/conf.d/99-custom.ini
-    pkill php-fpm || true
+    pkill -USR2 php-fpm || true
 fi
 
 # --- 3. BANCO DE DADOS ---
