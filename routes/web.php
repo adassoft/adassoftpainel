@@ -16,6 +16,10 @@ Route::get('/parceiros', function () {
     return view('shop.partners-selector');
 })->name('partners.index');
 
+// Rota para Desenvolvedores (Landing Page)
+Route::get('/dev', [\App\Http\Controllers\DeveloperPartnerController::class, 'index'])->name('developer.lp');
+Route::post('/dev/join', [\App\Http\Controllers\DeveloperPartnerController::class, 'store'])->name('developer.store');
+
 Route::get('/feeds/google.xml', [\App\Http\Controllers\FeedController::class, 'google'])->name('feeds.google');
 
 // Checkout routes public (auth handled inside)
