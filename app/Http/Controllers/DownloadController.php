@@ -92,16 +92,61 @@ class DownloadController extends Controller
 
     public function show($id)
     {
+        $download = null;
+        $softwareRelacionado = null;
+
+        // 1. Tenta achar o Download (Extra)
         if (is_numeric($id)) {
-            $download = Download::findOrFail($id);
+            $download = Download::find($id);
         } else {
-            $download = Download::where('slug', $id)->firstOrFail();
+            $download = Download::where('slug', $id)->first();
         }
 
-        // Se este download for vinculado a um software, PASSAMOS a info para a view (não redireciona mais)
-        $software = Software::where('id_download_repo', $download->id)->first();
+        // 2. Se achou o download, busca se tem software relacionado
+        if ($download) {
+            $softwareRelacionado = Software::where('id_download_repo', $download->id)->first();
+        }
 
-        return view('shop.download-details', compact('download', 'software'));
+        // 3. Se NÃO achou download, tenta achar um Software com esse slug/id (Fallback para Legacy)
+        else {
+            if (is_numeric($id)) {
+                $soft = Software::find($id);
+            } else {
+                $soft = Software::where('slug', $id)->first();
+            }
+
+            if ($soft) {
+                // Cria um objeto Download "Virtual" para a view não quebrar
+                $download = new Download();
+                $download->id = $soft->id; // Apenas para referência
+                $download->titulo = $soft->nome_software;
+                $download->slug = $soft->slug;
+                $download->descricao = $soft->descricao;
+                $download->versao = $soft->versao;
+                $download->tamanho = $soft->tamanho_arquivo;
+                $download->data_atualizacao = $soft->data_cadastro;
+                $download->contador = 0; // Softwares legacy não têm contador separado ainda
+                $download->arquivo_path = $soft->arquivo_software; // Caminho relativo
+
+                // Se tiver URL externa, precisaremos tratar na view ou aqui. 
+                // Vamos usar um atributo transiente ou verificar se é url
+                $download->is_external_url = !empty($soft->url_download);
+                if ($download->is_external_url) {
+                    $download->arquivo_path = $soft->url_download;
+                }
+
+                $softwareRelacionado = $soft;
+            }
+        }
+
+        if (!$download) {
+            abort(404);
+        }
+
+        return view('shop.download-details', [
+            'download' => $download,
+            'software' => $softwareRelacionado
+        ]);
     }
 
     private function resolveImageUrl($path)

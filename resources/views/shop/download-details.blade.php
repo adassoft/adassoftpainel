@@ -70,7 +70,13 @@
                         {{ $download->descricao ?: 'Nenhuma descrição detalhada disponível.' }}
                     </div>
 
-                    <a href="{{ asset('storage/' . $download->arquivo_path) }}"
+                    @php
+                        $downloadUrl = (isset($download->is_external_url) && $download->is_external_url)
+                            ? $download->arquivo_path
+                            : asset('storage/' . $download->arquivo_path);
+                    @endphp
+
+                    <a href="{{ $downloadUrl }}" target="_blank"
                         class="btn btn-primary btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg">
                         <i class="fas fa-cloud-download-alt mr-2"></i> Baixar Agora
                     </a>

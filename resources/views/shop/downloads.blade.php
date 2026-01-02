@@ -134,22 +134,10 @@
                                 </a>
 
                                 <div class="mt-3">
-                                    @if(!empty($soft['repo_id']))
-                                        <a href="{{ route('download.show', $soft['repo_slug'] ?? $soft['repo_id']) }}"
-                                            class="small text-secondary font-weight-bold text-decoration-none hover:underline">
-                                            <i class="fas fa-info-circle mr-1"></i> Detalhes do Arquivo
-                                        </a>
-                                    @elseif($soft['tipo'] == 'software')
-                                        <a href="{{ route('product.show', $soft['slug'] ?? $soft['id']) }}"
-                                            class="small text-primary font-weight-bold text-decoration-none hover:underline">
-                                            <i class="fas fa-info-circle mr-1"></i> Detalhes do Produto
-                                        </a>
-                                    @else
-                                        <a href="{{ route('download.show', $soft['slug'] ?? $soft['id']) }}"
-                                            class="small text-secondary font-weight-bold text-decoration-none hover:underline">
-                                            <i class="fas fa-info-circle mr-1"></i> Detalhes do Download
-                                        </a>
-                                    @endif
+                                    <a href="{{ route('download.show', $soft['repo_slug'] ?? $soft['repo_id'] ?? $soft['slug'] ?? $soft['id']) }}"
+                                        class="small text-secondary font-weight-bold text-decoration-none hover:underline">
+                                        <i class="fas fa-info-circle mr-1"></i> Detalhes do Arquivo
+                                    </a>
                                 </div>
                             </div>
                         </div>
