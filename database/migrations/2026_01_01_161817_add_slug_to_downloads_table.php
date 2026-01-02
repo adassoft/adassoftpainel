@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('downloads', function (Blueprint $table) {
+        Schema::table('downloads_extras', function (Blueprint $table) {
             $table->string('slug')->nullable()->unique()->after('titulo');
         });
     }
@@ -20,7 +20,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('downloads', function (Blueprint $table) {
+        Schema::table('downloads_extras', function (Blueprint $table) {
             $table->dropColumn('slug');
         });
     }
