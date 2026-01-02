@@ -100,6 +100,11 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
+        // Bloqueia acesso se status não for Ativo
+        if ($this->status !== 'Ativo') {
+            return false;
+        }
+
         // Admin geral pode acessar qualquer painel
         if ($this->email === 'admin@adassoft.com' || strtolower($this->acesso ?? '') === 'admin' || $this->acesso == 1) {
             return true;
