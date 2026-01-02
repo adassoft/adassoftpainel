@@ -17,26 +17,24 @@ class DashboardNews extends Widget
     protected function getViewData(): array
     {
         $user = Auth::user();
-
         $query = News::active();
 
-        // Lógica de filtro baseada no nível de acesso do usuário
-        // Assumindo: Acesso 2 = Revenda. Admin vê tudo. Outros (Clientes) = Todos.
-        // Se o usuário for Super Admin (método do FilamentUser), vê tudo.
+        // Lógica Rigorosa de Permissões
+        $acesso = (int) ($user->acesso ?? 3); // 1=Admin, 2=Revenda, 3=Cliente (Default)
 
-        // Se não for super admin (admin pode ver tudo também):
-        // Vamos aplicar filtro se NÃO for admin explícito.
-        // Como o sistema identifica "Cliente"? Provavelmente acesso != 2 e não admin.
+        // Verifica se é Admin (ID 1 ou Acesso 1)
+        $isAdmin = ($user->id === 1) || $acesso === 1;
 
-        // Lógica simplificada:
-        if ($user->acesso == 2) {
+        if ($isAdmin) {
+            // Admin vê todas as notícias (sem filtro)
+        } elseif ($acesso === 2) {
             // Revenda vê 'revenda' e 'todos'
             $query->whereIn('publico', ['revenda', 'todos']);
-        } elseif (!$this->isAdmin($user)) {
-            // Cliente (assumindo que não é admin e não é revenda)
-            $query->whereIn('publico', ['todos', 'cliente']);
+        } else {
+            // Cliente (Acesso 3 ou outros) vê APENAS 'cliente' e 'todos'
+            // Isso garante que notícias 'revenda' NUNCA vazem aqui
+            $query->whereIn('publico', ['cliente', 'todos']);
         }
-        // Se for Admin, query não tem filtro de público (vê tudo)
 
         $noticias = $query->orderByRaw("FIELD(prioridade, 'alta', 'normal', 'baixa')")
             ->latest()
@@ -50,12 +48,7 @@ class DashboardNews extends Widget
 
     protected function isAdmin($user)
     {
-        // Helper para checar se é admin com base nas regras do projeto
-        // User.php deve ter canAccessPanel ou similar.
-        // Aqui vou assumir que acesso != 2 e acesso != (cliente) é admin.
-        // Mas se todos usam o mesmo painel... 
-        // Vamos checar depois o User.php mais a fundo se precisar.
-        // Por ora, admin vê tudo.
-        return method_exists($user, 'isSuperAdmin') ? $user->isSuperAdmin() : ($user->id === 1); // Fallback
+        $acesso = (int) ($user->acesso ?? 0);
+        return ($user->id === 1) || ($acesso === 1);
     }
 }
