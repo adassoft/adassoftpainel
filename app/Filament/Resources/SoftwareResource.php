@@ -287,22 +287,48 @@ class SoftwareResource extends Resource
                                                     ->label('Gerar com IA')
                                                     ->icon('heroicon-o-bolt')
                                                     ->color('info')
-                                                    ->form([
-                                                        Textarea::make('prompt_html')
-                                                            ->label('Descreva como deve ser a Landing Page')
-                                                            ->placeholder('Ex: Crie uma página moderna para um software de Automação Comercial...')
-                                                            ->required(),
-                                                    ])
+                                                    ->form(function (Forms\Get $get) {
+                                                        // 1. Obter Cores da Marca (Branding)
+                                                        $branding = \App\Services\ResellerBranding::getCurrent();
+                                                        $corStart = $branding['cor_start'] ?? '#3b82f6'; // Fallback Blue
+                                                        $corEnd = $branding['cor_end'] ?? '#1d4ed8';
+
+                                                        // 2. Obter Dados do Formulário Atual
+                                                        $nomeSoftware = $get('nome_software') ?? 'NOME DO SOFTWARE';
+                                                        $descricao = $get('descricao') ?? 'Software inovador de gestão.';
+
+                                                        // 3. Montar Prompt Rico
+                                                        $prePrompt = "Crie uma Landing Page moderna para o software: '{$nomeSoftware}'.\n";
+                                                        $prePrompt .= "Contexto: {$descricao}\n\n";
+                                                        $prePrompt .= "IDENTIDADE VISUAL (Siga estritamente):\n";
+                                                        $prePrompt .= "- Cor Primária/Gradiente: De {$corStart} para {$corEnd}.\n";
+                                                        $prePrompt .= "- Estilo: Clean, Profissional, use sombras suaves e bordas arredondadas (Border Radius 12px).\n";
+                                                        $prePrompt .= "- CTA (Botões): Use gradiente 'background: linear-gradient(to right, {$corStart}, {$corEnd})'.\n\n";
+                                                        $prePrompt .= "DETALHES DO CONTEÚDO:\n";
+                                                        $prePrompt .= "Inclua uma seção 'Hero' impactante, uma seção de 'Funcionalidades' (Grid 3 colunas) e um 'Rodapé' simples.";
+
+                                                        return [
+                                                            Textarea::make('prompt_html')
+                                                                ->label('Prompt da IA (Personalize se necessário)')
+                                                                ->default($prePrompt)
+                                                                ->rows(10)
+                                                                ->required(),
+                                                        ];
+                                                    })
                                                     ->action(function (array $data, Forms\Set $set, \App\Services\GeminiService $gemini) {
                                                         try {
-                                                            $prompt = "Atue como um Especialista em Front-end e Copywriting. Crie um CÓDIGO HTML COMPLETO para o corpo de uma Landing Page de venda de software. " .
-                                                                "Use Bootstrap 4 (classes padrão) e CSS inline estiloso se necessário. " .
-                                                                "O design deve ser moderno, clean e persuasivo. " .
-                                                                "NÃO inclua tags <html>, <head> ou <body>, apenas o conteúdo interno (seções, hero, features). " .
-                                                                "Baseie o conteúdo EXCLUSIVAMENTE nesta descrição do usuário: " . $data['prompt_html'] .
-                                                                " IMPORTANTE: Retorne APENAS o código HTML bruto. Não use blocos de código markdown.";
+                                                            $userPrompt = $data['prompt_html'];
 
-                                                            $response = $gemini->generateContent($prompt);
+                                                            $baseSystemPrompt = "Atue como um Especialista em Front-end Sênior (Bootstrap 5 + CSS Moderno). " .
+                                                                "Sua tarefa é escrever o CÓDIGO HTML PURO para o CORPO de uma Landing Page. " .
+                                                                "NÃO use tags <html>, <head> ou <body>. Comece direto nas <section> ou <header>.\n" .
+                                                                "Use classes do Bootstrap 5 para layout (container, row, col, d-flex, etc). " .
+                                                                "Para estilização específica (cores, gradientes, sombras), use tags <style> no início ou style='' inline, garantindo que o design fique incrível e fiel às cores solicitadas.\n" .
+                                                                "IMPORTANTE: Retorne APENAS o código HTML bruto. Não use blocos de código markdown (```).";
+
+                                                            $finalPrompt = $baseSystemPrompt . "\n\nINSTRUÇÃO DO USUÁRIO:\n" . $userPrompt;
+
+                                                            $response = $gemini->generateContent($finalPrompt);
 
                                                             if (!$response['success']) {
                                                                 throw new \Exception($response['error']);
@@ -314,7 +340,8 @@ class SoftwareResource extends Resource
                                                             $set('pagina_vendas_html', $cleanHtml);
 
                                                             \Filament\Notifications\Notification::make()
-                                                                ->title('Conteúdo Gerado!')
+                                                                ->title('Landing Page Gerada!')
+                                                                ->body('O HTML foi inserido no campo. Verifique e ajuste se necessário.')
                                                                 ->success()
                                                                 ->send();
                                                         } catch (\Exception $e) {
