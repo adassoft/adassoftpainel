@@ -1,0 +1,148 @@
+<?php
+
+namespace App\Filament\App\Pages;
+
+use Filament\Pages\Page;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
+use Filament\Notifications\Notification;
+use App\Models\Company;
+use Illuminate\Support\Facades\Auth;
+
+class MyCompany extends Page implements HasForms
+{
+    use InteractsWithForms;
+
+    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+    protected static ?string $navigationLabel = 'Minha Empresa';
+    protected static ?string $title = 'Dados da Empresa';
+    protected static ?string $slug = 'minha-empresa';
+    protected static string $view = 'filament.app.pages.my-company';
+    protected static ?int $sort = 10;
+    protected static ?string $navigationGroup = 'Gestão';
+
+    public ?array $data = [];
+
+    public function mount(): void
+    {
+        $user = Auth::user();
+        if (!$user)
+            return;
+
+        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+        if (!$cnpjLimpo) {
+            $this->form->fill([
+                'email' => $user->email
+            ]);
+            return;
+        }
+
+        $company = Company::where('cnpj', $cnpjLimpo)->first();
+
+        if ($company) {
+            $this->form->fill($company->toArray());
+        } else {
+            // Preenche com dados do user se a empresa ainda não existe
+            $this->form->fill([
+                'cnpj' => $user->cnpj, // Valor raw do user
+                'email' => $user->email,
+            ]);
+        }
+    }
+
+    public function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Section::make('Informações Cadastrais')
+                    ->description('Mantenha os dados da sua empresa atualizados.')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('razao')
+                                    ->label('Razão Social')
+                                    ->required()
+                                    ->maxLength(100)
+                                    ->columnSpanFull(),
+
+                                TextInput::make('cnpj')
+                                    ->label('CNPJ (Somente Números)')
+                                    ->disabled() // CNPJ não deve ser alterado aqui facilmente para não quebrar licenças
+                                    ->helperText('Para alterar o CNPJ, entre em contato com o suporte.')
+                                    ->dehydrated(),
+
+                                TextInput::make('fone')
+                                    ->label('Telefone / WhatsApp')
+                                    ->required()
+                                    ->mask('(99) 99999-9999')
+                                    ->maxLength(20),
+
+                                TextInput::make('email')
+                                    ->label('E-mail Corporativo')
+                                    ->email()
+                                    ->required()
+                                    ->maxLength(100),
+
+                                TextInput::make('cidade')
+                                    ->label('Cidade')
+                                    ->required()
+                                    ->maxLength(50),
+
+                                TextInput::make('uf')
+                                    ->label('UF')
+                                    ->required()
+                                    ->maxLength(2),
+
+                                TextInput::make('bairro')
+                                    ->label('Bairro')
+                                    ->maxLength(50),
+
+                                TextInput::make('cep')
+                                    ->label('CEP')
+                                    ->mask('99999-999'),
+                            ])
+                    ])
+            ])
+            ->statePath('data');
+    }
+
+    public function save(): void
+    {
+        $data = $this->form->getState();
+        $user = Auth::user();
+
+        $cnpjLimpo = preg_replace('/\D/', '', $data['cnpj']);
+
+        if (empty($cnpjLimpo)) {
+            Notification::make()->danger()->title('Erro')->body('CNPJ inválido.')->send();
+            return;
+        }
+
+        // Update or Create
+        $company = Company::where('cnpj', $cnpjLimpo)->first();
+
+        if ($company) {
+            $company->update($data);
+        } else {
+            // Create
+            $data['cnpj'] = $cnpjLimpo;
+            $data['data'] = now();
+            $data['status'] = 'Ativo';
+
+            // Tratamento de campos padrão se necessário
+            Company::create($data);
+        }
+
+        // Garante vinculo
+        if ($user->cnpj !== $cnpjLimpo) {
+            $user->cnpj = $cnpjLimpo;
+            $user->save();
+        }
+
+        Notification::make()->success()->title('Sucesso!')->body('Dados da empresa salvos.')->send();
+    }
+}

@@ -26,8 +26,9 @@ class ClientStatsOverview extends BaseWidget
         if (!$company) {
             return [
                 Stat::make('Erro', 'Empresa não encontrada')
-                    ->description('Complete seu cadastro')
-                    ->color('danger'),
+                    ->description('Clique aqui para completar seu cadastro')
+                    ->color('danger')
+                    ->url(\App\Filament\App\Pages\MyCompany::getUrl()),
             ];
         }
 
