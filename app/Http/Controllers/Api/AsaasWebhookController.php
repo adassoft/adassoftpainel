@@ -122,6 +122,87 @@ class AsaasWebhookController extends Controller
                         Log::info("Pedido processado como Assinatura/Plano (Recorrencia: {$recorrencia})");
                     }
                 }
+                // --- Lógica de Assinaturas / Licenças (Novo) ---
+                if ($order->plano_id) {
+                    try {
+                        Log::info("Processando Licença para Pedido {$order->id} (Plano: {$order->plano_id})");
+                        $plano = \App\Models\Plano::find($order->plano_id);
+
+                        // Busca o usuário dono do pedido
+                        $user = \App\Models\User::find($order->user_id);
+
+                        // Busca a empresa pelo CNPJ do usuário (limpo ou original)
+                        $cnpjUser = $user->cnpj;
+                        $cnpjLimpo = preg_replace('/\D/', '', $cnpjUser);
+
+                        $empresa = \App\Models\Company::where(function ($q) use ($cnpjUser, $cnpjLimpo) {
+                            $q->where('cnpj', $cnpjUser)->orWhere('cnpj', $cnpjLimpo);
+                        })->first();
+
+                        if ($plano && $empresa) {
+                            $validadeDias = 30; // Padrão Mensal
+                            if (strtoupper($plano->recorrencia) === 'ANUAL')
+                                $validadeDias = 365;
+                            if (strtoupper($plano->recorrencia) === 'TRIMESTRAL')
+                                $validadeDias = 90;
+                            if (strtoupper($plano->recorrencia) === 'SEMESTRAL')
+                                $validadeDias = 180;
+
+                            if ($order->licenca_id) {
+                                // === RENOVAÇÃO ===
+                                Log::info("Renovando Licença ID: {$order->licenca_id}");
+                                $license = \App\Models\License::find($order->licenca_id);
+                                if ($license) {
+                                    // Se a data atual for maior que a expiração, renova a partir de hoje.
+                                    // Se ainda não venceu, soma dias na data futura.
+                                    $dataRef = $license->data_expiracao > now() ? $license->data_expiracao : now();
+                                    $novaData = \Carbon\Carbon::parse($dataRef)->addDays($validadeDias);
+
+                                    $license->update([
+                                        'data_expiracao' => $novaData,
+                                        'data_ultima_renovacao' => now(),
+                                        'status' => 'Ativo'
+                                    ]);
+                                    Log::info("Licença #{$license->id} renovada com sucesso até {$novaData->format('d/m/Y')}.");
+                                } else {
+                                    Log::error("Licença ID {$order->licenca_id} não encontrada para renovação.");
+                                }
+                            } else {
+                                // === NOVA LICENÇA ===
+                                Log::info("Criando Nova Licença para Empresa: {$empresa->razao}");
+
+                                // Verifica se já existe licença ativa para este software e empresa para evitar duplicidade acidental
+                                $existe = \App\Models\License::where('empresa_codigo', $empresa->codigo)
+                                    ->where('software_id', $plano->software_id)
+                                    ->exists();
+
+                                if (!$existe) {
+                                    \App\Models\License::create([
+                                        'empresa_codigo' => $empresa->codigo,
+                                        'cnpj_revenda' => $order->cnpj_revenda, // Revenda que vendeu
+                                        'software_id' => $plano->software_id,
+                                        'serial_atual' => strtoupper(\Illuminate\Support\Str::random(20)), // Serial Simbólico
+                                        'data_criacao' => now(),
+                                        'data_ativacao' => now(),
+                                        'data_expiracao' => now()->addDays($validadeDias),
+                                        'data_ultima_renovacao' => now(),
+                                        'terminais_permitidos' => 1, // Default. Futuro: pegar do plano
+                                        'status' => 'Ativo'
+                                    ]);
+                                    Log::info("Nova licença criada com sucesso.");
+                                } else {
+                                    Log::warning("Tentativa de criar licença duplicada para Software {$plano->software_id} na Empresa {$empresa->codigo}. Ignorado.");
+                                }
+                            }
+                        } else {
+                            Log::error("Plano ou Empresa não encontrados para processar licença. Plano: " . ($plano ? 'OK' : 'NULL') . ", Empresa: " . ($empresa ? 'OK' : 'NULL'));
+                        }
+                    } catch (\Exception $e) {
+                        Log::error("Erro Crítico no Webhook (Licenças): " . $e->getMessage());
+                        // Não relança erro para não travar o webhook
+                    }
+                }
+
             } else {
                 Log::warning("Pedido não encontrado para ref: $externalReference no banco de dados.");
             }
