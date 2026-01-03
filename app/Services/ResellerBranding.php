@@ -17,7 +17,8 @@ class ResellerBranding
      */
     public static function getConfig()
     {
-        $host = request()->getHost();
+        $originalHost = request()->getHost();
+        $host = str_replace('www.', '', strtolower($originalHost));
 
         // Debug: Logando a busca
         // \Illuminate\Support\Facades\Log::info("ResellerBranding: Buscando config para host: {$host}");
@@ -30,8 +31,11 @@ class ResellerBranding
                 ->get();
 
             foreach ($configs as $config) {
-                $domainsList = array_map('trim', explode(',', strtolower($config->dominios)));
-                if (in_array(strtolower($host), $domainsList)) {
+                $domainsList = array_map(function ($d) {
+                    return str_replace('www.', '', trim(strtolower($d)));
+                }, explode(',', $config->dominios));
+
+                if (in_array($host, $domainsList)) {
                     // \Illuminate\Support\Facades\Log::info("ResellerBranding: Encontrado por DOMÍNIO: ID {$config->id}");
                     return $config;
                 }
