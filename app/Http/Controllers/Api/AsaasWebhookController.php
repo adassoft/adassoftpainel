@@ -62,49 +62,35 @@ class AsaasWebhookController extends Controller
 
                 Log::info("Pedido {$order->id} ({$externalReference}) atualizado para PAGO.");
 
-                // 1. Lógica de Produtos Digitais (Prioridade se tiver itens)
-                if ($order->items()->count() > 0) {
-                    foreach ($order->items as $item) {
-                        \App\Models\UserLibrary::firstOrCreate([
-                            'user_id' => $order->user_id,
-                            'download_id' => $item->download_id
-                        ], [
-                            'order_id' => $order->id
+                // Lógica de Créditos e Planos (Plataforma -> Revenda)
+                $recorrencia = $order->recorrencia ?? ''; // Null coalescing para evitar erro
+                $cnpj = $order->cnpj ?? $order->cnpj_revenda; // Tenta pegar CNPJ alvo
+                $valor = $order->valor ?? $order->total;
+
+                $isCredito = ($recorrencia === 'CREDITO');
+
+                if ($isCredito) {
+                    Log::info("Iniciando lógica de crédito para CNPJ: {$cnpj}");
+                    $company = Company::where('cnpj', $cnpj)->first();
+
+                    if ($company) {
+                        $company->increment('saldo', $valor);
+
+                        CreditHistory::create([
+                            'empresa_cnpj' => $cnpj,
+                            'tipo' => 'entrada',
+                            'valor' => $valor,
+                            'descricao' => 'Recarga Automática via PIX/Asaas',
+                            'data_movimento' => now()
                         ]);
-                    }
-                    Log::info("Produtos digitais liberados na biblioteca do usuário {$order->user_id}");
-                }
-                // 2. Lógica Legada (Planos e Créditos)
-                else {
-                    $recorrencia = $order->recorrencia ?? ''; // Null coalescing para evitar erro
-                    $cnpj = $order->cnpj ?? $order->cnpj_revenda; // Tenta pegar CNPJ alvo
-                    $valor = $order->valor ?? $order->total;
 
-                    $isCredito = ($recorrencia === 'CREDITO');
-
-                    if ($isCredito) {
-                        Log::info("Iniciando lógica de crédito para CNPJ: {$cnpj}");
-                        $company = Company::where('cnpj', $cnpj)->first();
-
-                        if ($company) {
-                            $company->increment('saldo', $valor);
-
-                            CreditHistory::create([
-                                'empresa_cnpj' => $cnpj,
-                                'tipo' => 'entrada',
-                                'valor' => $valor,
-                                'descricao' => 'Recarga Automática via PIX/Asaas',
-                                'data_movimento' => now()
-                            ]);
-
-                            Log::info("Crédito de R$ {$valor} adicionado para CNPJ {$cnpj}. Saldo Atual: {$company->saldo}");
-                        } else {
-                            Log::error("Empresa não encontrada para CNPJ {$cnpj} ao processar crédito.");
-                        }
+                        Log::info("Crédito de R$ {$valor} adicionado para CNPJ {$cnpj}. Saldo Atual: {$company->saldo}");
                     } else {
-                        Log::info("Pedido processado como Assinatura/Plano (Recorrencia: {$recorrencia})");
-                        // Aqui poderia entrar lógica de ativar licença se não for automático
+                        Log::error("Empresa não encontrada para CNPJ {$cnpj} ao processar crédito.");
                     }
+                } else {
+                    Log::info("Pedido processado como Assinatura/Plano (Recorrencia: {$recorrencia})");
+                    // Aqui poderia entrar lógica de ativar licença se não for automático
                 }
             } else {
                 Log::warning("Pedido não encontrado para ref: $externalReference no banco de dados.");
