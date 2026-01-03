@@ -160,4 +160,127 @@ class LicenseService
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
+
+    // === Métodos Adicionais para Suporte ao ValidationController ===
+
+    public function generateLicenseToken(array $payload): string
+    {
+        return $this->generateToken($payload);
+    }
+
+    public function validateLicenseToken(string $token): array
+    {
+        $parts = explode('.', $token);
+        if (count($parts) !== 2)
+            return ['valido' => false, 'erro' => 'Formato de token inválido'];
+
+        [$encoded, $signature] = $parts;
+        $expectedSignature = hash_hmac('sha256', $encoded, $this->secret);
+
+        if (!hash_equals($expectedSignature, $signature)) {
+            return ['valido' => false, 'erro' => 'Assinatura inválida'];
+        }
+
+        $json = base64_decode(strtr($encoded, '-_', '+/'));
+        $payload = json_decode($json, true);
+
+        if (!$payload)
+            return ['valido' => false, 'erro' => 'Payload corrompido'];
+
+        if (isset($payload['expira_em']) && \Carbon\Carbon::parse($payload['expira_em'])->isPast()) {
+            return ['valido' => false, 'erro' => 'Token expirado', 'payload' => $payload];
+        }
+
+        return ['valido' => true, 'payload' => $payload];
+    }
+
+    public function validateSerialFull(string $serial): array
+    {
+        // 1. Busca Histórico
+        $history = SerialHistory::where('serial_gerado', $serial)->first();
+        if (!$history) {
+            return ['valido' => false, 'erro' => 'Serial não encontrado'];
+        }
+
+        if (!$history->ativo) {
+            return ['valido' => false, 'erro' => 'Serial inativado/substituído'];
+        }
+
+        // 2. Busca Licença Ativa
+        $license = License::where('serial_atual', $serial)->first();
+        if (!$license) {
+            return ['valido' => false, 'erro' => 'Licença não vinculada a este serial'];
+        }
+
+        if ($license->status !== 'ativo') {
+            return ['valido' => false, 'erro' => 'Licença suspensa ou cancelada'];
+        }
+
+        if ($license->data_expiracao && \Carbon\Carbon::parse($license->data_expiracao)->isPast()) {
+            return [
+                'valido' => false,
+                'erro' => 'Licença expirada',
+                'data_expiracao' => $license->data_expiracao->format('Y-m-d')
+            ];
+        }
+
+        return [
+            'valido' => true,
+            'licenca_id' => $license->id,
+            'empresa_codigo' => $license->empresa_codigo,
+            'data_expiracao' => $license->data_expiracao ? $license->data_expiracao->format('Y-m-d') : null,
+            'terminais_permitidos' => $license->terminais_permitidos,
+            'terminais_utilizados' => $license->terminais_utilizados
+        ];
+    }
+
+    public function registerTerminalUsage(string $serial, string $mac, string $computerName, string $installId, string $ip): array
+    {
+        $license = License::where('serial_atual', $serial)->first();
+        if (!$license)
+            return ['success' => false, 'erro' => 'Licença não encontrada'];
+
+        // Verifica se terminal já existe
+        $terminal = \App\Models\Terminal::firstOrCreate(
+            ['MAC' => $mac],
+            ['NOME_COMPUTADOR' => $computerName]
+        );
+
+        // Verifica vínculo
+        $vinculo = \App\Models\TerminalSoftware::where('licenca_id', $license->id)
+            ->where('terminal_codigo', $terminal->CODIGO)
+            ->first();
+
+        if ($vinculo && $vinculo->ativo) {
+            // Já registrado, atualiza heartbeat
+            $vinculo->update(['ultima_atividade' => now(), 'ip_origem' => $ip]);
+            return ['success' => true, 'msg' => 'Terminal já registrado'];
+        }
+
+        // Se não registrado, verifica limite
+        if ($license->terminais_utilizados >= $license->terminais_permitidos) {
+            // Tenta ver se algum terminal inativo pode liberar vaga (opcional)
+            // Por enquanto bloqueia
+            return ['success' => false, 'erro' => 'Limite de terminais atingido'];
+        }
+
+        // Registra novo vínculo
+        if ($vinculo) {
+            $vinculo->update(['ativo' => 1, 'ultima_atividade' => now(), 'ip_origem' => $ip]);
+        } else {
+            \App\Models\TerminalSoftware::create([
+                'licenca_id' => $license->id,
+                'terminal_codigo' => $terminal->CODIGO,
+                'ativo' => 1,
+                'data_vinculo' => now(),
+                'ultima_atividade' => now(),
+                'ip_origem' => $ip,
+                'instalacao_id' => $installId
+            ]);
+        }
+
+        $license->increment('terminais_utilizados');
+
+        return ['success' => true, 'msg' => 'Terminal registrado com sucesso'];
+    }
 }

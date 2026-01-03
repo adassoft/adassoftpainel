@@ -283,4 +283,164 @@ class ValidationController extends Controller
             'timestamp' => now()->toDateTimeString()
         ]);
     }
+    // === Métodos de Compatibilidade Legado (SDK Delphi) ===
+
+    public function listPlans(Request $request)
+    {
+        $softwareId = $request->input('software_id');
+
+        $query = \App\Models\Plano::where('status', '!=', 'inativo')
+            ->orWhereNull('status');
+
+        if ($softwareId) {
+            $query->where('software_id', $softwareId);
+        }
+
+        $planos = $query->orderBy('valor')->get()->map(function ($p) {
+            return [
+                'id' => $p->id,
+                'nome_plano' => $p->nome_plano,
+                'valor' => $p->valor,
+                'recorrencia' => $p->recorrencia,
+                'status' => $p->status
+            ];
+        });
+
+        return response()->json(['planos' => $planos]);
+    }
+
+    public function createOrder(Request $request)
+    {
+        try {
+            // Autenticação via Token Legado
+            $token = $request->header('Authorization') ? str_replace('Bearer ', '', $request->header('Authorization')) : $request->input('token');
+            $payload = $this->getPayloadFromToken($token);
+
+            $userId = $payload['usuario_id'];
+            $planId = $request->input('plan_id');
+            $serial = $request->input('licenca_serial'); // Opcional (renovação)
+
+            // Verifica Plano
+            $plano = \App\Models\Plano::find($planId);
+            if (!$plano)
+                throw new Exception('Plano não encontrado.');
+
+            // Verifica Usuário
+            $user = User::find($userId);
+            if (!$user)
+                throw new Exception('Usuário não encontrado.');
+
+            // Criação do Pedido
+            $codTransacao = 'ORD-' . strtoupper(uniqid());
+
+            $order = \App\Models\Order::create([
+                'user_id' => $user->id,
+                'plano_id' => $plano->id,
+                'valor' => $plano->valor,
+                'total' => $plano->valor,
+                'status' => 'pending',
+                'external_reference' => $codTransacao,
+                'situacao' => 'AGUARDANDO',
+                'licenca_id' => $payload['licenca_id'] ?? null, // Tenta vincular à licença atual se houver
+                'cnpj' => $user->cnpj, // CNPJ do cliente
+                'cnpj_revenda' => null, // TODO: Identificar revenda pelo usuário se necessário
+                'recorrencia' => $plano->recorrencia
+            ]);
+
+            // Retorna o código de transação para o Delphi montar a URL de pagamento
+            return response()->json([
+                'success' => true,
+                'cod_transacao' => $codTransacao
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function registerUser(Request $request)
+    {
+        $acao = $request->input('acao');
+
+        try {
+            if ($acao === 'solicitar_codigo') {
+                // Simulação: Enviar e-mail com código (Em prod, disparar Mail/Notification)
+                $email = $request->input('email');
+
+                // Validações básicas
+                if (\App\Models\User::where('email', $email)->exists()) {
+                    throw new Exception('E-mail já cadastrado.');
+                }
+
+                $code = rand(100000, 999999);
+                // Armazenar código em cache/banco temporário (Cache::put("register_$email", $code, 600))
+                \Illuminate\Support\Facades\Cache::put("register_code_{$email}", $code, 600); // 10 min
+
+                // TODO: Enviar E-mail Real. Por enquanto retorna debug_code para facilitar teste
+                return response()->json([
+                    'success' => true,
+                    'mensagem' => 'Código enviado para ' . $email,
+                    'debug_code' => (string) $code
+                ]);
+
+            } elseif ($acao === 'confirmar_cadastro') {
+                $email = $request->input('email');
+                $codigo = $request->input('codigo');
+                $senha = $request->input('senha');
+                $nome = $request->input('nome');
+                $cnpj = $request->input('cnpj');
+                $razao = $request->input('razao');
+
+                // Valida Código
+                $savedCode = \Illuminate\Support\Facades\Cache::get("register_code_{$email}");
+                if (!$savedCode || (string) $savedCode !== (string) $codigo) {
+                    throw new Exception('Código inválido ou expirado.');
+                }
+
+                // Cria Empresa
+                if (\App\Models\Company::where('cnpj', $cnpj)->exists()) {
+                    // Se empresa existe, associa user? Ou erro? SDK assume cadastro novo completo.
+                    // Vamos assumir erro por duplicidade
+                    throw new Exception('CNPJ já cadastrado.');
+                }
+
+                $empresa = \App\Models\Company::create([
+                    'cnpj' => preg_replace('/\D/', '', $cnpj),
+                    'razao' => $razao,
+                    'status' => 'Ativo',
+                    'data' => now()
+                ]);
+
+                // Cria Usuário
+                $user = User::create([
+                    'nome' => $nome,
+                    'email' => $email,
+                    'senha' => Hash::make($senha),
+                    'cnpj' => $empresa->cnpj, // Vinculo
+                    'nivel' => 'ADMIN', // Default SDK
+                    'status' => 'aprovado'
+                ]);
+
+                // Auto-login: Emitir token
+                $payload = [
+                    'usuario_id' => $user->id,
+                    'empresa_codigo' => $empresa->codigo,
+                    'usuario_email' => $user->email,
+                    'emitido_em' => now()->toIso8601String(),
+                    'expira_em' => now()->addMinutes(60)->toIso8601String()
+                ];
+                $token = $this->licenseService->generateLicenseToken($payload);
+
+                return response()->json([
+                    'success' => true,
+                    'token' => $token
+                ]);
+            }
+
+            throw new Exception('Ação inválida.');
+
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
 }
