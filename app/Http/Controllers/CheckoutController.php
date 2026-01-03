@@ -124,13 +124,14 @@ class CheckoutController extends Controller
         // 2. Buscar Token Asaas da Revenda
         $empresaRevenda = Empresa::where('cnpj', $cnpjRevenda)->first();
         $asaasToken = $empresaRevenda ? $empresaRevenda->asaas_access_token : null;
+        $asaasMode = $empresaRevenda ? ($empresaRevenda->asaas_mode ?? 'production') : 'production';
 
         if (empty($asaasToken)) {
             // Tenta fallback se for Master/Admin, mas idealmente avisa erro
             return back()->with('error', "Erro de Configuração: Revenda do CNPJ {$cnpjRevenda} não possui token de pagamento ativo.");
         }
 
-        $asaas = new AsaasService($asaasToken);
+        $asaas = new AsaasService($asaasToken, $asaasMode);
 
         try {
             $customerId = $asaas->createCustomer($user);
@@ -211,12 +212,13 @@ class CheckoutController extends Controller
         $empresaRevenda = Empresa::where('cnpj', $cnpjRevenda)->first();
         // Em dev local, $asaasToken pode ser null se não configurado
         $asaasToken = $empresaRevenda ? $empresaRevenda->asaas_access_token : env('ASAAS_ACCESS_TOKEN');
+        $asaasMode = $empresaRevenda ? ($empresaRevenda->asaas_mode ?? 'production') : 'production';
 
         if (!$asaasToken) {
             return back()->with('error', 'Erro interno: Configuração de pagamento não localizada.');
         }
 
-        $asaas = new AsaasService($asaasToken);
+        $asaas = new AsaasService($asaasToken, $asaasMode);
 
         try {
             $customerId = $asaas->createCustomer($user);

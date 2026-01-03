@@ -5,7 +5,7 @@ namespace App\Filament\Reseller\Pages;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\ViewField;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
@@ -30,6 +30,7 @@ class AsaasConfigPage extends Page
             $this->form->fill([
                 'api_key' => $companhia->asaas_access_token,
                 'wallet_id' => $companhia->asaas_wallet_id,
+                'asaas_mode' => $companhia->asaas_mode ?? 'production',
             ]);
         }
     }
@@ -41,6 +42,16 @@ class AsaasConfigPage extends Page
                 Section::make('Credenciais Asaas')
                     ->description('Configure sua chave de API para receber pagamentos diretamente.')
                     ->schema([
+                        Select::make('asaas_mode')
+                            ->label('Ambiente')
+                            ->options([
+                                'production' => 'Produção (Valendo Dinheiro)',
+                                'sandbox' => 'Sandbox (Ambiente de Teste)',
+                            ])
+                            ->default('production')
+                            ->required()
+                            ->helperText('Selecione "Sandbox" apenas para testes com chaves da sandbox.asaas.com.'),
+
                         TextInput::make('api_key')
                             ->label('Chave de API (API Access Token)')
                             ->placeholder('$aact_...')
@@ -106,9 +117,8 @@ class AsaasConfigPage extends Page
 
         $companhia->asaas_access_token = $data['api_key'];
         $companhia->asaas_wallet_id = $data['wallet_id'];
+        $companhia->asaas_mode = $data['asaas_mode'];
 
-        // Se o model suportar timestamps false, save() funciona normal.
-        // Se der problema com created_at missing, temos que garantir que $timestamps = false no model
         $companhia->save();
 
         Notification::make()

@@ -10,17 +10,32 @@ class AsaasService
     protected $baseUrl;
     protected $token;
 
-    public function __construct($token = null)
+    public function __construct($token = null, $mode = 'production')
     {
         $this->token = $token;
-        // Padrão Sandbox para dev, production via ENV
-        $this->baseUrl = env('ASAAS_URL', 'https://sandbox.asaas.com/api/v3');
+        $this->setBaseUrl($mode);
     }
 
     public function setToken($token)
     {
         $this->token = $token;
         return $this;
+    }
+
+    public function setMode($mode)
+    {
+        $this->setBaseUrl($mode);
+        return $this;
+    }
+
+    protected function setBaseUrl($mode)
+    {
+        if ($mode === 'sandbox') {
+            $this->baseUrl = 'https://sandbox.asaas.com/api/v3';
+        } else {
+            // Production
+            $this->baseUrl = 'https://api.asaas.com/v3';
+        }
     }
 
     /**
