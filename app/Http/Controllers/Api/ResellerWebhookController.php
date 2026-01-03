@@ -53,14 +53,31 @@ class ResellerWebhookController extends Controller
         }
 
         // Atualizar Status
+        // Atualizar Status
         $order->update([
             'status' => 'paid',
+            'situacao' => 'pago', // Compatibilidade
+            'paid_at' => now(),
+            'data_pagamento' => now(),
             'updated_at' => now()
         ]);
 
-        Log::info("Pedido #{$order->id} (User: {$order->user_id}) marcado como PAGO via Webhook.");
+        Log::info("Pedido #{$order->id} (User: {$order->user_id}) marcado como PAGO via Webhook (Reseller).");
 
-        // TODO: Disparar Evento ou Job para ativação do serviço
+        // 1. Liberar Produtos Digitais (Se houver itens)
+        if ($order->items()->count() > 0) {
+            foreach ($order->items as $item) {
+                \App\Models\UserLibrary::firstOrCreate([
+                    'user_id' => $order->user_id,
+                    'download_id' => $item->download_id
+                ], [
+                    'order_id' => $order->id
+                ]);
+            }
+            Log::info("Produtos digitais liberados na biblioteca do usuário {$order->user_id}");
+        }
+
+        // TODO: Disparar Evento ou Job para ativação de planos (se necessário)
         // event(new \App\Events\OrderPaid($order));
 
         return response()->json(['status' => 'success']);
