@@ -53,6 +53,32 @@ Ou simplesmente rode o script atualizado:
 cd /code && git pull && bash setup_production.sh
 ```
 
+### ✅ Solução Definitiva para Uploads Grandes (1GB)
+
+Para garantir que os limites de upload (PHP e Nginx) persistam mesmo após o `Rebuild`, adicionamos o script `setup_production.sh`.
+
+**Configuração Obrigatória no Easypanel:**
+1. Vá até a aba **Settings** do seu serviço.
+2. Na seção **Build**, procure por **Build Command** ou **Deploy Command**.
+3. Adicione o comando:
+   ```bash
+   bash setup_production.sh
+   ```
+4. Salve e clique em **Deploy**.
+
+Isso executará nosso script de configuração automaticamente a cada nova versão, garantindo:
+- Nginx com `client_max_body_size 1024M`
+- PHP com `upload_max_filesize = 1024M`
+- Cache limpo e otimizado
+
+---
+### Solução Manual (Emergência)
+Se precisar aplicar imediatamente sem redeploy:
+```bash
+git pull
+bash setup_production.sh
+```
+
 ### 2. Assets 404 (Livewire/Filament não carregam)
 O servidor não encontra os arquivos JS/CSS virtuais.
 **Solução:** Publicar os arquivos fisicamente.
