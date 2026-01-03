@@ -85,6 +85,8 @@ class DownloadResource extends Resource
                                     ->disk('public')
                                     ->directory('downloads/versions')
                                     ->required()
+                                    ->maxSize(1024000) // 1GB
+                                    ->visibility('public')
                                     ->preserveFilenames()
                                     ->live()
                                     ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
