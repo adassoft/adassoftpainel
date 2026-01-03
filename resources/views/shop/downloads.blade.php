@@ -129,12 +129,13 @@
                                     @endif
                                 </div>
 
-                                <a href="{{ $soft['url_download'] }}" target="_blank" class="btn btn-download btn-block shadow-sm">
+                                <a href="{{ route('downloads.file', $soft['slug'] ?? $soft['id']) }}" target="_blank"
+                                    class="btn btn-download btn-block shadow-sm">
                                     <i class="fas fa-download mr-2"></i> Baixar Arquivo
                                 </a>
 
                                 <div class="mt-3">
-                                    <a href="{{ route('download.show', $soft['repo_slug'] ?? $soft['repo_id'] ?? $soft['slug'] ?? $soft['id']) }}"
+                                    <a href="{{ route('downloads.show', $soft['repo_slug'] ?? $soft['repo_id'] ?? $soft['slug'] ?? $soft['id']) }}"
                                         class="small text-secondary font-weight-bold text-decoration-none hover:underline">
                                         <i class="fas fa-info-circle mr-1"></i> Detalhes do Arquivo
                                     </a>
