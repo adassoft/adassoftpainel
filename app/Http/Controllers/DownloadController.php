@@ -45,6 +45,11 @@ class DownloadController extends Controller
 
                         $repoSlug = $repoFile->slug;
                         $repoId = $repoFile->id;
+
+                        // Prioritize Repo Version for consistency
+                        if (!empty($repoFile->versao)) {
+                            $soft->versao = $repoFile->versao;
+                        }
                     }
                 } elseif ($soft->arquivo_software) {
                     $url = asset('storage/' . $soft->arquivo_software);
