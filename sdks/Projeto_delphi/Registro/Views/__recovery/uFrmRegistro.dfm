@@ -34,7 +34,6 @@ object frmRegistro: TfrmRegistro
     Color = clWhite
     ParentBackground = False
     TabOrder = 0
-    ExplicitWidth = 498
     object lblInstalacaoID: TLabel
       Left = 248
       Top = 13
@@ -72,8 +71,6 @@ object frmRegistro: TfrmRegistro
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitWidth = 498
-    ExplicitHeight = 399
     object GroupBox1: TGroupBox
       Left = 16
       Top = 6
@@ -230,12 +227,10 @@ object frmRegistro: TfrmRegistro
     BevelOuter = bvNone
     TabOrder = 2
     Visible = False
-    ExplicitWidth = 498
-    ExplicitHeight = 399
     object lblStatusTexto: TLabel
-      Left = 160
+      Left = 200
       Top = 46
-      Width = 185
+      Width = 99
       Height = 17
       Alignment = taCenter
       AutoSize = False
@@ -293,9 +288,9 @@ object frmRegistro: TfrmRegistro
       ParentFont = False
     end
     object pnlStatusColor: TPanel
-      Left = 160
-      Top = 69
-      Width = 193
+      Left = 192
+      Top = 67
+      Width = 113
       Height = 4
       BevelOuter = bvNone
       Color = clLime
@@ -325,8 +320,6 @@ object frmRegistro: TfrmRegistro
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitTop = 442
-    ExplicitWidth = 498
     object lblSuporteZap: TLabel
       Left = 8
       Top = 8

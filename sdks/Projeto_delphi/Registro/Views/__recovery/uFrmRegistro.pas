@@ -131,7 +131,10 @@ begin
     pbTempo.Position := 365 - Info.DiasRestantes;
     if pbTempo.Position < 0 then pbTempo.Position := 0;
     
-    lblDataInicio.Caption := 'Hoje: ' + DateToStr(Hoje);
+    if Info.DataInicio > 0 then
+       lblDataInicio.Caption := 'Início: ' + DateToStr(Info.DataInicio)
+    else
+       lblDataInicio.Caption := 'Hoje: ' + DateToStr(Hoje);
 
     if Info.TerminaisPermitidos > 0 then
     begin
