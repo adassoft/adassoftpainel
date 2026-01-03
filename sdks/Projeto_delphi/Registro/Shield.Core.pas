@@ -222,6 +222,8 @@ begin
     
   Result.AddPair('mac_address', TShieldSecurity.DetectPrimaryMacAddress);
   Result.AddPair('nome_computador', GetEnvironmentVariable('COMPUTERNAME'));
+  // Protecao contra Replay Attack
+  Result.AddPair('timestamp', DateToISO8601(Now, False));
 end;
 
 function TShield.Authenticate(const Email, Senha, InstalacaoID: string): Boolean;

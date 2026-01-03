@@ -59,6 +59,40 @@ class VerifyShieldApiKey
         $request->merge(['_api_key_scopes' => $apiKeyRecord->scopes]);
         $request->attributes->set('api_key_id', $apiKeyRecord->id);
 
+        // --- Proteção contra Replay Attack ---
+        $clientTimestamp = $request->input('timestamp');
+
+        // Em ambiente de Dev/Teste, se o cliente ainda não mandou, podemos ser lenientes ou exigir logo.
+        // Vamos exigir para garantir segurança.
+        if (!$clientTimestamp) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Requisicao inválida (Timestamp ausente). Atualize seu software.',
+                'code' => 'MISSING_TIMESTAMP'
+            ], 400); // Bad Request
+        }
+
+        try {
+            $clientTime = \Carbon\Carbon::parse($clientTimestamp);
+            $serverTime = now();
+
+            // Tolerância de 10 minutos (5 pra frente, 5 pra tras) para evitar problemas com relogios desincronizados
+            if ($clientTime->diffInMinutes($serverTime) > 10) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Relogio do sistema desincronizado. Verifique a data/hora do seu computador.',
+                    'server_time' => $serverTime->toIso8601String(),
+                    'code' => 'CLOCK_DRIFT'
+                ], 401);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Formato de data inválido.',
+                'code' => 'INVALID_TIMESTAMP'
+            ], 400);
+        }
+
         return $next($request);
     }
 }
