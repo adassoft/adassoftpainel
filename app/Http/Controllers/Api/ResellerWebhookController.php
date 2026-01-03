@@ -80,6 +80,112 @@ class ResellerWebhookController extends Controller
             Log::warning("Reseller Webhook: Pedido PAGO #{$order->id} não tem itens de produtos digitais.");
         }
 
+        // 2. Lógica de Ativação de Licença (Consome Saldo da Revenda)
+        if ($order->plano_id) {
+            try {
+                $plano = \App\Models\Plano::find($order->plano_id);
+
+                if ($plano) {
+                    $custoLicenca = $plano->valor; // Custo base da plataforma para a revenda
+
+                    // Busca Revenda pelo CNPJ salvo no pedido
+                    $cnpjRevenda = $order->cnpj_revenda;
+                    $cnpjLimpo = preg_replace('/\D/', '', $cnpjRevenda);
+
+                    $revenda = \App\Models\Company::where(function ($q) use ($cnpjRevenda, $cnpjLimpo) {
+                        $q->where('cnpj', $cnpjRevenda)->orWhere('cnpj', $cnpjLimpo);
+                    })->first();
+
+                    if ($revenda) {
+                        // Verifica se a revenda tem saldo suficiente
+                        if ($revenda->saldo >= $custoLicenca) {
+                            // === TEM SALDO: DESCONTA E ATIVA ===
+                            $revenda->decrement('saldo', $custoLicenca);
+
+                            // Log Débito no Histórico
+                            \App\Models\CreditHistory::create([
+                                'empresa_cnpj' => preg_replace('/\D/', '', $revenda->cnpj), // Sempre limpo
+                                'tipo' => 'saida',
+                                'valor' => $custoLicenca,
+                                'descricao' => "Licença Pedido #{$order->id} ({$plano->nome_plano})",
+                                'data_movimento' => now()
+                            ]);
+
+                            Log::info("Saldo debitado da revenda {$revenda->razao}: -R$ {$custoLicenca}. Novo Saldo: {$revenda->saldo}");
+
+                            // --- ATIVAÇÃO DE LICENÇA ---
+                            // Busca dados do CLIENTE FINAL (Empresa que vai usar o software)
+                            $userCliente = \App\Models\User::find($order->user_id);
+                            if ($userCliente) {
+                                // Assegura busca da empresa do cliente
+                                $cnpjCliente = $userCliente->cnpj;
+                                $cnpjClienteLimpo = preg_replace('/\D/', '', $cnpjCliente);
+                                $empresaCliente = \App\Models\Company::where(function ($q) use ($cnpjCliente, $cnpjClienteLimpo) {
+                                    $q->where('cnpj', $cnpjCliente)->orWhere('cnpj', $cnpjClienteLimpo);
+                                })->first();
+
+                                if ($empresaCliente) {
+                                    $validadeDias = 30; // Padrão
+                                    if (strtoupper($plano->recorrencia) === 'ANUAL')
+                                        $validadeDias = 365;
+                                    if (strtoupper($plano->recorrencia) === 'TRIMESTRAL')
+                                        $validadeDias = 90;
+                                    if (strtoupper($plano->recorrencia) === 'SEMESTRAL')
+                                        $validadeDias = 180;
+
+                                    if ($order->licenca_id) {
+                                        // Renovação
+                                        $license = \App\Models\License::find($order->licenca_id);
+                                        if ($license) {
+                                            $baseDate = ($license->data_expiracao > now()) ? $license->data_expiracao : now();
+                                            $novaData = \Carbon\Carbon::parse($baseDate)->addDays($validadeDias);
+                                            $license->update([
+                                                'data_expiracao' => $novaData,
+                                                'data_ultima_renovacao' => now(),
+                                                'status' => 'Ativo'
+                                            ]);
+                                            Log::info("Licença renovada (Revenda) ID #{$license->id}.");
+                                        }
+                                    } else {
+                                        // Nova Licença
+                                        // Evita duplicidade
+                                        $existe = \App\Models\License::where('empresa_codigo', $empresaCliente->codigo)
+                                            ->where('software_id', $plano->software_id)
+                                            ->exists();
+
+                                        if (!$existe) {
+                                            \App\Models\License::create([
+                                                'empresa_codigo' => $empresaCliente->codigo,
+                                                'cnpj_revenda' => $revenda->cnpj, // Vincula à revenda que pagou
+                                                'software_id' => $plano->software_id,
+                                                'serial_atual' => strtoupper(\Illuminate\Support\Str::random(20)),
+                                                'data_criacao' => now(),
+                                                'data_ativacao' => now(),
+                                                'data_expiracao' => now()->addDays($validadeDias),
+                                                'data_ultima_renovacao' => now(),
+                                                'terminais_permitidos' => 1,
+                                                'status' => 'Ativo'
+                                            ]);
+                                            Log::info("Nova licença criada (Revenda) para cliente {$empresaCliente->razao}.");
+                                        }
+                                    }
+                                } else {
+                                    Log::error("Empresa do cliente final não encontrada (CNPJ: {$userCliente->cnpj})");
+                                }
+                            }
+
+                        } else {
+                            // === SEM SALDO ===
+                            Log::warning("FALHA ATIVAÇÃO: Revenda {$revenda->razao} (CNPJ {$revenda->cnpj}) SEM SALDO. Necessário: {$custoLicenca}, Disponível: {$revenda->saldo}");
+                            // Aqui poderíamos notificar a revenda por e-mail
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error("Erro Webhook Revenda (Licença): " . $e->getMessage());
+            }
+        }
+
         return response()->json(['status' => 'success']);
     }
 }
