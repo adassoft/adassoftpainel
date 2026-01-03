@@ -55,49 +55,61 @@ class DownloadResource extends Resource
                             ])
                             ->placeholder('Ex: Drivers')
                             ->prefixIcon('heroicon-m-tag'),
-
-                        Forms\Components\TextInput::make('versao')
-                            ->label('Versão')
-                            ->placeholder('v1.0.0')
-                            ->prefixIcon('heroicon-m-information-circle'),
-
-                        Forms\Components\TextInput::make('tamanho')
-                            ->label('Tamanho')
-                            ->placeholder('Ex: 5 MB')
-                            ->helperText('Deixe vazio para auto-calcular no upload (se suportado)')
-                            ->prefixIcon('heroicon-m-scale'),
                     ]),
 
-                Forms\Components\FileUpload::make('arquivo_path')
-                    ->label('Arquivo')
-                    ->disk('public')
-                    ->directory('downloads')
-                    ->required()
-                    ->maxSize(512000) // 512MB
-                    ->columnSpanFull()
-                    ->preserveFilenames()
-                    ->live()
-                    ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
-                        if (empty($state))
-                            return;
-
-                        // Handle single file (not multiple)
-                        $file = is_array($state) ? reset($state) : $state;
-
-                        // Only process if it's a new upload (TemporaryUploadedFile)
-                        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                            $bytes = $file->getSize();
-                            $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-                            for ($i = 0; $bytes > 1024; $i++) {
-                                $bytes /= 1024;
-                            }
-
-                            $humanSize = round($bytes, 2) . ' ' . ($units[$i] ?? 'B');
-                            $set('tamanho', $humanSize);
-                        }
-                    }),
-
+                Forms\Components\Section::make('Gerenciador de Versões e Arquivos')
+                    ->description('Adicione aqui os arquivos. O sistema identificará automaticamente a versão mais recente para download principal.')
+                    ->schema([
+                        Forms\Components\Repeater::make('versions')
+                            ->relationship()
+                            ->schema([
+                                Forms\Components\Grid::make(2)->schema([
+                                    Forms\Components\TextInput::make('versao')
+                                        ->label('Versão (ex: v1.0)')
+                                        ->required(),
+                                    Forms\Components\Select::make('sistema_operacional')
+                                        ->label('Sistema Operacional')
+                                        ->options([
+                                            'windows' => 'Windows',
+                                            'linux' => 'Linux',
+                                            'mac' => 'macOS',
+                                            'android' => 'Android',
+                                            'ios' => 'iOS',
+                                            'any' => 'Qualquer',
+                                        ])
+                                        ->default('windows')
+                                        ->required(),
+                                ]),
+                                Forms\Components\FileUpload::make('arquivo_path')
+                                    ->label('Arquivo')
+                                    ->disk('public')
+                                    ->directory('downloads/versions')
+                                    ->required()
+                                    ->preserveFilenames()
+                                    ->live()
+                                    ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
+                                        if (empty($state))
+                                            return;
+                                        $file = is_array($state) ? reset($state) : $state;
+                                        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                                            $bytes = $file->getSize();
+                                            $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                                            for ($i = 0; $bytes > 1024; $i++)
+                                                $bytes /= 1024;
+                                            $set('tamanho', round($bytes, 2) . ' ' . ($units[$i] ?? 'B'));
+                                        }
+                                    }),
+                                Forms\Components\Grid::make(3)->schema([
+                                    Forms\Components\TextInput::make('tamanho')->readOnly(),
+                                    Forms\Components\DateTimePicker::make('data_lancamento')->default(now()),
+                                    Forms\Components\TextInput::make('contador')->disabled()->default(0),
+                                ]),
+                                Forms\Components\Textarea::make('changelog')->label('Notas da Versão')->rows(2)->columnSpanFull(),
+                            ])
+                            ->orderColumn('data_lancamento')
+                            ->defaultItems(1)
+                            ->columnSpanFull(),
+                    ]),
                 Forms\Components\Textarea::make('descricao')
                     ->label('Descrição')
                     ->rows(2)
@@ -177,7 +189,7 @@ class DownloadResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\VersionsRelationManager::class,
+            // RelationManagers\VersionsRelationManager::class, // Desativado em favor do Repeater
         ];
     }
 

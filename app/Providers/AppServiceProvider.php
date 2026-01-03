@@ -37,5 +37,6 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Software::observe(\App\Observers\SoftwareObserver::class);
         \App\Models\Plan::observe(\App\Observers\PlanObserver::class);
         \App\Models\ResellerConfig::observe(\App\Observers\ResellerConfigObserver::class);
+        \App\Models\DownloadVersion::observe(\App\Observers\DownloadVersionObserver::class);
     }
 }

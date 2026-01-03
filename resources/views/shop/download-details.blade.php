@@ -165,45 +165,61 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    @if(isset($versions) && $versions->count() > 0)
-        <div class="row mt-5">
-            <div class="col-12">
-                <h4 class="font-weight-bold mb-4 border-bottom pb-2">Histórico de Versões</h4>
-                <div class="table-responsive bg-white rounded-lg shadow-sm border">
-                    <table class="table table-hover mb-0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th class="py-3 pl-4">Versão</th>
-                                <th class="py-3">Data de Lançamento</th>
-                                <th class="py-3">Tamanho</th>
-                                <th class="py-3">Notas (Changelog)</th>
-                                <th class="py-3 text-right pr-4">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($versions as $v)
-                                <tr>
-                                    <td class="font-weight-bold pl-4 text-dark">{{ $v->versao }}</td>
-                                    <td>{{ $v->data_lancamento ? \Carbon\Carbon::parse($v->data_lancamento)->format('d/m/Y') : '-' }}
-                                    </td>
-                                    <td>{{ $v->tamanho }}</td>
-                                    <td class="text-muted small">{{ \Illuminate\Support\Str::limit($v->changelog, 50) ?: '-' }}</td>
-                                    <td class="text-right pr-4">
-                                        <a href="{{ route('downloads.version.file', $v->id) }}"
-                                            class="btn btn-sm btn-outline-primary rounded-pill">
-                                            <i class="fas fa-download mr-1"></i> Baixar
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+            {{-- Histórico de Versões Integrado --}}
+            @if(isset($versions) && $versions->count() > 0)
+                <div class="mt-5 pt-4 border-top text-left">
+                    <h5 class="font-weight-bold mb-4 text-center text-sm-left">
+                        <i class="fas fa-history mr-2 text-muted"></i> Histórico de Versões e Arquivos
+                    </h5>
+
+                    <div class="list-group list-group-flush shadow-sm rounded overflow-hidden">
+                        @foreach($versions as $v)
+                            <div
+                                class="list-group-item p-3 d-flex flex-column flex-sm-row align-items-center justify-content-between hover-bg-light transition-all">
+                                <div class="d-flex align-items-center mb-2 mb-sm-0">
+                                    <div class="mr-3 text-center" style="width: 40px;">
+                                        @php
+                                            $osIcons = [
+                                                'windows' => 'fab fa-windows text-primary',
+                                                'linux' => 'fab fa-linux text-warning',
+                                                'mac' => 'fab fa-apple text-dark',
+                                                'android' => 'fab fa-android text-success',
+                                                'ios' => 'fab fa-app-store-ios text-info',
+                                                'any' => 'fas fa-file-archive text-secondary'
+                                            ];
+                                            $icon = $osIcons[$v->sistema_operacional ?? 'any'] ?? $osIcons['any'];
+                                        @endphp
+                                        <i class="{{ $icon }} fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="font-weight-bold mb-0 text-dark">
+                                            Versão {{ $v->versao }}
+                                            @if($v->sistema_operacional && $v->sistema_operacional !== 'any')
+                                                <small class="text-muted ml-1">({{ ucfirst($v->sistema_operacional) }})</small>
+                                            @endif
+                                        </h6>
+                                        <div class="small text-muted">
+                                            <span class="mr-3"><i class="far fa-calendar-alt mr-1"></i>
+                                                {{ $v->data_lancamento ? \Carbon\Carbon::parse($v->data_lancamento)->format('d/m/Y') : '-' }}</span>
+                                            <span><i class="far fa-hdd mr-1"></i> {{ $v->tamanho }}</span>
+                                        </div>
+                                        @if($v->changelog)
+                                            <div class="small text-muted mt-1 font-italic">
+                                                "{{ \Illuminate\Support\Str::limit($v->changelog, 60) }}"</div>
+                                        @endif
+                                    </div>
+                                </div>
+                                <a href="{{ route('downloads.version.file', $v->id) }}"
+                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 font-weight-bold mt-2 mt-sm-0">
+                                    <i class="fas fa-download mr-1"></i> Baixar
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
-            </div>
+            @endif
+
         </div>
-    @endif
     </div>
 @endsection
