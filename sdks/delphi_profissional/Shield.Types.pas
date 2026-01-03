@@ -35,6 +35,7 @@ type
     TerminaisUtilizados: Integer;
     AvisoAtivo: Boolean;
     DiasAviso: Integer;
+    DataInicio: TDateTime;
     DataExpiracao: TDateTime;
     DiasRestantes: Integer;
     Status: TShieldStatus;
@@ -87,6 +88,7 @@ begin
   TerminaisUtilizados := 0;
   AvisoAtivo := True; // Padrão
   DiasAviso := 5;     // Padrão
+  DataInicio := 0;
   DataExpiracao := 0;
   DiasRestantes := 0;
   Status := stUnchecked;

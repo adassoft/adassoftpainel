@@ -110,6 +110,9 @@ begin
       if Obj.GetValue('serial') <> nil then
         FLicense.Serial := Obj.GetValue('serial').Value;
 
+      if Obj.GetValue('data_inicio') <> nil then
+         FLicense.DataInicio := ISO8601ToDate(Obj.GetValue('data_inicio').Value);
+
       // Recupera Data de Validade
       if Obj.GetValue('data_expiracao') <> nil then
       begin
@@ -173,6 +176,9 @@ begin
     if FLicense.Serial <> '' then
       Obj.AddPair('serial', FLicense.Serial);
       
+    if FLicense.DataInicio > 0 then
+      Obj.AddPair('data_inicio', DateToISO8601(FLicense.DataInicio));
+
     if FLicense.DataExpiracao > 0 then
       Obj.AddPair('data_expiracao', DateToISO8601(FLicense.DataExpiracao));
       
@@ -349,7 +355,14 @@ begin
       begin
          FLicense.DataExpiracao := ISO8601ToDate(sDate);
       end;
-  end;  
+      end;  
+  
+  if ValObj.GetValue('data_inicio') <> nil then
+  begin
+      sDate := ValObj.GetValue('data_inicio').Value;
+      if sDate <> '' then
+         FLicense.DataInicio := ISO8601ToDate(sDate);
+  end;
   
   if ValObj.GetValue('dias_restantes') <> nil then
     FLicense.DiasRestantes :=  StrToIntDef(ValObj.GetValue('dias_restantes').Value, 0);
