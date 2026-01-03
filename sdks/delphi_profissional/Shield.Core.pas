@@ -123,6 +123,13 @@ begin
       if Obj.GetValue('aviso_licenca') <> nil then
         FLicense.AvisoMensagem := Obj.GetValue('aviso_licenca').Value;
 
+      // Sanitiza Cache se data já passou
+      if (FLicense.DataExpiracao > 0) and (FLicense.DiasRestantes < 0) then
+      begin
+          FLicense.Status := stExpired;
+          FLicense.AvisoMensagem := 'Sua licença expirou. Conecte-se para renovar.';
+      end;
+
       // Recupera Noticias (Cache Local)
       if Obj.GetValue('noticias_cache') <> nil then
       begin
@@ -407,6 +414,16 @@ begin
          LidasDict.Free;
        end;
      end;
+  end;
+
+  // Sanitização de Mensagens (Correção Visual)
+  if (FLicense.Status = stExpired) or (FLicense.Status = stInvalid) then
+  begin
+      // Se expirou, não faz sentido mostrar "aviso de que vai vencer"
+      if FLicense.Status = stExpired then
+         FLicense.AvisoMensagem := 'Sua licença expirou. Por favor, renove sua assinatura.'
+      else
+         FLicense.AvisoMensagem := 'Licença inválida ou bloqueada.';
   end;
 end;
 
