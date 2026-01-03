@@ -62,6 +62,21 @@ class AsaasWebhookController extends Controller
 
                 Log::info("Pedido {$order->id} ({$externalReference}) atualizado para PAGO.");
 
+                // 1. Lógica de Produtos Digitais (Reativada para Vendas Diretas da Plataforma)
+                if ($order->items()->count() > 0) {
+                    foreach ($order->items as $item) {
+                        if ($item->download_id) {
+                            \App\Models\UserLibrary::firstOrCreate([
+                                'user_id' => $order->user_id,
+                                'download_id' => $item->download_id
+                            ], [
+                                'order_id' => $order->id
+                            ]);
+                        }
+                    }
+                    Log::info("Webhook Plataforma: Produtos digitais liberados para usuário {$order->user_id}");
+                }
+
                 // Lógica de Créditos e Planos (Plataforma -> Revenda)
                 $recorrencia = $order->recorrencia ?? ''; // Null coalescing para evitar erro
                 $cnpj = $order->cnpj ?? $order->cnpj_revenda; // Tenta pegar CNPJ alvo
@@ -89,8 +104,10 @@ class AsaasWebhookController extends Controller
                         Log::error("Empresa não encontrada para CNPJ {$cnpj} ao processar crédito.");
                     }
                 } else {
-                    Log::info("Pedido processado como Assinatura/Plano (Recorrencia: {$recorrencia})");
-                    // Aqui poderia entrar lógica de ativar licença se não for automático
+                    // Apenas loga se não for produto digital, para evitar log duplicado confuso
+                    if ($order->items()->count() == 0) {
+                        Log::info("Pedido processado como Assinatura/Plano (Recorrencia: {$recorrencia})");
+                    }
                 }
             } else {
                 Log::warning("Pedido não encontrado para ref: $externalReference no banco de dados.");
