@@ -44,7 +44,6 @@ class AsaasWebhookController extends Controller
             $order = Order::where('external_reference', $externalReference)
                 ->orWhere('external_id', $payment['id'] ?? 'N/A')
                 ->orWhere('asaas_payment_id', $payment['id'] ?? 'N/A')
-                ->orWhere('cod_transacao', $externalReference) // Legacy support
                 ->first();
 
             if ($order) {
