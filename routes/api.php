@@ -22,12 +22,16 @@ Route::post('/webhooks/reseller/asaas', [App\Http\Controllers\Api\ResellerWebhoo
 Route::prefix('v1/adassoft')->middleware(['throttle:60,1', 'shield.auth'])->group(function () {
     // Validação e Status
     Route::post('/validate', [ValidationController::class, 'handle']); // Mantém handle por enquanto ou refatora para 'validateSerial'
-    Route::post('/token', [ValidationController::class, 'handle']); // Action: emitir_token
+    // Ações Sensíveis (Login/Cadastro) - Limite Rígido anti-bruteforce
+    Route::post('/token', [ValidationController::class, 'handle'])
+        ->middleware('throttle:6,1'); // Max 6 tentativas de login/min
 
-    // Cadastros e Pedidos
+    Route::post('/register', [ValidationController::class, 'registerUser'])
+        ->middleware('throttle:6,1'); // Max 6 cadastros/min
+
+    // Cadastros e Pedidos (Geral)
     Route::get('/software/{software_id}/plans', [ValidationController::class, 'listPlans']);
     Route::post('/orders', [ValidationController::class, 'createOrder']);
-    Route::post('/register', [ValidationController::class, 'registerUser']);
 
     // Rotas legadas (removidas pois estamos começando do zero)
 });
