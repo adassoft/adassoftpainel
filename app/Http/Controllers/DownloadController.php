@@ -39,7 +39,7 @@ class DownloadController extends Controller
                     $repoFile = $extras->firstWhere('id', $soft->id_download_repo);
                     if ($repoFile) {
                         $url = asset('storage/' . $repoFile->arquivo_path);
-                        $tamanho = $repoFile->tamanho_arquivo;
+                        $tamanho = $repoFile->tamanho;
                         $contador = $repoFile->contador;
                         $dataInfo = $repoFile->data_atualizacao ? $repoFile->data_atualizacao->format('d/m/Y') : $dataInfo;
 
@@ -76,7 +76,7 @@ class DownloadController extends Controller
                     'tipo' => 'extra',
                     'nome_software' => $extra->titulo,
                     'versao' => $extra->versao,
-                    'tamanho_arquivo' => $extra->tamanho_arquivo,
+                    'tamanho_arquivo' => $extra->tamanho,
                     'url_download' => asset('storage/' . $extra->arquivo_path),
                     'data_info' => $extra->data_atualizacao ? $extra->data_atualizacao->format('d/m/Y') : null,
                     'imagem' => null, // Deixe o blade decidir o ícone padrão

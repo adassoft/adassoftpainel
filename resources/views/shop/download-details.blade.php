@@ -110,7 +110,8 @@
                                 <div class="meta-icon"><i class="fas fa-weight-hanging"></i></div>
                                 <div>
                                     <div class="small text-muted">Tamanho</div>
-                                    <div class="font-weight-bold">{{ $download->tamanho_arquivo ?: '-' }}</div>
+                                    <div class="font-weight-bold">
+                                        {{ $download->tamanho ?: ($download->tamanho_arquivo ?? '-') }}</div>
                                 </div>
                             </div>
 
