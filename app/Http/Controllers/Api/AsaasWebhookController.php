@@ -49,15 +49,12 @@ class AsaasWebhookController extends Controller
             if ($order) {
                 Log::info("Pedido encontrado: ID {$order->id}");
 
-                // Atualiza Status Universal
-                $order->status = 'paid';
-                $order->paid_at = now();
-
-                // Campos Legados (se existirem no objeto via magic set, ou se mapeados)
-                $order->situacao = 'pago';
-                $order->data_pagamento = now();
-
-                $order->save();
+                // Atualiza Status Universal e Campos Legados
+                $order->update([
+                    'status' => 'paid',
+                    'situacao' => 'pago',
+                    'data_pagamento' => now()
+                ]);
 
                 Log::info("Pedido {$order->id} ({$externalReference}) atualizado para PAGO.");
 
