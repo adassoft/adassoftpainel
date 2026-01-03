@@ -220,6 +220,7 @@ class LicenseService
             return [
                 'valido' => false,
                 'erro' => 'Licença expirada',
+                'data_inicio' => ($license->data_ultima_renovacao ?? $license->data_ativacao ?? $license->data_criacao)?->format('Y-m-d'),
                 'data_expiracao' => $license->data_expiracao->format('Y-m-d')
             ];
         }
