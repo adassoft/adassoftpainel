@@ -34,6 +34,7 @@ class MyWallet extends Page implements HasTable
     public ?string $pixQrCode = null;
     public ?string $pixCopyPaste = null;
     public bool $showPixModal = false;
+    public bool $paymentConfirmed = false;
 
     public function mount(): void
     {
@@ -64,6 +65,7 @@ class MyWallet extends Page implements HasTable
 
     public function generatePix(): void
     {
+        $this->paymentConfirmed = false;
         $valorStr = str_replace(['.', ','], ['', '.'], $this->valorRecargaInput);
         $valor = (float) $valorStr;
 
@@ -212,9 +214,11 @@ class MyWallet extends Page implements HasTable
 
         if ($novoSaldo != $this->saldo) {
             $this->saldo = $novoSaldo;
-            // Se houve recarga (aumento), fechamos o modal
+            // Se houve recarga (aumento), mostramos confrmação visual
             if ($novoSaldo > $this->saldo) {
-                $this->showPixModal = false;
+                $this->paymentConfirmed = true;
+                $this->dispatch('payment-confirmed');
+
                 Notification::make()
                     ->title('Pagamento Recebido!')
                     ->body('Seu saldo foi atualizado.')

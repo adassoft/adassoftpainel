@@ -7,7 +7,8 @@
                 <div>
                     <p class="text-xs font-bold text-green-500 uppercase mb-1 tracking-wider">Saldo Disponível</p>
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">R$
-                        {{ number_format($saldo, 2, ',', '.') }}</h2>
+                        {{ number_format($saldo, 2, ',', '.') }}
+                    </h2>
                 </div>
                 <div class="text-gray-300 dark:text-gray-600">
                     <x-heroicon-m-wallet class="w-10 h-10" />
@@ -88,35 +89,47 @@
                 </div>
 
                 <div class="p-6 flex flex-col items-center gap-4">
-                    <p class="text-center text-gray-600 dark:text-gray-300 text-sm">
-                        Escaneie o QR Code abaixo com o app do seu banco para realizar o pagamento.
-                    </p>
+                    @if($paymentConfirmed)
+                        <div class="py-6 text-center w-full" x-init="setTimeout(() => $wire.set('showPixModal', false), 3000)">
+                            <div
+                                class="inline-flex items-center justify-center w-24 h-24 bg-green-100 text-green-500 rounded-full mb-6">
+                                <x-heroicon-m-check class="w-12 h-12" />
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2 dark:text-white">Pagamento Confirmado!</h2>
+                            <p class="text-gray-500 dark:text-gray-400">Seu saldo de R$ {{ number_format($saldo, 2, ',', '.') }}
+                                já está disponível.</p>
+                        </div>
+                    @else
+                        <p class="text-center text-gray-600 dark:text-gray-300 text-sm">
+                            Escaneie o QR Code abaixo com o app do seu banco para realizar o pagamento.
+                        </p>
 
-                    @if($pixQrCode)
-                        <div class="p-2 border-2 border-dashed border-gray-300 rounded-lg">
-                            <img src="data:image/png;base64,{{ $pixQrCode }}" alt="QR Code PIX" class="w-48 h-48">
+                        @if($pixQrCode)
+                            <div class="p-2 border-2 border-dashed border-gray-300 rounded-lg bg-white">
+                                <img src="data:image/png;base64,{{ $pixQrCode }}" alt="QR Code PIX" class="w-48 h-48">
+                            </div>
+                        @endif
+
+                        <div class="w-full">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Copia e Cola</label>
+                            <div class="flex gap-2">
+                                <input type="text" readonly value="{{ $pixCopyPaste }}"
+                                    class="flex-1 text-sm border-gray-300 rounded-md bg-gray-50 text-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-300">
+                                <button type="button" x-data="{ copied: false }"
+                                    @click="navigator.clipboard.writeText('{{ $pixCopyPaste }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                    class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition-colors text-sm flex items-center gap-1 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200">
+                                    <span x-show="!copied"><x-heroicon-m-clipboard class="w-4 h-4" /></span>
+                                    <span x-show="copied" class="text-green-600"><x-heroicon-m-check class="w-4 h-4" /></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-blue-50 text-blue-700 p-3 rounded-md text-xs text-center dark:bg-blue-900/30 dark:text-blue-300 w-full">
+                            <p class="font-bold">Aguardando pagamento...</p>
+                            <p>Seu saldo será atualizado automaticamente assim que o pagamento for confirmado.</p>
                         </div>
                     @endif
-
-                    <div class="w-full">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Copia e Cola</label>
-                        <div class="flex gap-2">
-                            <input type="text" readonly value="{{ $pixCopyPaste }}"
-                                class="flex-1 text-sm border-gray-300 rounded-md bg-gray-50 text-gray-600 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-300">
-                            <button type="button" x-data="{ copied: false }"
-                                @click="navigator.clipboard.writeText('{{ $pixCopyPaste }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                                class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition-colors text-sm flex items-center gap-1 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200">
-                                <span x-show="!copied"><x-heroicon-m-clipboard class="w-4 h-4" /></span>
-                                <span x-show="copied" class="text-green-600"><x-heroicon-m-check class="w-4 h-4" /></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div
-                        class="bg-blue-50 text-blue-700 p-3 rounded-md text-xs text-center dark:bg-blue-900/30 dark:text-blue-300 w-full">
-                        <p class="font-bold">Aguardando pagamento...</p>
-                        <p>Seu saldo será atualizado automaticamente assim que o pagamento for confirmado.</p>
-                    </div>
                 </div>
             </div>
         </div>
