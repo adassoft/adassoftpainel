@@ -71,4 +71,8 @@ class Download extends Model
             }
         }
     }
+    public function versions()
+    {
+        return $this->hasMany(DownloadVersion::class, 'download_id')->orderBy('data_lancamento', 'desc');
+    }
 }

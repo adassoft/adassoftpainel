@@ -177,7 +177,7 @@ class DownloadResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\VersionsRelationManager::class,
         ];
     }
 

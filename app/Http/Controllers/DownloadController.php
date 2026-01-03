@@ -148,9 +148,13 @@ class DownloadController extends Controller
             abort(404);
         }
 
+        // Carregar versões anteriores (apenas se for um objeto Download real)
+        $versions = $download instanceof Download ? $download->versions : collect();
+
         return view('shop.download-details', [
             'download' => $download,
-            'software' => $softwareRelacionado
+            'software' => $softwareRelacionado,
+            'versions' => $versions
         ]);
     }
 
@@ -240,5 +244,27 @@ class DownloadController extends Controller
         }
 
         abort(404, 'Arquivo não encontrado. (Recurso sem arquivo vinculado)');
+    }
+
+    public function downloadVersion($id)
+    {
+        $version = \App\Models\DownloadVersion::with('download')->find($id);
+
+        if (!$version) {
+            abort(404, 'Versão não encontrada.');
+        }
+
+        // Incrementa contador da versão e do download principal
+        $version->increment('contador');
+        if ($version->download) {
+            $version->download->increment('contador');
+        }
+
+        $path = storage_path('app/public/' . $version->arquivo_path);
+        if (!file_exists($path)) {
+            $path = storage_path('app/' . $version->arquivo_path);
+        }
+
+        return response()->download($path);
     }
 }

@@ -111,7 +111,8 @@
                                 <div>
                                     <div class="small text-muted">Tamanho</div>
                                     <div class="font-weight-bold">
-                                        {{ $download->tamanho ?: ($download->tamanho_arquivo ?? '-') }}</div>
+                                        {{ $download->tamanho ?: ($download->tamanho_arquivo ?? '-') }}
+                                    </div>
                                 </div>
                             </div>
 
@@ -138,5 +139,44 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    @if(isset($versions) && $versions->count() > 0)
+        <div class="row mt-5">
+            <div class="col-12">
+                <h4 class="font-weight-bold mb-4 border-bottom pb-2">Histórico de Versões</h4>
+                <div class="table-responsive bg-white rounded-lg shadow-sm border">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="py-3 pl-4">Versão</th>
+                                <th class="py-3">Data de Lançamento</th>
+                                <th class="py-3">Tamanho</th>
+                                <th class="py-3">Notas (Changelog)</th>
+                                <th class="py-3 text-right pr-4">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($versions as $v)
+                                <tr>
+                                    <td class="font-weight-bold pl-4 text-dark">{{ $v->versao }}</td>
+                                    <td>{{ $v->data_lancamento ? \Carbon\Carbon::parse($v->data_lancamento)->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td>{{ $v->tamanho }}</td>
+                                    <td class="text-muted small">{{ \Illuminate\Support\Str::limit($v->changelog, 50) ?: '-' }}</td>
+                                    <td class="text-right pr-4">
+                                        <a href="{{ route('downloads.version.file', $v->id) }}"
+                                            class="btn btn-sm btn-outline-primary rounded-pill">
+                                            <i class="fas fa-download mr-1"></i> Baixar
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
     </div>
 @endsection
