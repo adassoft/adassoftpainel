@@ -51,13 +51,13 @@ class ResellerWebhookController extends Controller
             return response()->json(['status' => 'already_paid']);
         }
 
-        // Atualizar Status
+        // Atualizar
         $order->update([
             'status' => 'paid',
-            'situacao' => 'pago', // Compatibilidade
-            'paid_at' => now(),
-            'data_pagamento' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
+            // Campos legados
+            'situacao' => 'pago',
+            'data_pagamento' => now()
         ]);
 
         Log::info("Reseller Webhook: Pedido #{$order->id} (User: {$order->user_id}) atualizado para PAGO.");
