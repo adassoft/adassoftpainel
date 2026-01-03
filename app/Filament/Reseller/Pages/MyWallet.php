@@ -39,12 +39,14 @@ class MyWallet extends Page implements HasTable
     {
         $user = Auth::user();
         $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+        $cnpjFormatado = preg_replace("/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/", "\$1.\$2.\$3/\$4-\$5", $cnpjLimpo);
 
-        // Tenta buscar saldo pelo CNPJ limpo ou original
-        $this->saldo = (float) (Company::where(function ($q) use ($user, $cnpjLimpo) {
+        // Tenta buscar saldo pelo CNPJ limpo, original ou formatado
+        $this->saldo = (float) (Company::where(function ($q) use ($user, $cnpjLimpo, $cnpjFormatado) {
             $q->where('cnpj', $cnpjLimpo)
-                ->orWhere('cnpj', $user->cnpj);
-        })->value('saldo') ?? 0.00);
+                ->orWhere('cnpj', $user->cnpj)
+                ->orWhere('cnpj', $cnpjFormatado);
+        })->sum('saldo') ?? 0.00); // Usa sum() para somar caso existam duplicidades (com e sem ponto)
 
         try {
             $min = DB::table('gateways')
@@ -200,11 +202,13 @@ class MyWallet extends Page implements HasTable
     {
         $user = Auth::user();
         $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+        $cnpjFormatado = preg_replace("/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/", "\$1.\$2.\$3/\$4-\$5", $cnpjLimpo);
 
-        $novoSaldo = (float) (Company::where(function ($q) use ($user, $cnpjLimpo) {
+        $novoSaldo = (float) (Company::where(function ($q) use ($user, $cnpjLimpo, $cnpjFormatado) {
             $q->where('cnpj', $cnpjLimpo)
-                ->orWhere('cnpj', $user->cnpj);
-        })->value('saldo') ?? 0.00);
+                ->orWhere('cnpj', $user->cnpj)
+                ->orWhere('cnpj', $cnpjFormatado);
+        })->sum('saldo') ?? 0.00); // Usa sum() para somar caso existam duplicidades
 
         if ($novoSaldo != $this->saldo) {
             $this->saldo = $novoSaldo;
