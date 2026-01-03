@@ -5,50 +5,15 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        // 1. Corrigir FK em 'order_items'
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->dropForeign(['download_id']);
-            $table->foreign('download_id')
-                ->references('id')
-                ->on('downloads_extras')
-                ->nullOnDelete();
-        });
-
-        // 2. Corrigir FK em 'user_library'
-        Schema::table('user_library', function (Blueprint $table) {
-            $table->dropForeign(['download_id']);
-            $table->foreign('download_id')
-                ->references('id')
-                ->on('downloads_extras')
-                ->cascadeOnDelete();
-        });
+        // Migração problemática esvaziada para destravar a fila.
+        // As correções reais foram movidas para:
+        // 2026_01_03_060118_fix_user_library_fake_key_issue.php
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->dropForeign(['download_id']);
-            // Restaurar para anterior (incorreto, mas histórico)
-            $table->foreign('download_id')
-                ->references('id')
-                ->on('downloads')
-                ->nullOnDelete();
-        });
-
-        Schema::table('user_library', function (Blueprint $table) {
-            $table->dropForeign(['download_id']);
-            $table->foreign('download_id')
-                ->references('id')
-                ->on('downloads')
-                ->cascadeOnDelete();
-        });
+        // Nada a reverter
     }
 };
