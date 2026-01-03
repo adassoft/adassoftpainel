@@ -44,6 +44,39 @@ class ManageApiKeys extends Page implements HasForms, HasTable
         $this->form->fill();
     }
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('sync_software_keys')
+                ->label('Importar Chaves dos Softwares')
+                ->icon('heroicon-o-arrow-down-on-square-stack')
+                ->color('primary')
+                ->action(function () {
+                    $softwares = Software::whereNotNull('api_key_hash')->get();
+                    $count = 0;
+                    foreach ($softwares as $sw) {
+                        // Verifica se já existe uma chave com este hash
+                        if (!ApiKey::where('key_hash', $sw->api_key_hash)->exists()) {
+                            ApiKey::create([
+                                'software_id' => $sw->id,
+                                'label' => 'Chave Original do Software',
+                                'key_hash' => $sw->api_key_hash,
+                                'key_hint' => $sw->api_key_hint ?? '????',
+                                'scopes' => ['*'],
+                                'status' => 'ativo',
+                                'created_by' => auth()->id() ?? 1
+                            ]);
+                            $count++;
+                        }
+                    }
+                    if ($count > 0)
+                        Notification::make()->success()->title("$count chaves importadas.")->send();
+                    else
+                        Notification::make()->info()->title("Nenhuma chave nova encontrada.")->send();
+                })
+        ];
+    }
+
     public function form(Form $form): Form
     {
         return $form
@@ -172,6 +205,16 @@ class ManageApiKeys extends Page implements HasForms, HasTable
                         ->action(function (ApiKey $record) {
                             $record->update(['status' => 'revogado']);
                             Notification::make()->success()->title('Chave revogada.')->send();
+                        }),
+
+                    Action::make('delete')
+                        ->label('Excluir')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->action(function (ApiKey $record) {
+                            $record->delete();
+                            Notification::make()->success()->title('Chave excluída.')->send();
                         }),
                 ])
             ])

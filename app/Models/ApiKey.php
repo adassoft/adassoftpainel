@@ -10,6 +10,7 @@ class ApiKey extends Model
     use HasFactory;
 
     protected $table = 'api_keys';
+    public $timestamps = false;
 
     protected $fillable = [
         'software_id',
