@@ -39,52 +39,37 @@ SESSION_DRIVER=file
 SESSION_LIFETIME=120
 EOF
 
-# --- 2. CORRIGIR LIMITES DE UPLOAD (Erro 413) ---
-echo "📦 Ajustando limites de upload (100MB)..."
+# --- 2. CORRIGIR LIMITES DE UPLOAD (1GB) ---
+echo "📦 Ajustando limites de upload (1GB)..."
 
-# Ajustar Nginx (Limite de 500MB)
-# Ajustar Nginx (Limite de 512MB) - Método Global (Mais seguro)
+# Ajustar Nginx (Limite de 1024M)
 if [ -d "/etc/nginx/conf.d" ]; then
-    echo "client_max_body_size 512M;" > /etc/nginx/conf.d/upload_limit.conf
-    nginx -t && nginx -s reload
-    echo "  ✅ Nginx atualizado (conf.d) para 512MB."
+    echo "client_max_body_size 1024M;" > /etc/nginx/conf.d/upload_final.conf
+    # Try multiple reload methods
+    nginx -s reload 2>/dev/null || /etc/init.d/nginx reload 2>/dev/null || true
+    echo "  ✅ Nginx atualizado para 1024M."
+fi
+
+# Ajustar PHP (Criar arquivo ini direto que o PHP lê automaticamente)
+# Isso é mais falível que tentar editar o php.ini principal
+DIR_CONF="/usr/local/etc/php/conf.d"
+[ ! -d "$DIR_CONF" ] && DIR_CONF="/etc/php/8.2/cli/conf.d"
+[ ! -d "$DIR_CONF" ] && DIR_CONF="/etc/php/8.3/cli/conf.d"
+
+if [ -d "$DIR_CONF" ]; then
+    echo "upload_max_filesize = 1024M" > "$DIR_CONF/99-custom-limits.ini"
+    echo "post_max_size = 1024M" >> "$DIR_CONF/99-custom-limits.ini"
+    echo "memory_limit = 1024M" >> "$DIR_CONF/99-custom-limits.ini"
+    echo "max_execution_time = 300" >> "$DIR_CONF/99-custom-limits.ini"
+    echo "  ✅ PHP config injetada em $DIR_CONF"
 else
-    # Fallback para o método antigo (sed) se conf.d não existir
-    NGINX_SITE="/etc/nginx/sites-enabled/default"
-    if [ -f "$NGINX_SITE" ]; then
-        sed -i '/client_max_body_size/d' "$NGINX_SITE"
-        sed -i '/server_name _;/a \    client_max_body_size 512M;' "$NGINX_SITE"
-        nginx -t && nginx -s reload
-        echo "  ✅ Nginx atualizado (sed) para 512MB."
-    fi
+    # Fallback: Tenta escrever onde der
+    echo "upload_max_filesize = 1024M" > /app/.user.ini
+    echo "post_max_size = 1024M" >> /app/.user.ini
 fi
 
-# Ajustar PHP (php.ini)
-PHP_INI=$(php --ini | grep "Loaded Configuration File" | awk '{print $4}')
-
-# Fallback se não encontrar via comando
-if [ -z "$PHP_INI" ]; then 
-    # Tenta adivinhar caminhos comuns
-    if [ -f "/etc/php/8.2/fpm/php.ini" ]; then PHP_INI="/etc/php/8.2/fpm/php.ini"; fi
-    if [ -f "/etc/php/8.1/fpm/php.ini" ]; then PHP_INI="/etc/php/8.1/fpm/php.ini"; fi
-fi
-
-if [ -f "$PHP_INI" ]; then
-    echo "  -> PHP config found at $PHP_INI"
-    # Lógica segura: Substitui se existe, Adiciona se não existe
-    grep -q "upload_max_filesize" "$PHP_INI" && sed -i 's/upload_max_filesize.*/upload_max_filesize = 512M/' "$PHP_INI" || echo "upload_max_filesize = 512M" >> "$PHP_INI"
-    grep -q "post_max_size" "$PHP_INI" && sed -i 's/post_max_size.*/post_max_size = 512M/' "$PHP_INI" || echo "post_max_size = 512M" >> "$PHP_INI"
-    
-    # Reload gracioso do PHP-FPM (evita matar o processo se não houver supervisor)
-    echo "  🔄 Recarregando configurações do PHP..."
-    pkill -USR2 php-fpm || echo "  ⚠️ Não foi possível recarregar o PHP (pode ser necessário reiniciar o container)."
-else
-    echo "  -> PHP config not found. Creating custom config..."
-    mkdir -p /etc/php/8.2/fpm/conf.d/
-    echo "upload_max_filesize = 512M" > /etc/php/8.2/fpm/conf.d/99-custom.ini
-    echo "post_max_size = 512M" >> /etc/php/8.2/fpm/conf.d/99-custom.ini
-    pkill -USR2 php-fpm || true
-fi
+# Reload PHP Process
+pkill -USR2 php-fpm 2>/dev/null || killall -USR2 php-fpm 2>/dev/null || true
 
 # --- 3. BANCO DE DADOS ---
 echo "🗄️  Rodando Migrações..."
@@ -94,9 +79,11 @@ php artisan migrate --force
 echo "🎨 Publicando Assets e Limpando Cache..."
 php artisan livewire:publish --assets
 php artisan filament:assets
-php artisan config:clear
-php artisan view:clear
-php artisan optimize
+php artisan optimize:clear
+php artisan icon:cache
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
 echo "✅ CONFIGURAÇÃO CONCLUÍDA!"
-echo "Se o erro de upload persistir, reinicie o container pelo painel (Force Rebuild)."
+echo "Se o erro de upload persistir, certifique-se de adicionar 'bash setup_production.sh' no Build Command do Easypanel."
