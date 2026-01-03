@@ -128,7 +128,7 @@ class DownloadResource extends Resource
                 Forms\Components\Grid::make(2)
                     ->schema([
                         Forms\Components\Toggle::make('publico')
-                            ->label('Público (Visível para todos)')
+                            ->label('Público (Visível na lista)')
                             ->default(true)
                             ->onColor('success')
                             ->offColor('danger'),
@@ -139,6 +139,32 @@ class DownloadResource extends Resource
                             ->default(0)
                             ->prefixIcon('heroicon-m-arrow-down-tray'),
                     ]),
+
+                Forms\Components\Section::make('Configurações de Venda e Acesso')
+                    ->schema([
+                        Forms\Components\Grid::make(3)->schema([
+                            Forms\Components\Toggle::make('requires_login')
+                                ->label('Exigir Login')
+                                ->helperText('Usuário deve estar logado para baixar.')
+                                ->default(false),
+
+                            Forms\Components\Toggle::make('is_paid')
+                                ->label('Produto Pago')
+                                ->live()
+                                ->helperText('Exige pagamento para liberar download.')
+                                ->default(false),
+
+                            Forms\Components\TextInput::make('preco')
+                                ->label('Preço (R$)')
+                                ->prefix('R$')
+                                ->numeric()
+                                ->default(0.00)
+                                ->visible(fn(Forms\Get $get) => $get('is_paid'))
+                                ->required(fn(Forms\Get $get) => $get('is_paid')),
+                        ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -165,6 +191,19 @@ class DownloadResource extends Resource
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->description(fn(Download $record) => 'Downloads: ' . $record->contador),
+
+                Tables\Columns\TextColumn::make('preco')
+                    ->label('Preço')
+                    ->money('BRL')
+                    ->sortable(),
+
+                Tables\Columns\IconColumn::make('is_paid')
+                    ->label('Pago')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-currency-dollar')
+                    ->falseIcon('heroicon-o-gift')
+                    ->trueColor('warning')
+                    ->falseColor('gray'),
 
                 Tables\Columns\IconColumn::make('publico')
                     ->label('Público')

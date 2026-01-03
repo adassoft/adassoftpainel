@@ -12,7 +12,7 @@ class Download extends Model
 
     protected $fillable = [
         'titulo',
-        'slug', // Novo
+        'slug',
         'descricao',
         'categoria',
         'versao',
@@ -21,12 +21,19 @@ class Download extends Model
         'contador',
         'arquivo_path',
         'data_atualizacao',
+        // Digital Products
+        'preco',
+        'is_paid',
+        'requires_login',
     ];
 
     protected $casts = [
         'publico' => 'boolean',
         'contador' => 'integer',
         'data_atualizacao' => 'datetime',
+        'preco' => 'decimal:2',
+        'is_paid' => 'boolean',
+        'requires_login' => 'boolean',
     ];
 
     protected static function boot()
