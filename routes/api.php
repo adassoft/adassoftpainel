@@ -19,7 +19,7 @@ Route::post('/webhooks/asaas', [App\Http\Controllers\Api\AsaasWebhookController:
 Route::post('/webhooks/reseller/asaas', [App\Http\Controllers\Api\ResellerWebhookController::class, 'handle']);
 
 // === API AdasSoft V1 (RESTful) ===
-Route::prefix('v1/adassoft')->group(function () {
+Route::prefix('v1/adassoft')->middleware('shield.auth')->group(function () {
     // Validação e Status
     Route::post('/validate', [ValidationController::class, 'handle']); // Mantém handle por enquanto ou refatora para 'validateSerial'
     Route::post('/token', [ValidationController::class, 'handle']); // Action: emitir_token
