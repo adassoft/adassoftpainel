@@ -72,7 +72,7 @@ class AsaasConfigPage extends Page
                             ->label('URL do Webhook')
                             ->content(new HtmlString('
                                 <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm font-mono break-all select-all border border-gray-300 dark:border-gray-600">
-                                    ' . url('/api/webhooks/asaas-reseller') . '
+                                    ' . url('/api/webhooks/reseller/asaas') . '
                                 </div>
                                 <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                     <ul class="list-disc pl-5 space-y-1">
