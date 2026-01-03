@@ -44,6 +44,11 @@ class DownloadController extends Controller
 
         // 3. Processar Softwares
         foreach ($softwares as $soft) {
+            // Safety Check: Se for revenda e não estiver liberado, pula.
+            if ($isReseller && !$soft->disponivel_revenda) {
+                continue;
+            }
+
             // Só exibe na lista de downloads se tiver algum meio de baixar
             if ($soft->id_download_repo || $soft->url_download || $soft->arquivo_software) {
 
@@ -226,12 +231,18 @@ class DownloadController extends Controller
             }
         }
 
+        // Informações da Revenda (Para botão WhatsApp se não tiver Asaas)
+        $isReseller = !\App\Services\ResellerBranding::isDefault();
+        $contactInfo = \App\Services\ResellerBranding::getContactInfo();
+
         return view('shop.download-details', [
             'download' => $download,
             'software' => $softwareRelacionado,
             'versions' => $versions,
             'latestByOs' => $latestByOs,
-            'hasAccess' => $hasAccess
+            'hasAccess' => $hasAccess,
+            'isReseller' => $isReseller,
+            'contactInfo' => $contactInfo
         ]);
     }
 

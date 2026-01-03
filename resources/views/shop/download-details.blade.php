@@ -83,12 +83,21 @@
                     @endphp
 
                     @if(!($hasAccess ?? true))
-                        @if($download->is_paid)
-                            <button onclick="alert('O módulo de Checkout será ativado em breve. Entre em contato para adquirir agora.')"
+                        @if(($isReseller ?? false) && empty($contactInfo['has_payment']))
+                             <a href="https://wa.me/{{ $contactInfo['whatsapp'] ?? '' }}?text={{ urlencode('Olá, tenho interesse em comprar o produto digital: ' . $download->titulo) }}"
+                                target="_blank"
+                                class="btn btn-success btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg mb-2"
+                                style="background-color: #25D366; border-color: #25D366;">
+                                <i class="fab fa-whatsapp mr-2"></i> Comprar via WhatsApp
+                             </a>
+                             <p class="text-muted small"><i class="fas fa-info-circle mr-1"></i> Entre em contato para adquirir este produto.</p>
+                             
+                        @elseif($download->is_paid)
+                            <a href="{{ route('checkout.download.start', $download->id) }}"
                                 class="btn btn-success btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg mb-2">
                                 <i class="fas fa-shopping-cart mr-2"></i> Comprar Agora por R$ {{ number_format($download->preco, 2, ',', '.') }}
-                            </button>
-                            <p class="text-muted small"><i class="fas fa-lock mr-1"></i> Acesso liberado imediatamente após o pagamento.</p>
+                            </a>
+                            <p class="text-muted small"><i class="fas fa-lock mr-1"></i> Acesso liberado imediatamente após o pagamento (PIX).</p>
                         @elseif($download->requires_login)
                             <a href="{{ route('login') }}"
                                 class="btn btn-primary btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg">
