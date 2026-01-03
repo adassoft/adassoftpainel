@@ -245,13 +245,24 @@ begin
       if (Resp.GetValue('success') <> nil) and (Resp.GetValue('success') is TJSONBool) and
          (Resp.GetValue<TJSONBool>('success').AsBoolean) then
       begin
-        FSession.Token := Resp.GetValue('token').Value;
+    // Verificacao de nulo para 'token'
+        if Resp.GetValue('token') <> nil then
+           FSession.Token := Resp.GetValue('token').Value
+        else
+           FSession.Token := ''; // Ou raise Exception
+
         ProcessApiResponse(Resp);
         SaveCache;
         Result := True;
       end
       else
-        raise Exception.Create(Resp.GetValue('mensagem').Value);
+      begin
+        // Verificacao de nulo para 'mensagem'
+        if Resp.GetValue('mensagem') <> nil then
+           raise Exception.Create(Resp.GetValue('mensagem').Value)
+        else
+           raise Exception.Create('Erro desconhecido na autenticação (mensagem vazia).');
+      end;
     finally
       Resp.Free;
     end;
