@@ -85,7 +85,7 @@ class DownloadResource extends Resource
                                     ->disk('public')
                                     ->directory('downloads/versions')
                                     ->required()
-                                    ->maxSize(1024000) // 1GB
+                                    ->maxSize(102400) // 100MB
                                     ->visibility('public')
                                     ->preserveFilenames()
                                     ->live()

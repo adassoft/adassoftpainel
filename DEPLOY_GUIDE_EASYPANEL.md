@@ -53,7 +53,7 @@ Ou simplesmente rode o script atualizado:
 cd /code && git pull && bash setup_production.sh
 ```
 
-### ✅ Solução Definitiva para Uploads Grandes (1GB)
+### ✅ Solução Definitiva para Uploads Grandes (128MB)
 
 Para garantir que os limites de upload (PHP e Nginx) persistam mesmo após o `Rebuild`, adicionamos o script `setup_production.sh`.
 
@@ -67,8 +67,8 @@ Para garantir que os limites de upload (PHP e Nginx) persistam mesmo após o `Re
 4. Salve e clique em **Deploy**.
 
 Isso executará nosso script de configuração automaticamente a cada nova versão, garantindo:
-- Nginx com `client_max_body_size 1024M`
-- PHP com `upload_max_filesize = 1024M`
+- Nginx com `client_max_body_size 128M`
+- PHP com `upload_max_filesize = 128M`
 - Cache limpo e otimizado
 
 ---
