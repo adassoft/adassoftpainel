@@ -25,7 +25,8 @@ class Order extends Model
         'payment_method',
         'external_id',
         'payment_url',
-        'paid_at'
+        'paid_at',
+        'recorrencia'
     ];
 
     public function user()

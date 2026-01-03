@@ -129,14 +129,18 @@ class MyWallet extends Page implements HasTable
             $codTransacao = 'REC-' . date('YmdHis') . '-' . rand(1000, 9999);
 
             // Criar Pedido no Banco LOCAL primeiro
-            $order = new \App\Models\Order();
-            $order->cnpj = $empresa->cnpj;
-            $order->valor = $valor;
-            $order->situacao = 'AGUARDANDO';
-            $order->data = now();
-            $order->cod_transacao = $codTransacao;
-            $order->recorrencia = 'CREDITO';
-            $order->save();
+            // Ajustado para estrutura nova da tabela orders
+            $order = \App\Models\Order::create([
+                'user_id' => $user->id,
+                'cnpj_revenda' => $empresa->cnpj,
+                'valor' => $valor,
+                'total' => $valor,
+                'status' => 'pending',
+                // Campos legados para compatibilidade se necessário
+                'situacao' => 'AGUARDANDO',
+                'external_reference' => $codTransacao,
+                'recorrencia' => 'CREDITO'
+            ]);
 
             // 4. Criar Pagamento no Asaas
             $paymentData = [
