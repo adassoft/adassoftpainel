@@ -3,7 +3,7 @@ unit Shield.Core;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.JSON, System.DateUtils, System.IOUtils, System.Generics.Collections,
+  System.SysUtils, System.Classes, System.JSON, System.DateUtils, System.IOUtils, System.Generics.Collections, System.NetEncoding,
   Shield.Types, Shield.Config, Shield.Security, Shield.API;
 
 type
@@ -31,6 +31,7 @@ type
     function CheckLicense(const Serial: string = ''): Boolean;
     function Authenticate(const Email, Senha, InstalacaoID: string): Boolean;
     function GenerateOfflineChallenge(const Serial, InstalacaoID: string): string;
+    function ActivateOffline(const ActivationKeyString: string): Boolean;
     procedure Logout;
     
     // Renovação e Pagamento
@@ -465,6 +466,59 @@ begin
     Result := Obj.ToJSON;
   finally
     Obj.Free;
+  end;
+end;
+
+function TShield.ActivateOffline(const ActivationKeyString: string): Boolean;
+var
+  Parts: TArray<string>;
+  PayloadB64, Signature, CalculatedHash, JsonStr: string;
+  Obj: TJSONObject;
+begin
+  Result := False;
+  // Formato: PAYLOAD_BASE64.SIGNATURE_HEX
+  Parts := ActivationKeyString.Split(['.']);
+  if Length(Parts) <> 2 then
+    raise Exception.Create('Código de ativação inválido (Formato incorreto).');
+    
+  PayloadB64 := Parts[0];
+  Signature := Parts[1];
+  
+  // Valida Assinatura
+  CalculatedHash := TShieldSecurity.ComputeOfflineHash(PayloadB64, FConfig.OfflineSecret);
+  
+  if not SameText(CalculatedHash, Signature) then
+     raise Exception.Create('Código de ativação inválido (Assinatura não confere).');
+     
+  // Decodifica Payload
+  try
+    JsonStr := TNetEncoding.Base64.Decode(PayloadB64);
+    Obj := TJSONObject.ParseJSONValue(JsonStr) as TJSONObject;
+    if Obj = nil then raise Exception.Create('Payload corrompido.');
+    
+    try
+      // Valida se é para ESTA máquina
+      if Obj.GetValue('instalacao_id') <> nil then
+      begin
+         if Obj.GetValue('instalacao_id').Value <> GetMachineFingerprint then
+            raise Exception.Create('Este código de ativação não é para este computador.');
+      end;
+      
+      // Aplica a licença
+      ProcessApiResponse(Obj);
+      
+      // Força status valido se não vier explícito
+      FLicense.Status := stValid;
+      FLicense.Mensagem := 'Ativado Offline com Sucesso';
+      
+      SaveCache;
+      Result := True;
+    finally
+      Obj.Free;
+    end;
+  except
+    on E: Exception do
+      raise Exception.Create('Erro ao processar ativação: ' + E.Message);
   end;
 end;
 
