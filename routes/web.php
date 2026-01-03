@@ -27,6 +27,8 @@ Route::get('/feeds/google.xml', [\App\Http\Controllers\FeedController::class, 'g
 // Checkout routes public (auth handled inside)
 Route::get('/checkout/{planId}', [\App\Http\Controllers\CheckoutController::class, 'start'])->name('checkout.start');
 Route::post('/checkout/{planId}/pix', [\App\Http\Controllers\CheckoutController::class, 'processPix'])->name('checkout.pix');
+Route::get('/checkout/download/{id}', [\App\Http\Controllers\CheckoutController::class, 'startDownload'])->name('checkout.download.start');
+Route::post('/checkout/download/{id}/process', [\App\Http\Controllers\CheckoutController::class, 'processDownloadPix'])->name('checkout.download.process');
 Route::post('/checkout/auth', [\App\Http\Controllers\CheckoutController::class, 'authenticate'])->name('checkout.auth');
 
 Route::middleware(['auth'])->group(function () {

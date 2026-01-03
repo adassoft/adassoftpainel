@@ -12,8 +12,9 @@
                     class="inline-flex items-center justify-center w-16 h-16 bg-green-100 text-green-600 rounded-full mb-4">
                     <i class="fas fa-qrcode text-3xl"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-800">Pagamento via PIX</h1>
-                <p class="text-gray-500 mt-2">Escaneie o QR Code ou use o Copia e Cola para pagar.</p>
+                <h1 class="text-2xl font-bold text-gray-800">{{ $pageTitle ?? 'Pagamento via PIX' }}</h1>
+                <p class="text-gray-500 mt-2">Referente a: <strong>{{ $itemName ?? 'Pedido' }}</strong></p>
+                <p class="text-gray-400 text-sm">Escaneie o QR Code ou use o Copia e Cola.</p>
             </div>
 
             <div class="mb-8 flex justify-center">
@@ -35,8 +36,8 @@
             </div>
 
             <div class="bg-blue-50 text-blue-800 p-4 rounded-lg text-sm mb-6">
-                <i class="fas fa-info-circle mr-2"></i> Após o pagamento, sua assinatura será ativada automaticamente em
-                instantes.
+                <i class="fas fa-info-circle mr-2"></i> Após o pagamento, a liberação ocorrerá automaticamente (geralmente
+                em segundos).
             </div>
 
             <div class="text-center">

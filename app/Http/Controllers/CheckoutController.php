@@ -167,4 +167,115 @@ class CheckoutController extends Controller
             return back()->with('error', 'Erro ao processar pagamento: ' . $e->getMessage());
         }
     }
+
+    // ==========================================
+    // CHECKOUT PRODUTOS DIGITAIS
+    // ==========================================
+
+    public function startDownload($id)
+    {
+        $download = null;
+        if (is_numeric($id)) {
+            $download = \App\Models\Download::find($id);
+        } else {
+            $download = \App\Models\Download::where('slug', $id)->firstOrFail();
+        }
+
+        if (!$download->is_paid) {
+            return redirect()->route('downloads.file', $download->slug ?? $download->id);
+        }
+
+        // Verifica se usuário já possui
+        if (Auth::check() && Auth::user()->library()->where('download_id', $download->id)->exists()) {
+            return redirect()->route('downloads.show', $download->slug ?? $download->id)
+                ->with('success', 'Você já possui este produto. O download está liberado!');
+        }
+
+        return view('checkout.download-start', compact('download'));
+    }
+
+    public function processDownloadPix(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login'); // Middleware deve tratar retorno
+        }
+
+        $download = \App\Models\Download::findOrFail($id);
+        $user = Auth::user();
+
+        // Evitar duplicidade de pendentes (Opcional, mas boa prática)
+        // Por simplificação, vamos gerar um novo sempre.
+
+        // Token da Revenda/Empresa
+        $cnpjRevenda = \App\Services\ResellerBranding::getCurrentCnpj();
+        $empresaRevenda = Empresa::where('cnpj', $cnpjRevenda)->first();
+        // Em dev local, $asaasToken pode ser null se não configurado
+        $asaasToken = $empresaRevenda ? $empresaRevenda->asaas_access_token : env('ASAAS_ACCESS_TOKEN');
+
+        if (!$asaasToken) {
+            return back()->with('error', 'Erro interno: Configuração de pagamento não localizada.');
+        }
+
+        $asaas = new AsaasService($asaasToken);
+
+        try {
+            $customerId = $asaas->createCustomer($user);
+
+            $valorFinal = $download->preco;
+            if ($valorFinal <= 0) {
+                // Se for grátis por algum erro de lógica, libera direto
+                \App\Models\UserLibrary::firstOrCreate([
+                    'user_id' => $user->id,
+                    'download_id' => $download->id
+                ]);
+                return redirect()->route('downloads.show', $download->slug ?? $download->id);
+            }
+
+            $externalRef = "DL-{$download->id}-USER-{$user->id}-TS-" . time();
+
+            $pixData = $asaas->createPixCharge(
+                $customerId,
+                $valorFinal,
+                "Produto Digital: {$download->titulo}",
+                $externalRef
+            );
+
+            // Criar Order
+            $order = \App\Models\Order::create([
+                'user_id' => $user->id,
+                // Legacy fields for compatibility
+                'status' => 'pending',
+                'valor' => $valorFinal,
+                'cnpj_revenda' => $cnpjRevenda,
+                'asaas_payment_id' => $pixData->id,
+                'external_reference' => $externalRef,
+
+                // New Fields
+                'total' => $valorFinal,
+                'payment_method' => 'pix',
+                'external_id' => $pixData->id,
+                'payment_url' => $pixData->payload,
+            ]);
+
+            // Criar Item
+            \App\Models\OrderItem::create([
+                'order_id' => $order->id,
+                'download_id' => $download->id,
+                'product_name' => $download->titulo,
+                'price' => $valorFinal
+            ]);
+
+            // Reutiliza a view de PIX existente, passando dados extras
+            return view('checkout.pix', [
+                'pixData' => $pixData,
+                'pageTitle' => 'Pagamento - ' . $download->titulo,
+                'itemName' => $download->titulo,
+                'downloadSlug' => $download->slug ?? $download->id // Para botão voltar
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Download Checkout Error: " . $e->getMessage());
+            return back()->with('error', 'Ops! Erro ao gerar pagamento: ' . $e->getMessage());
+        }
+    }
 }

@@ -13,13 +13,19 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
-        'plano_id',
-        'asaas_payment_id',
+        'plano_id', // Legacy/Plans
+        'asaas_payment_id', // Legacy/Plans (can map to external_id)
         'external_reference',
         'status',
-        'valor',
+        'valor', // Legacy
         'cnpj_revenda',
-        'licenca_id'
+        'licenca_id',
+        // Digital Products
+        'total',
+        'payment_method',
+        'external_id',
+        'payment_url',
+        'paid_at'
     ];
 
     public function user()
