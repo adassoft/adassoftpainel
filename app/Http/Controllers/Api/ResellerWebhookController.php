@@ -42,17 +42,15 @@ class ResellerWebhookController extends Controller
         }
 
         if (!$order) {
-            Log::warning("Webhook Asaas: Pedido não encontrado. PaymentID: $paymentId Ref: $externalRef");
-            // Retornamos 200 pro Asaas parar de mandar se não acharmos, ou 404 se quisermos que retente.
-            // Geralmente 200 com log de erro é mais seguro para não engarrafar fila.
+            Log::warning("Reseller Webhook: Pedido não encontrado. PaymentID: $paymentId Ref: $externalRef");
             return response()->json(['status' => 'order_not_found'], 200);
         }
 
         if ($order->status === 'paid') {
+            Log::info("Reseller Webhook: Pedido #{$order->id} já estava pago. Ignorando.");
             return response()->json(['status' => 'already_paid']);
         }
 
-        // Atualizar Status
         // Atualizar Status
         $order->update([
             'status' => 'paid',
@@ -62,23 +60,25 @@ class ResellerWebhookController extends Controller
             'updated_at' => now()
         ]);
 
-        Log::info("Pedido #{$order->id} (User: {$order->user_id}) marcado como PAGO via Webhook (Reseller).");
+        Log::info("Reseller Webhook: Pedido #{$order->id} (User: {$order->user_id}) atualizado para PAGO.");
 
         // 1. Liberar Produtos Digitais (Se houver itens)
         if ($order->items()->count() > 0) {
             foreach ($order->items as $item) {
-                \App\Models\UserLibrary::firstOrCreate([
-                    'user_id' => $order->user_id,
-                    'download_id' => $item->download_id
-                ], [
-                    'order_id' => $order->id
-                ]);
+                // Double check para garantir que download_id existe (pode ter sido nullOnDelete)
+                if ($item->download_id) {
+                    \App\Models\UserLibrary::firstOrCreate([
+                        'user_id' => $order->user_id,
+                        'download_id' => $item->download_id
+                    ], [
+                        'order_id' => $order->id
+                    ]);
+                }
             }
-            Log::info("Produtos digitais liberados na biblioteca do usuário {$order->user_id}");
+            Log::info("Reseller Webhook: Produtos digitais liberados para usuário {$order->user_id}");
+        } else {
+            Log::warning("Reseller Webhook: Pedido PAGO #{$order->id} não tem itens de produtos digitais.");
         }
-
-        // TODO: Disparar Evento ou Job para ativação de planos (se necessário)
-        // event(new \App\Events\OrderPaid($order));
 
         return response()->json(['status' => 'success']);
     }
