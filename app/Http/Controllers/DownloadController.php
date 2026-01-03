@@ -10,6 +10,20 @@ class DownloadController extends Controller
 {
     public function index(Request $request)
     {
+        // DEBUG DE REVENDA
+        if ($request->has('debug_reseller')) {
+            $config = \App\Services\ResellerBranding::getConfig();
+            return response()->json([
+                'host_detectado' => $request->getHost(),
+                'config_encontrada_id' => $config ? $config->id : 'NENHUMA',
+                'is_default' => $config ? (bool) $config->is_default : 'N/A',
+                'is_reseller_logic' => !\App\Services\ResellerBranding::isDefault(),
+                'cache_key' => "site_config_obj_" . $request->getHost(),
+                'softwares_liberados_count' => Software::where('disponivel_revenda', true)->count(),
+                'contact_info' => \App\Services\ResellerBranding::getContactInfo()
+            ]);
+        }
+
         $search = $request->get('q');
         // Se NÃO for a config padrão, estamos num domínio de revenda
         $isReseller = !\App\Services\ResellerBranding::isDefault();
