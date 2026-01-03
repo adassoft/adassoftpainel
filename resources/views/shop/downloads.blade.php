@@ -127,12 +127,42 @@
                                             <i class="fas fa-cloud-download-alt mr-1"></i> {{ $soft['contador'] }} downloads realizados
                                         </div>
                                     @endif
+
+                                    @if(!empty($soft['os_list']))
+                                        <div class="mt-3 text-center">
+                                            @foreach($soft['os_list'] as $os)
+                                                @php
+                                                    $osIcons = [
+                                                        'windows' => 'fab fa-windows text-primary',
+                                                        'linux' => 'fab fa-linux text-warning',
+                                                        'mac' => 'fab fa-apple text-dark',
+                                                        'android' => 'fab fa-android text-success',
+                                                        'ios' => 'fab fa-app-store-ios text-info',
+                                                        'any' => 'fas fa-laptop text-secondary'
+                                                    ];
+                                                    $osIcon = $osIcons[$os] ?? $osIcons['any'];
+                                                @endphp
+                                                <i class="{{ $osIcon }} mx-1 fa-lg" title="{{ ucfirst($os) }}"></i>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
 
-                                <a href="{{ route('downloads.file', $soft['slug'] ?? $soft['id']) }}" target="_blank"
-                                    class="btn btn-download btn-block shadow-sm">
-                                    <i class="fas fa-download mr-2"></i> Baixar Arquivo
-                                </a>
+                                @php
+                                    $hasMultipleOs = !empty($soft['os_list']) && count($soft['os_list']) > 1;
+                                    $detailsRoute = route('downloads.show', $soft['repo_slug'] ?? $soft['repo_id'] ?? $soft['slug'] ?? $soft['id']);
+                                    $downloadRoute = route('downloads.file', $soft['slug'] ?? $soft['id']);
+                                @endphp
+
+                                @if($hasMultipleOs)
+                                    <a href="{{ $detailsRoute }}" class="btn btn-download btn-block shadow-sm">
+                                        <i class="fas fa-list mr-2"></i> Escolher Versão
+                                    </a>
+                                @else
+                                    <a href="{{ $downloadRoute }}" target="_blank" class="btn btn-download btn-block shadow-sm">
+                                        <i class="fas fa-download mr-2"></i> Baixar Arquivo
+                                    </a>
+                                @endif
 
                                 <div class="mt-3">
                                     <a href="{{ route('downloads.show', $soft['repo_slug'] ?? $soft['repo_id'] ?? $soft['slug'] ?? $soft['id']) }}"

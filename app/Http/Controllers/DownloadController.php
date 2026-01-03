@@ -13,8 +13,8 @@ class DownloadController extends Controller
         // 1. Pegar todos os softwares ativos
         $softwares = Software::where('status', 1)->get();
 
-        // 2. Pegar todos os downloads extras públicos
-        $extras = Download::where('publico', true)->get();
+        // 2. Pegar todos os downloads extras públicos com versões
+        $extras = Download::where('publico', true)->with('versions')->get();
 
         $downloadsCollection = collect();
 
@@ -33,6 +33,7 @@ class DownloadController extends Controller
 
                 $repoSlug = null;
                 $repoId = null;
+                $osList = [];
 
                 // Se estiver vinculado ao repositório, pegamos os dados reais do arquivo
                 if ($soft->id_download_repo) {
@@ -45,6 +46,7 @@ class DownloadController extends Controller
 
                         $repoSlug = $repoFile->slug;
                         $repoId = $repoFile->id;
+                        $osList = $repoFile->versions->pluck('sistema_operacional')->unique()->values()->toArray();
 
                         // Prioritize Repo Version for consistency
                         if (!empty($repoFile->versao)) {
@@ -67,7 +69,8 @@ class DownloadController extends Controller
                     'url_download' => $url,
                     'data_info' => $dataInfo,
                     'imagem' => $this->resolveImageUrl($soft->imagem ?: $soft->imagem_destaque),
-                    'contador' => $contador
+                    'contador' => $contador,
+                    'os_list' => $osList
                 ]);
             }
         }
@@ -75,6 +78,8 @@ class DownloadController extends Controller
         // 4. Processar Downloads Extras que NÃO estão vinculados a nenhum software
         foreach ($extras as $extra) {
             if (!in_array($extra->id, $vinculadosIds)) {
+                $osList = $extra->versions->pluck('sistema_operacional')->unique()->values()->toArray();
+
                 $downloadsCollection->push([
                     'id' => $extra->id,
                     'slug' => $extra->slug,
@@ -85,7 +90,8 @@ class DownloadController extends Controller
                     'url_download' => asset('storage/' . $extra->arquivo_path),
                     'data_info' => $extra->data_atualizacao ? $extra->data_atualizacao->format('d/m/Y') : null,
                     'imagem' => null, // Deixe o blade decidir o ícone padrão
-                    'contador' => $extra->contador
+                    'contador' => $extra->contador,
+                    'os_list' => $osList
                 ]);
             }
         }
