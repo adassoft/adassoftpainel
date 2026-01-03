@@ -48,6 +48,10 @@ class DownloadController extends Controller
                 $repoId = null;
                 $osList = [];
 
+                // Variáveis de Produto Digital
+                $is_paid = false;
+                $preco = 0.00;
+
                 // Se estiver vinculado ao repositório, pegamos os dados reais do arquivo
                 if ($soft->id_download_repo) {
                     $repoFile = $extras->firstWhere('id', $soft->id_download_repo);
@@ -60,6 +64,9 @@ class DownloadController extends Controller
                         $repoSlug = $repoFile->slug;
                         $repoId = $repoFile->id;
                         $osList = $repoFile->versions->pluck('sistema_operacional')->unique()->values()->toArray();
+
+                        $is_paid = $repoFile->is_paid;
+                        $preco = $repoFile->preco;
 
                         // Prioritize Repo Version for consistency
                         if (!empty($repoFile->versao)) {
@@ -83,7 +90,10 @@ class DownloadController extends Controller
                     'data_info' => $dataInfo,
                     'imagem' => $this->resolveImageUrl($soft->imagem ?: $soft->imagem_destaque),
                     'contador' => $contador,
-                    'os_list' => $osList
+                    'os_list' => $osList,
+                    'is_paid' => $is_paid,
+                    'preco' => $preco,
+                    'requires_login' => $repoFile->requires_login ?? false
                 ]);
             }
         }
@@ -104,7 +114,10 @@ class DownloadController extends Controller
                     'data_info' => $extra->data_atualizacao ? $extra->data_atualizacao->format('d/m/Y') : null,
                     'imagem' => null, // Deixe o blade decidir o ícone padrão
                     'contador' => $extra->contador,
-                    'os_list' => $osList
+                    'os_list' => $osList,
+                    'is_paid' => $extra->is_paid,
+                    'preco' => $extra->preco,
+                    'requires_login' => $extra->requires_login
                 ]);
             }
         }
@@ -254,9 +267,14 @@ class DownloadController extends Controller
             }
 
             if (!$hasAccess) {
-                if (!auth()->check())
-                    return redirect()->route('login');
-                abort(403, 'Você não tem permissão para baixar este arquivo.');
+                if (!auth()->check()) {
+                    session()->put('url.intended', route('downloads.show', $download->slug ?? $download->id));
+                    return redirect()->route('login')->with('error', 'Por favor, faça login para baixar este arquivo.');
+                }
+
+                // Se logado mas sem acesso (Ex: Produto Pago)
+                $detailsUrl = route('downloads.show', $download->slug ?? $download->id);
+                return redirect($detailsUrl)->with('error', 'Este é um produto exclusivo. Adquira para liberar o download.');
             }
 
             $download->increment('contador');
@@ -338,10 +356,13 @@ class DownloadController extends Controller
             }
 
             if (!$hasAccess) {
-                if (!auth()->check() && ($dl->requires_login || $dl->is_paid)) {
-                    return redirect()->route('login');
+                if (!auth()->check()) {
+                    session()->put('url.intended', route('downloads.show', $dl->slug ?? $dl->id));
+                    return redirect()->route('login')->with('error', 'Por favor, faça login para baixar esta versão.');
                 }
-                abort(403, 'Você não tem permissão para baixar este arquivo.');
+
+                $detailsUrl = route('downloads.show', $dl->slug ?? $dl->id);
+                return redirect($detailsUrl)->with('error', 'Você precisa adquirir este produto para liberar esta versão.');
             }
         }
 

@@ -150,6 +150,14 @@
                                         </div>
                                     @endif
 
+                                    @if(isset($soft['is_paid']) && $soft['is_paid'])
+                                        <div class="position-absolute" style="top: 15px; right: 15px; z-index: 10;">
+                                            <span class="badge badge-pill badge-warning shadow-sm px-3 py-2 text-dark font-weight-bold">
+                                                <i class="fas fa-tag mr-1"></i> R$ {{ number_format($soft['preco'], 2, ',', '.') }}
+                                            </span>
+                                        </div>
+                                    @endif
+
                                     @if(!empty($soft['os_list']))
                                         <div class="mt-3 text-center">
                                             @foreach($soft['os_list'] as $os)
@@ -172,13 +180,23 @@
 
                                 @php
                                     $hasMultipleOs = !empty($soft['os_list']) && count($soft['os_list']) > 1;
+                                    $isPaid = $soft['is_paid'] ?? false;
+                                    $requiresLogin = $soft['requires_login'] ?? false;
                                     $detailsRoute = route('downloads.show', $soft['repo_slug'] ?? $soft['repo_id'] ?? $soft['slug'] ?? $soft['id']);
                                     $downloadRoute = route('downloads.file', $soft['slug'] ?? $soft['id']);
+
+                                    $shouldGoToDetails = $hasMultipleOs || $isPaid || $requiresLogin;
                                 @endphp
 
-                                @if($hasMultipleOs)
+                                @if($shouldGoToDetails)
                                     <a href="{{ $detailsRoute }}" class="btn btn-download btn-block shadow-sm">
-                                        <i class="fas fa-list mr-2"></i> Escolher Versão
+                                        @if($isPaid)
+                                            <i class="fas fa-shopping-cart mr-2"></i> Ver / Comprar
+                                        @elseif($requiresLogin)
+                                            <i class="fas fa-lock mr-2"></i> Acessar
+                                        @else
+                                            <i class="fas fa-list mr-2"></i> Escolher Versão
+                                        @endif
                                     </a>
                                 @else
                                     <a href="{{ $downloadRoute }}" target="_blank" class="btn btn-download btn-block shadow-sm">
