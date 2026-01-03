@@ -42,7 +42,14 @@
 
             <div class="text-center">
                 <p class="text-sm text-gray-400 mb-4">ID da transação: {{ $pixData->id }}</p>
-                <a href="{{ route('home') }}" class="text-blue-600 hover:underline">Voltar para a Loja</a>
+                
+                @if(isset($downloadSlug))
+                    <a href="{{ route('downloads.show', $downloadSlug) }}" class="text-blue-600 hover:underline font-bold">
+                        <i class="fas fa-arrow-left mr-1"></i> Voltar para o Download
+                    </a>
+                @else
+                    <a href="{{ route('home') }}" class="text-blue-600 hover:underline">Voltar para a Loja</a>
+                @endif
             </div>
 
         </div>
@@ -56,5 +63,43 @@
             navigator.clipboard.writeText(copyText.value);
             alert("Chave PIX copiada!");
         }
+
+        // Auto-Check do Pagamento
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkUrl = "{{ route('checkout.check_status', $pixData->id) }}";
+            let isRedirecting = false;
+
+            const pollInterval = setInterval(() => {
+                if (isRedirecting) return;
+
+                fetch(checkUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.paid) {
+                            isRedirecting = true;
+                            clearInterval(pollInterval);
+
+                            // Feedback visual simples
+                            const container = document.querySelector('.max-w-2xl');
+                            if (container) {
+                                container.innerHTML = `
+                                        <div class="py-12">
+                                            <div class="inline-flex items-center justify-center w-24 h-24 bg-green-100 text-green-500 rounded-full mb-6">
+                                                <i class="fas fa-check text-4xl"></i>
+                                            </div>
+                                            <h2 class="text-2xl font-bold text-gray-800 mb-2">Pagamento Confirmado!</h2>
+                                            <p class="text-gray-500">Redirecionando você...</p>
+                                        </div>
+                                    `;
+                            }
+
+                            setTimeout(() => {
+                                window.location.href = data.redirect_url;
+                            }, 1500);
+                        }
+                    })
+                    .catch(err => console.error("Polling error:", err));
+            }, 3000); // Verifica a cada 3 segundos
+        });
     </script>
 @endsection

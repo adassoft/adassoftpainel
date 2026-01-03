@@ -31,6 +31,46 @@ Route::get('/checkout/download/{id}', [\App\Http\Controllers\CheckoutController:
 Route::post('/checkout/download/{id}/process', [\App\Http\Controllers\CheckoutController::class, 'processDownloadPix'])->name('checkout.download.process');
 Route::post('/checkout/auth', [\App\Http\Controllers\CheckoutController::class, 'authenticate'])->name('checkout.auth');
 
+// Rota de Polling para verificar pagamento PIX (AJAX)
+Route::get('/checkout/status/{externalRef}', function ($externalRef) {
+    if (!auth()->check())
+        return response()->json(['status' => 'error'], 401);
+
+    $order = \App\Models\Order::where('external_reference', $externalRef)
+        ->orWhere('asaas_payment_id', $externalRef)
+        ->orWhere('external_id', $externalRef) // Caso use external_id do legado
+        ->first();
+
+    if (!$order) {
+        return response()->json(['status' => 'not_found'], 404);
+    }
+
+    $isPaid = in_array(strtoupper($order->status), ['PAID', 'PAGO', 'COMPLETED', 'RECEIVED']);
+
+    // Determina URL de redirecionamento
+    $redirect = route('home');
+    if ($order->items->count() > 0) {
+        $item = $order->items->first();
+        // Tenta pegar o slug ou o id do download
+        $dl = \App\Models\Download::find($item->download_id);
+        if ($dl) {
+            $redirect = route('downloads.show', $dl->slug ?? $dl->id);
+        }
+    } elseif ($order->plano_id) {
+        // Se for plano/assinatura
+        $redirect = route('filament.app.pages.dashboard'); // Redireciona para o painel
+    } elseif ($order->recorrencia === 'CREDITO') {
+        // Se for recarga de credito
+        $redirect = route('filament.reseller.pages.my-wallet');
+    }
+
+    return response()->json([
+        'status' => $order->status,
+        'paid' => $isPaid,
+        'redirect_url' => $redirect
+    ]);
+})->name('checkout.check_status');
+
 Route::middleware(['auth'])->group(function () {
     /*
     // Rota de Emergência (Desativada por Segurança)
