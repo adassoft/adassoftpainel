@@ -161,6 +161,9 @@ class MyWallet extends Page implements HasTable
 
             $paymentId = $payResp->json('id');
 
+            // Atualiza o pedido com o ID do pagamento gerado
+            $order->update(['asaas_payment_id' => $paymentId]);
+
             // 5. Obter QR Code e Payload PIX
             $qrResp = Http::withHeaders($headers)
                 ->get("$baseUrl/payments/$paymentId/pixQrCode");
