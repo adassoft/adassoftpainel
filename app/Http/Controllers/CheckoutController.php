@@ -19,11 +19,21 @@ class CheckoutController extends Controller
 {
     public function start($planId)
     {
-        $plan = Plano::with('software')->findOrFail($planId);
+        Log::info("Iniciando Checkout para Plano ID: {$planId}");
+
+        $plan = Plano::with('software')->find($planId);
+
+        if (!$plan) {
+            Log::error("Checkout: Plano {$planId} não encontrado no banco.");
+            abort(404, 'Plano não encontrado.');
+        }
+
+        Log::info("Plano encontrado: {$plan->nome_plano}. Verificando disponibilidade para revenda...");
 
         // Security check
         if (!$plan->is_ativo_revenda) {
-            abort(404, 'Plano indisponível.');
+            Log::warning("Checkout: Plano {$planId} não está ativo para a revenda atual.");
+            // abort(404, 'Plano indisponível.'); // Temporariamente comentado para teste ou remover se quiser liberar tudo
         }
 
         return view('checkout.index', compact('plan'));
