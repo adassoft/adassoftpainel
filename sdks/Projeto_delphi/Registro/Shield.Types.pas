@@ -14,6 +14,17 @@ type
     procedure Clear;
   end;
 
+  TNotice = record
+    Id: Integer;
+    Titulo: string;
+    Conteudo: string;
+    Link: string;
+    Prioridade: string; // 'alta', 'normal', 'baixa'
+    Lida: Boolean;
+    DataPublicacao: TDateTime;
+  end;
+  TNoticeArray = TArray<TNotice>;
+
   TLicenseInfo = record
     SoftwareId: Integer;
     Serial: string;
@@ -29,6 +40,7 @@ type
     Status: TShieldStatus;
     Mensagem: string;
     AvisoMensagem: string;
+    Noticias: TNoticeArray;
     procedure Clear;
     function IsExpired: Boolean;
     function IsValid: Boolean;
@@ -80,6 +92,7 @@ begin
   Status := stUnchecked;
   Mensagem := '';
   AvisoMensagem := '';
+  SetLength(Noticias, 0);
 end;
 
 function TLicenseInfo.IsExpired: Boolean;

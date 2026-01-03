@@ -3,7 +3,7 @@ unit Shield.Core;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.JSON, System.DateUtils, System.IOUtils,
+  System.SysUtils, System.Classes, System.JSON, System.DateUtils, System.IOUtils, System.Generics.Collections,
   Shield.Types, Shield.Config, Shield.Security, Shield.API;
 
 type
@@ -18,12 +18,14 @@ type
     
     function GetCachePath: string;
     procedure LoadCache;
-    procedure SaveCache;
+
     procedure ProcessApiResponse(Json: TJSONObject);
     function BuildCommonPayload: TJSONObject;
   public
     constructor Create(const AConfig: TShieldConfig);
     destructor Destroy; override;
+
+    procedure SaveCache;
 
     // Métodos Principais
     function CheckLicense(const Serial: string = ''): Boolean;
@@ -121,6 +123,26 @@ begin
       if Obj.GetValue('aviso_licenca') <> nil then
         FLicense.AvisoMensagem := Obj.GetValue('aviso_licenca').Value;
 
+      // Recupera Noticias (Cache Local)
+      if Obj.GetValue('noticias_cache') <> nil then
+      begin
+         var RepArray := Obj.GetValue('noticias_cache') as TJSONArray;
+         SetLength(FLicense.Noticias, RepArray.Count);
+         for var I := 0 to RepArray.Count - 1 do
+         begin
+            var NItem := RepArray.Items[I] as TJSONObject;
+            FLicense.Noticias[I].Id := StrToIntDef(NItem.GetValue('id').Value, 0);
+            FLicense.Noticias[I].Titulo := NItem.GetValue('titulo').Value;
+            FLicense.Noticias[I].Conteudo := NItem.GetValue('conteudo').Value;
+            if NItem.GetValue('link') <> nil then FLicense.Noticias[I].Link := NItem.GetValue('link').Value;
+            if NItem.GetValue('prioridade') <> nil then FLicense.Noticias[I].Prioridade := NItem.GetValue('prioridade').Value;
+            if NItem.GetValue('lida') <> nil then 
+               FLicense.Noticias[I].Lida := NItem.GetValue<TJSONBool>('lida').AsBoolean;
+            if NItem.GetValue('data') <> nil then
+               FLicense.Noticias[I].DataPublicacao := ISO8601ToDate(NItem.GetValue('data').Value);
+         end;
+      end;
+
     finally
       Obj.Free;
     end;
@@ -133,6 +155,8 @@ procedure TShield.SaveCache;
 var
   Obj: TJSONObject;
   JsonStr, Encrypted: string;
+  ArrNoticias: TJSONArray;
+  NObj: TJSONObject;
 begin
   Obj := TJSONObject.Create;
   try
@@ -147,6 +171,25 @@ begin
       
     if FLicense.AvisoMensagem <> '' then
       Obj.AddPair('aviso_licenca', FLicense.AvisoMensagem);
+      
+    // Salvar array de Noticias
+    if Length(FLicense.Noticias) > 0 then
+    begin
+       ArrNoticias := TJSONArray.Create;
+       for var I := 0 to High(FLicense.Noticias) do
+       begin
+          NObj := TJSONObject.Create;
+          NObj.AddPair('id', TJSONNumber.Create(FLicense.Noticias[I].Id));
+          NObj.AddPair('titulo', FLicense.Noticias[I].Titulo);
+          NObj.AddPair('conteudo', FLicense.Noticias[I].Conteudo);
+          NObj.AddPair('link', FLicense.Noticias[I].Link);
+          NObj.AddPair('prioridade', FLicense.Noticias[I].Prioridade);
+          NObj.AddPair('lida', TJSONBool.Create(FLicense.Noticias[I].Lida));
+          NObj.AddPair('data', DateToISO8601(FLicense.Noticias[I].DataPublicacao));
+          ArrNoticias.AddElement(NObj);
+       end;
+       Obj.AddPair('noticias_cache', ArrNoticias);
+    end;
       
     JsonStr := Obj.ToJSON;
     Encrypted := TShieldSecurity.EncryptString(JsonStr);
@@ -327,6 +370,44 @@ begin
     FLicense.AvisoMensagem := ValObj.GetValue('aviso_licenca').Value
   else
     FLicense.AvisoMensagem := '';
+
+  // Parse Noticias
+  if ValObj.GetValue('noticias') <> nil then
+  begin
+     var JNoticias := ValObj.GetValue('noticias');
+     if JNoticias is TJSONArray then
+     begin
+       // Backup dos estados 'Lida'
+       var LidasDict := TDictionary<Integer, Boolean>.Create;
+       try
+         for var K := 0 to High(FLicense.Noticias) do
+            if FLicense.Noticias[K].Lida then
+               LidasDict.AddOrSetValue(FLicense.Noticias[K].Id, True);
+
+         SetLength(FLicense.Noticias, TJSONArray(JNoticias).Count);
+         for var I := 0 to TJSONArray(JNoticias).Count - 1 do
+         begin
+           var JItem := TJSONArray(JNoticias).Items[I] as TJSONObject;
+           FLicense.Noticias[I].Id := StrToIntDef(JItem.GetValue('id').Value, 0);
+           FLicense.Noticias[I].Titulo := JItem.GetValue('titulo').Value;
+           FLicense.Noticias[I].Conteudo := JItem.GetValue('conteudo').Value;
+           if JItem.GetValue('link') <> nil then
+              FLicense.Noticias[I].Link := JItem.GetValue('link').Value;
+              
+           if JItem.GetValue('prioridade') <> nil then
+              FLicense.Noticias[I].Prioridade := JItem.GetValue('prioridade').Value;
+              
+           // Restaura estado Lida
+           if LidasDict.ContainsKey(FLicense.Noticias[I].Id) then
+              FLicense.Noticias[I].Lida := True
+           else
+              FLicense.Noticias[I].Lida := False;
+         end;
+       finally
+         LidasDict.Free;
+       end;
+     end;
+  end;
 end;
 
 function TShield.GenerateOfflineChallenge(const Serial, InstalacaoID: string): string;
