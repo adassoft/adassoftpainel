@@ -41,22 +41,47 @@ class ShopController extends Controller
             ->pluck('categoria');
 
         // 2. Produtos
+        $cnpjCtx = \App\Services\ResellerBranding::getCurrentCnpj();
+        $isPlatform = (!$cnpjCtx || $cnpjCtx === '00000000000100'); // Ajuste conforme CNPJ padrao do sistema
+
         $query = Software::with([
-            'plans' => function ($q) {
+            'plans' => function ($q) use ($isPlatform, $cnpjCtx) {
                 $q->orderBy('valor');
+
+                // Se for revenda, só mostra planos ativados explicitamente na tabela de revenda
+                // Se for plataforma, mostra todos os planos globais
+                if (!$isPlatform) {
+                    $q->whereExists(function ($sub) use ($cnpjCtx) {
+                        $sub->select(\Illuminate\Support\Facades\DB::raw(1))
+                            ->from('planos_revenda')
+                            ->whereColumn('planos_revenda.plano_id', 'planos.id')
+                            ->where('planos_revenda.cnpj_revenda', $cnpjCtx)
+                            ->where('planos_revenda.ativo', 1);
+                    });
+                }
             }
         ])->where('status', 1);
 
         $produtos = $query->orderBy('nome_software')->get();
 
-        // Calcular 'A partir de' para cada produto na memória
-        $produtos = $produtos->map(function ($prod) {
-            // Em Laravel puro, a collection de plans é uma Collection do Eloquent
-            $minPrice = $prod->plans->where('status', 1)->min('valor');
-            // Se não tiver status na tabela plans (como vi antes), assume ativo.
-            if (is_null($minPrice)) {
-                $minPrice = $prod->plans->min('valor');
+        // Calcular 'A partir de' e remover produtos sem planos visíveis para esta revenda
+        $produtos = $produtos->filter(function ($prod) {
+            return $prod->plans->isNotEmpty();
+        })->map(function ($prod) use ($cnpjCtx, $isPlatform) {
+
+            // Calcula o preço correto (Revenda pode ter override de preço)
+            foreach ($prod->plans as $plan) {
+                if (!$isPlatform) {
+                    $config = \App\Models\PlanoRevenda::where('plano_id', $plan->id)
+                        ->where('cnpj_revenda', $cnpjCtx)
+                        ->first();
+                    if ($config && $config->valor_venda > 0) {
+                        $plan->valor = $config->valor_venda;
+                    }
+                }
             }
+
+            $minPrice = $prod->plans->min('valor');
             $prod->min_price = $minPrice;
             return $prod;
         });
