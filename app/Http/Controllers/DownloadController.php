@@ -192,11 +192,25 @@ class DownloadController extends Controller
                 ->sortKeys(); // Windows, Linux, Mac order depends on string, usually OK.
         }
 
+        // Verificar Acesso (Pago / Login)
+        $hasAccess = true;
+        if ($download instanceof Download) {
+            if ($download->is_paid) {
+                // Se for Pago, usuário deve estar logado E possuir na biblioteca
+                $user = auth()->user();
+                $hasAccess = $user && $user->library->contains($download->id);
+            } elseif ($download->requires_login) {
+                // Se requer login, basta estar logado
+                $hasAccess = auth()->check();
+            }
+        }
+
         return view('shop.download-details', [
             'download' => $download,
             'software' => $softwareRelacionado,
             'versions' => $versions,
-            'latestByOs' => $latestByOs
+            'latestByOs' => $latestByOs,
+            'hasAccess' => $hasAccess
         ]);
     }
 
@@ -230,6 +244,21 @@ class DownloadController extends Controller
         }
 
         if ($download) {
+            // Verificar Acesso
+            $hasAccess = true;
+            if ($download->is_paid) {
+                $user = auth()->user();
+                $hasAccess = $user && $user->library()->where('download_id', $download->id)->exists();
+            } elseif ($download->requires_login) {
+                $hasAccess = auth()->check();
+            }
+
+            if (!$hasAccess) {
+                if (!auth()->check())
+                    return redirect()->route('login');
+                abort(403, 'Você não tem permissão para baixar este arquivo.');
+            }
+
             $download->increment('contador');
 
             // Se for link externo disfarçado (URL completa no arquivo_path)
@@ -294,6 +323,26 @@ class DownloadController extends Controller
 
         if (!$version) {
             abort(404, 'Versão não encontrada.');
+        }
+
+        // Verificar Acesso
+        if ($version->download) {
+            $dl = $version->download;
+            $hasAccess = true;
+
+            if ($dl->is_paid) {
+                $user = auth()->user();
+                $hasAccess = $user && $user->library()->where('download_id', $dl->id)->exists();
+            } elseif ($dl->requires_login) {
+                $hasAccess = auth()->check();
+            }
+
+            if (!$hasAccess) {
+                if (!auth()->check() && ($dl->requires_login || $dl->is_paid)) {
+                    return redirect()->route('login');
+                }
+                abort(403, 'Você não tem permissão para baixar este arquivo.');
+            }
         }
 
         // Incrementa contador da versão e do download principal

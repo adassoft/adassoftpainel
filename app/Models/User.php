@@ -128,4 +128,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(Empresa::class, 'cnpj', 'cnpj');
     }
 
+    public function library()
+    {
+        return $this->belongsToMany(Download::class, 'user_library', 'user_id', 'download_id')
+            ->withPivot('order_id')
+            ->withTimestamps();
+    }
+
 }

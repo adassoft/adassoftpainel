@@ -82,30 +82,44 @@
                         ];
                     @endphp
 
-                    @if(isset($latestByOs) && $latestByOs->count() > 1)
-                        <div class="mb-4">
-                            <h5 class="font-weight-bold mb-3">Selecione sua Plataforma:</h5>
-                            <div class="d-flex flex-wrap" style="gap: 10px;">
-                                @foreach($latestByOs as $os => $ver)
-                                    <a href="{{ route('downloads.version.file', $ver->id) }}"
-                                        class="btn btn-outline-primary rounded-pill px-4 py-2 font-weight-bold shadow-sm d-flex align-items-center">
-                                        <i class="{{ $osIcons[$os] ?? 'fas fa-download' }} mr-2 fa-lg"></i>
-                                        {{ ucfirst($os) }} <small class="text-muted ml-2">({{ $ver->versao }})</small>
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
+                    @if(!($hasAccess ?? true))
+                        @if($download->is_paid)
+                            <button onclick="alert('O módulo de Checkout será ativado em breve. Entre em contato para adquirir agora.')"
+                                class="btn btn-success btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg mb-2">
+                                <i class="fas fa-shopping-cart mr-2"></i> Comprar Agora por R$ {{ number_format($download->preco, 2, ',', '.') }}
+                            </button>
+                            <p class="text-muted small"><i class="fas fa-lock mr-1"></i> Acesso liberado imediatamente após o pagamento.</p>
+                        @elseif($download->requires_login)
+                            <a href="{{ route('login') }}"
+                                class="btn btn-primary btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Fazer Login para Baixar
+                            </a>
+                            <p class="text-muted small mt-2">Você precisa estar logado para acessar este arquivo.</p>
+                        @endif
                     @else
-                        @php
-                            // Sempre usa a rota interna para garantir a contagem
-                            // O Controller decide se faz download direto ou redireciona
-                            $downloadUrl = route('downloads.file', $download->slug ?: $download->id);
-                        @endphp
+                        @if(isset($latestByOs) && $latestByOs->count() > 1)
+                            <div class="mb-4">
+                                <h5 class="font-weight-bold mb-3">Selecione sua Plataforma:</h5>
+                                <div class="d-flex flex-wrap" style="gap: 10px;">
+                                    @foreach($latestByOs as $os => $ver)
+                                        <a href="{{ route('downloads.version.file', $ver->id) }}"
+                                            class="btn btn-outline-primary rounded-pill px-4 py-2 font-weight-bold shadow-sm d-flex align-items-center">
+                                            <i class="{{ $osIcons[$os] ?? 'fas fa-download' }} mr-2 fa-lg"></i>
+                                            {{ ucfirst($os) }} <small class="text-muted ml-2">({{ $ver->versao }})</small>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            @php
+                                $downloadUrl = route('downloads.file', $download->slug ?: $download->id);
+                            @endphp
 
-                        <a href="{{ $downloadUrl }}" target="_blank"
-                            class="btn btn-primary btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg">
-                            <i class="fas fa-cloud-download-alt mr-2"></i> Baixar Agora
-                        </a>
+                            <a href="{{ $downloadUrl }}" target="_blank"
+                                class="btn btn-primary btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg">
+                                <i class="fas fa-cloud-download-alt mr-2"></i> Baixar Agora
+                            </a>
+                        @endif
                     @endif
 
                     @if(isset($software))
@@ -161,6 +175,16 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            @if($download->is_paid && !empty($download->preco))
+                                <div class="meta-item bg-white border border-success shadow-sm mt-3">
+                                    <div class="meta-icon text-success"><i class="fas fa-tag"></i></div>
+                                    <div>
+                                        <div class="small text-muted">Preço</div>
+                                        <div class="font-weight-bold text-success h4 mb-0">R$ {{ number_format($download->preco, 2, ',', '.') }}</div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -210,10 +234,17 @@
                                         @endif
                                     </div>
                                 </div>
-                                <a href="{{ route('downloads.version.file', $v->id) }}"
-                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 font-weight-bold mt-2 mt-sm-0">
-                                    <i class="fas fa-download mr-1"></i> Baixar
-                                </a>
+                                
+                                @if($hasAccess ?? true)
+                                    <a href="{{ route('downloads.version.file', $v->id) }}"
+                                        class="btn btn-sm btn-outline-primary rounded-pill px-3 font-weight-bold mt-2 mt-sm-0">
+                                        <i class="fas fa-download mr-1"></i> Baixar
+                                    </a>
+                                @else
+                                    <button disabled class="btn btn-sm btn-light text-muted rounded-pill px-3 font-weight-bold mt-2 mt-sm-0 border">
+                                        <i class="fas fa-lock mr-1"></i> Bloqueado
+                                    </button>
+                                @endif
                             </div>
                         @endforeach
                     </div>
