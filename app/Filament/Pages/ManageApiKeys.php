@@ -83,7 +83,7 @@ class ManageApiKeys extends Page implements HasForms, HasTable
             ->schema([
                 Select::make('software_id')
                     ->label('Software')
-                    ->options(Software::pluck('nome_software', 'id'))
+                    ->options(\App\Models\Software::all()->mapWithKeys(fn($sw) => [$sw->id => "{$sw->nome_software} (ID: {$sw->id})"]))
                     ->searchable()
                     ->required(),
 
@@ -140,8 +140,8 @@ class ManageApiKeys extends Page implements HasForms, HasTable
                 TextColumn::make('id')->sortable()->label('ID'),
 
                 TextColumn::make('software.nome_software')
-                    ->description(fn(ApiKey $record) => $record->label)
-                    ->label('Software/Label')
+                    ->description(fn(ApiKey $record) => "ID: {$record->software_id} | " . $record->label)
+                    ->label('Software (ID)')
                     ->searchable(),
 
                 TextColumn::make('key_hint')
