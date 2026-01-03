@@ -92,13 +92,21 @@ class DownloadResource extends Resource
                                     ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
                                         if (empty($state))
                                             return;
-                                        $file = is_array($state) ? reset($state) : $state;
-                                        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                                            $bytes = $file->getSize();
-                                            $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-                                            for ($i = 0; $bytes > 1024; $i++)
-                                                $bytes /= 1024;
-                                            $set('tamanho', round($bytes, 2) . ' ' . ($units[$i] ?? 'B'));
+
+                                        try {
+                                            $file = is_array($state) ? reset($state) : $state;
+                                            // Verifica se é temporário e se existe fisicamente
+                                            if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile && $file->exists()) {
+                                                $bytes = $file->getSize();
+                                                $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                                                for ($i = 0; $bytes > 1024; $i++) {
+                                                    $bytes /= 1024;
+                                                }
+                                                $set('tamanho', round($bytes, 2) . ' ' . ($units[$i] ?? 'B'));
+                                            }
+                                        } catch (\Exception $e) {
+                                            // Silencia erro de metadados ausentes para não quebrar o fluxo
+                                            \Illuminate\Support\Facades\Log::warning('Erro ao calcular tamanho do arquivo DL: ' . $e->getMessage());
                                         }
                                     }),
                                 Forms\Components\Grid::make(3)->schema([
