@@ -198,7 +198,7 @@ class ManageApiKeys extends Page implements HasForms, HasTable
 
                     Action::make('revoke')
                         ->label('Revogar')
-                        ->icon('heroicon-o-ban')
+                        ->icon('heroicon-o-no-symbol')
                         ->color('danger')
                         ->requiresConfirmation()
                         ->visible(fn($record) => $record->status !== 'revogado')
