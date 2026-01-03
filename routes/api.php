@@ -14,17 +14,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/news', [\App\Http\Controllers\Api\NewsController::class, 'index']);
 });
 
-// Rota de compatibilidade legado
-Route::any('/validacao', [ValidationController::class, 'handle']);
-
 // Webhooks
-Route::post('/webhooks/asaas', [AsaasWebhookController::class, 'handle']); // Legacy
-Route::post('/webhooks/reseller/asaas', [ResellerWebhookController::class, 'handle']); // New Reseller Flow
+Route::post('/webhooks/asaas', [App\Http\Controllers\Api\AsaasWebhookController::class, 'handle']);
+Route::post('/webhooks/reseller/asaas', [App\Http\Controllers\Api\ResellerWebhookController::class, 'handle']);
 
-// === Rotas de Compatibilidade Legado (SDK Delphi/Lazarus) ===
-Route::prefix('legacy')->group(function () {
-    Route::any('/api_validacao.php', [ValidationController::class, 'handle']);
-    Route::any('/api_planos.php', [ValidationController::class, 'listPlans']);
-    Route::any('/api_pedido.php', [ValidationController::class, 'createOrder']);
-    Route::any('/api_cadastro.php', [ValidationController::class, 'registerUser']);
+// === API AdasSoft V1 (RESTful) ===
+Route::prefix('v1/adassoft')->group(function () {
+    // Validação e Status
+    Route::post('/validate', [ValidationController::class, 'handle']); // Mantém handle por enquanto ou refatora para 'validateSerial'
+    Route::post('/token', [ValidationController::class, 'handle']); // Action: emitir_token
+
+    // Cadastros e Pedidos
+    Route::get('/software/{software_id}/plans', [ValidationController::class, 'listPlans']);
+    Route::post('/orders', [ValidationController::class, 'createOrder']);
+    Route::post('/register', [ValidationController::class, 'registerUser']);
+
+    // Rotas legadas (removidas pois estamos começando do zero)
 });
