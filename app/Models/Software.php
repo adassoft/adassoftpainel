@@ -42,6 +42,7 @@ class Software extends Model
         'id_download_repo', // Novo
         'versao',
         'status',
+        'disponivel_revenda',
         'api_key_hash',
         'api_key_hint',
         'api_key_gerada_em'
@@ -50,6 +51,7 @@ class Software extends Model
     protected $casts = [
         'api_key_gerada_em' => 'datetime',
         'data_cadastro' => 'datetime',
+        'disponivel_revenda' => 'boolean',
     ];
 
     public function plans()

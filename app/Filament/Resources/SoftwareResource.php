@@ -373,6 +373,12 @@ class SoftwareResource extends Resource
                                         TextInput::make('brand')
                                             ->label('Marca')
                                             ->default('AdasSoft'),
+
+                                        Forms\Components\Toggle::make('disponivel_revenda')
+                                            ->label('Disponível para Revenda')
+                                            ->helperText('Permite que revendedores comercializem este software.')
+                                            ->default(false)
+                                            ->columnSpanFull(),
                                     ])->columns(3),
                             ]),
 
@@ -481,6 +487,14 @@ class SoftwareResource extends Resource
                         '0', 'false', 'inactive' => 'Inativo',
                         default => $state,
                     }),
+
+                Tables\Columns\IconColumn::make('disponivel_revenda')
+                    ->label('Revenda')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('api_key_hint')
                     ->label('API Key')
                     ->formatStateUsing(function ($state, \App\Models\Software $record) {

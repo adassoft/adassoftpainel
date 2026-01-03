@@ -11,9 +11,14 @@ class DownloadController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('q');
+        // Se NÃO for a config padrão, estamos num domínio de revenda
+        $isReseller = !\App\Services\ResellerBranding::isDefault();
 
         // 1. Pegar todos os softwares ativos com filtro
         $softwares = Software::where('status', 1)
+            ->when($isReseller, function ($query) {
+                return $query->where('disponivel_revenda', true);
+            })
             ->when($search, function ($query, $search) {
                 return $query->where('nome_software', 'like', "%{$search}%")
                     ->orWhere('descricao', 'like', "%{$search}%");
@@ -22,6 +27,9 @@ class DownloadController extends Controller
 
         // 2. Pegar todos os downloads extras públicos com versões e filtro
         $extras = Download::where('publico', true)
+            ->when($isReseller, function ($query) {
+                return $query->where('disponivel_revenda', true);
+            })
             ->with('versions')
             ->when($search, function ($query, $search) {
                 return $query->where('titulo', 'like', "%{$search}%")

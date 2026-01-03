@@ -25,6 +25,7 @@ class Download extends Model
         'preco',
         'is_paid',
         'requires_login',
+        'disponivel_revenda',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class Download extends Model
         'preco' => 'decimal:2',
         'is_paid' => 'boolean',
         'requires_login' => 'boolean',
+        'disponivel_revenda' => 'boolean',
     ];
 
     protected static function boot()

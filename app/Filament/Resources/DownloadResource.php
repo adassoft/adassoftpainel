@@ -162,6 +162,13 @@ class DownloadResource extends Resource
                                 ->visible(fn(Forms\Get $get) => $get('is_paid'))
                                 ->required(fn(Forms\Get $get) => $get('is_paid')),
                         ]),
+
+                        Forms\Components\Toggle::make('disponivel_revenda')
+                            ->label('Disponível para Revenda')
+                            ->helperText('Permite que revendedores exibam este produto em suas lojas.')
+                            ->default(false)
+                            ->onColor('primary')
+                            ->offColor('gray'),
                     ])
                     ->collapsible()
                     ->collapsed(),
@@ -204,6 +211,13 @@ class DownloadResource extends Resource
                     ->falseIcon('heroicon-o-gift')
                     ->trueColor('warning')
                     ->falseColor('gray'),
+
+                Tables\Columns\IconColumn::make('disponivel_revenda')
+                    ->label('Revenda')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->toggleable(),
 
                 Tables\Columns\IconColumn::make('publico')
                     ->label('Público')
