@@ -139,7 +139,9 @@ class MyWallet extends Page implements HasTable
                 // Campos legados para compatibilidade se necessário
                 'situacao' => 'AGUARDANDO',
                 'external_reference' => $codTransacao,
-                'recorrencia' => 'CREDITO'
+                'recorrencia' => 'CREDITO',
+                // Valor temporário único para ambientes onde a migration nullable não rodou
+                'asaas_payment_id' => 'TEMP-' . $codTransacao
             ]);
 
             // 4. Criar Pagamento no Asaas
