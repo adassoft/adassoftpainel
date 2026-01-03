@@ -88,23 +88,33 @@ class AsaasWebhookController extends Controller
                 $isCredito = ($recorrencia === 'CREDITO');
 
                 if ($isCredito) {
-                    Log::info("Iniciando lógica de crédito para CNPJ: {$cnpj}");
+                    $cnpjLimpo = preg_replace('/\D/', '', $cnpj);
+                    Log::info("Iniciando lógica de crédito para CNPJ: {$cnpj} (Limpo: {$cnpjLimpo})");
+
+                    // Tenta buscar pelo CNPJ original ou pelo limpo
                     $company = Company::where('cnpj', $cnpj)->first();
+
+                    if (!$company && $cnpj !== $cnpjLimpo) {
+                        $company = Company::where('cnpj', $cnpjLimpo)->first();
+                    }
 
                     if ($company) {
                         $company->increment('saldo', $valor);
 
+                        // Garante que o histórico fique vinculado ao CNPJ limpo se a empresa usa limpo
+                        $cnpjHistorico = preg_replace('/\D/', '', $company->cnpj);
+
                         CreditHistory::create([
-                            'empresa_cnpj' => $cnpj,
+                            'empresa_cnpj' => $cnpjHistorico,
                             'tipo' => 'entrada',
                             'valor' => $valor,
                             'descricao' => 'Recarga Automática via PIX/Asaas',
                             'data_movimento' => now()
                         ]);
 
-                        Log::info("Crédito de R$ {$valor} adicionado para CNPJ {$cnpj}. Saldo Atual: {$company->saldo}");
+                        Log::info("Crédito de R$ {$valor} adicionado para CNPJ {$company->cnpj}. Saldo Atual: {$company->saldo}");
                     } else {
-                        Log::error("Empresa não encontrada para CNPJ {$cnpj} ao processar crédito.");
+                        Log::error("Empresa não encontrada para CNPJ {$cnpj} (nem limpo {$cnpjLimpo}) ao processar crédito.");
                     }
                 } else {
                     // Apenas loga se não for produto digital, para evitar log duplicado confuso

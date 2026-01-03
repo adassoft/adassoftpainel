@@ -40,7 +40,11 @@ class MyWallet extends Page implements HasTable
         $user = Auth::user();
         $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
 
-        $this->saldo = (float) (Company::where('cnpj', $cnpjLimpo)->value('saldo') ?? 0.00);
+        // Tenta buscar saldo pelo CNPJ limpo ou original
+        $this->saldo = (float) (Company::where(function ($q) use ($user, $cnpjLimpo) {
+            $q->where('cnpj', $cnpjLimpo)
+                ->orWhere('cnpj', $user->cnpj);
+        })->value('saldo') ?? 0.00);
 
         try {
             $min = DB::table('gateways')
@@ -132,7 +136,7 @@ class MyWallet extends Page implements HasTable
             // Ajustado para estrutura nova da tabela orders
             $order = \App\Models\Order::create([
                 'user_id' => $user->id,
-                'cnpj_revenda' => $empresa->cnpj,
+                'cnpj_revenda' => preg_replace('/\D/', '', $empresa->cnpj), // Salvar apenas números para consistência
                 'valor' => $valor,
                 'total' => $valor,
                 'status' => 'pending',
@@ -197,7 +201,10 @@ class MyWallet extends Page implements HasTable
         $user = Auth::user();
         $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
 
-        $novoSaldo = (float) (Company::where('cnpj', $cnpjLimpo)->value('saldo') ?? 0.00);
+        $novoSaldo = (float) (Company::where(function ($q) use ($user, $cnpjLimpo) {
+            $q->where('cnpj', $cnpjLimpo)
+                ->orWhere('cnpj', $user->cnpj);
+        })->value('saldo') ?? 0.00);
 
         if ($novoSaldo != $this->saldo) {
             $this->saldo = $novoSaldo;
@@ -218,7 +225,12 @@ class MyWallet extends Page implements HasTable
         return $table
             ->query(
                 CreditHistory::query()
-                    ->where('empresa_cnpj', preg_replace('/\D/', '', Auth::user()->cnpj))
+                    ->where(function ($query) {
+                        $user = Auth::user();
+                        $cleaned = preg_replace('/\D/', '', $user->cnpj);
+                        $query->where('empresa_cnpj', $cleaned)
+                            ->orWhere('empresa_cnpj', $user->cnpj);
+                    })
                     ->orderBy('data_movimento', 'desc')
             )
             ->heading('Extrato de Movimentações')
