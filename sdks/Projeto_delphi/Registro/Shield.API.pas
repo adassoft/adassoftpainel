@@ -139,7 +139,7 @@ begin
   end;
 end;
 
-function TShieldAPI.GetPlans(const SoftwareId: Integer; const Token: string): TJSONArray;
+    function TShieldAPI.GetPlans(const SoftwareId: Integer; const Token: string): TJSONArray;
 var
   Http: TIdHTTP;
   RespString: string;
@@ -151,24 +151,37 @@ begin
     if Token <> '' then
       Http.Request.CustomHeaders.Values['Authorization'] := 'Bearer ' + Token;
       
-    Url := StringReplace(FConfig.BaseUrl, 'api_validacao.php', 'api_planos.php', [rfIgnoreCase]);
-    Url := Url + '?software_id=' + IntToStr(SoftwareId);
+    // Nova Rota REST: /software/{id}/plans
+    // Assume BaseUrl = .../api/v1/shield
+    // Removemos barra final se houver para garantir concatenação limpa
+    Url := FConfig.BaseUrl;
+    if Url[Length(Url)] = '/' then Delete(Url, Length(Url), 1);
     
-    RespString := Http.Get(Url);
+    Url := Url + '/software/' + IntToStr(SoftwareId) + '/plans';
     
-    JsonObj := TJSONObject.ParseJSONValue(RespString) as TJSONObject;
     try
-      if JsonObj <> nil then
-      begin
-        if JsonObj.GetValue('planos') is TJSONArray then
-          Result := JsonObj.GetValue('planos').Clone as TJSONArray
+      RespString := Http.Get(Url);
+      
+      JsonObj := TJSONObject.ParseJSONValue(RespString) as TJSONObject;
+      try
+        if JsonObj <> nil then
+        begin
+          if JsonObj.GetValue('planos') is TJSONArray then
+            Result := JsonObj.GetValue('planos').Clone as TJSONArray
+          else
+            Result := TJSONArray.Create;
+        end
         else
-          Result := TJSONArray.Create;
-      end
-      else
-        raise Exception.Create('Invalid JSON from GetPlans');
-    finally
-      JsonObj.Free;
+          raise Exception.Create('Invalid JSON from GetPlans');
+      finally
+        JsonObj.Free;
+      end;
+    except
+      on E: Exception do
+      begin
+         // Fallback silencioso ou re-raise
+         raise Exception.Create('Erro ao buscar planos: ' + E.Message);
+      end;
     end;
   finally
     Http.Free;
@@ -190,7 +203,10 @@ begin
     if Token <> '' then
       Http.Request.CustomHeaders.Values['Authorization'] := 'Bearer ' + Token;
 
-    Url := StringReplace(FConfig.BaseUrl, 'api_validacao.php', 'api_pedido.php', [rfIgnoreCase]);
+    // Nova Rota REST: /orders
+    Url := FConfig.BaseUrl;
+    if Url[Length(Url)] = '/' then Delete(Url, Length(Url), 1);
+    Url := Url + '/orders';
     
     Payload.AddPair('plan_id', TJSONNumber.Create(PlanId));
     if Serial <> '' then
@@ -233,7 +249,12 @@ var
   Url: string;
 begin
   Http := CreateClient;
-  Url := StringReplace(FConfig.BaseUrl, 'api_validacao.php', 'api_cadastro.php', [rfIgnoreCase]);
+  
+  // Nova Rota REST: /register
+  Url := FConfig.BaseUrl;
+  if Url[Length(Url)] = '/' then Delete(Url, Length(Url), 1);
+  Url := Url + '/register';
+
   ReqStream := TStringStream.Create(Payload.ToJSON, TEncoding.UTF8);
   try
     try

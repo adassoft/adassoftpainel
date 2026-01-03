@@ -4,7 +4,6 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.JSON, System.DateUtils, System.IOUtils,
-  System.Generics.Collections,
   Shield.Types, Shield.Config, Shield.Security, Shield.API;
 
 type
@@ -19,12 +18,10 @@ type
     
     function GetCachePath: string;
     procedure LoadCache;
+    procedure SaveCache;
     procedure ProcessApiResponse(Json: TJSONObject);
     function BuildCommonPayload: TJSONObject;
   public
-    // Métodos de Persistencia
-    procedure SaveCache;
-
     constructor Create(const AConfig: TShieldConfig);
     destructor Destroy; override;
 
@@ -49,7 +46,7 @@ type
     
     // Cadastro (Novos métodos 2FA)
     function SolicitarCodigoCadastro(const Nome, Email, CNPJ, Razao: string): string;
-    function ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const CodigoParceiro: string = ''): Boolean;
+    function ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string): Boolean;
   end;
 
 implementation
@@ -124,29 +121,6 @@ begin
       if Obj.GetValue('aviso_licenca') <> nil then
         FLicense.AvisoMensagem := Obj.GetValue('aviso_licenca').Value;
 
-      // Recuperar Noticias
-      if Obj.GetValue('noticias') is TJSONArray then
-      begin
-        var NewsArr := Obj.GetValue('noticias') as TJSONArray;
-        SetLength(FLicense.Noticias, NewsArr.Count);
-        for var I := 0 to NewsArr.Count - 1 do
-        begin
-           var NItem := NewsArr.Items[I] as TJSONObject;
-           if NItem.GetValue('id') <> nil then
-             FLicense.Noticias[I].Id := StrToIntDef(NItem.GetValue('id').Value, 0);
-           FLicense.Noticias[I].Titulo := NItem.GetValue('titulo').Value;
-           FLicense.Noticias[I].Conteudo := NItem.GetValue('conteudo').Value;
-           if NItem.GetValue('link_acao') <> nil then
-              FLicense.Noticias[I].Link := NItem.GetValue('link_acao').Value;
-           FLicense.Noticias[I].Prioridade := NItem.GetValue('prioridade').Value;
-           FLicense.Noticias[I].Data := ISO8601ToDate(NItem.GetValue('data_criacao').Value);
-           if NItem.GetValue('lida') <> nil then
-              FLicense.Noticias[I].Lida := NItem.GetValue<TJSONBool>('lida').AsBoolean
-           else
-              FLicense.Noticias[I].Lida := False;
-        end;
-      end;
-
     finally
       Obj.Free;
     end;
@@ -173,25 +147,6 @@ begin
       
     if FLicense.AvisoMensagem <> '' then
       Obj.AddPair('aviso_licenca', FLicense.AvisoMensagem);
-     
-    // Salvar Noticias
-    if Length(FLicense.Noticias) > 0 then
-    begin
-       var NewsArr := TJSONArray.Create;
-       for var I := 0 to High(FLicense.Noticias) do
-       begin
-          var NItem := TJSONObject.Create;
-          NItem.AddPair('id', TJSONNumber.Create(FLicense.Noticias[I].Id));
-          NItem.AddPair('titulo', FLicense.Noticias[I].Titulo);
-          NItem.AddPair('conteudo', FLicense.Noticias[I].Conteudo);
-          NItem.AddPair('prioridade', FLicense.Noticias[I].Prioridade);
-          NItem.AddPair('link_acao', FLicense.Noticias[I].Link);
-          NItem.AddPair('data_criacao', DateToISO8601(FLicense.Noticias[I].Data));
-          NItem.AddPair('lida', TJSONBool.Create(FLicense.Noticias[I].Lida));
-          NewsArr.AddElement(NItem);
-       end;
-       Obj.AddPair('noticias', NewsArr);
-    end;
       
     JsonStr := Obj.ToJSON;
     Encrypted := TShieldSecurity.EncryptString(JsonStr);
@@ -372,51 +327,6 @@ begin
     FLicense.AvisoMensagem := ValObj.GetValue('aviso_licenca').Value
   else
     FLicense.AvisoMensagem := '';
-
-  if ValObj.GetValue('noticias') is TJSONArray then
-  begin
-    // 1. Snapshot dos IDs lidos
-    var DictLidas := TDictionary<Integer, Boolean>.Create;
-    try
-        for var I := 0 to High(FLicense.Noticias) do
-           if FLicense.Noticias[I].Lida then
-              DictLidas.AddOrSetValue(FLicense.Noticias[I].Id, True);
-
-        var NewsArr := ValObj.GetValue('noticias') as TJSONArray;
-        SetLength(FLicense.Noticias, NewsArr.Count);
-        for var I := 0 to NewsArr.Count - 1 do
-        begin
-           var NObj := NewsArr.Items[I] as TJSONObject;
-           if NObj.GetValue('id') <> nil then
-              FLicense.Noticias[I].Id := StrToIntDef(NObj.GetValue('id').Value, 0);
-           
-           FLicense.Noticias[I].Titulo := NObj.GetValue('titulo').Value;
-           FLicense.Noticias[I].Conteudo := NObj.GetValue('conteudo').Value;
-           FLicense.Noticias[I].Link := '';
-           if NObj.GetValue('link_acao') <> nil then
-             FLicense.Noticias[I].Link := NObj.GetValue('link_acao').Value;
-           FLicense.Noticias[I].Prioridade := NObj.GetValue('prioridade').Value;
-           
-           // Restaurar status Lida
-           if DictLidas.ContainsKey(FLicense.Noticias[I].Id) then
-              FLicense.Noticias[I].Lida := True
-           else
-              FLicense.Noticias[I].Lida := False;
-
-           // Parse Data Criacao (SQL Format)
-           try
-             if NObj.GetValue('data_criacao') <> nil then
-               FLicense.Noticias[I].Data := ISO8601ToDate(NObj.GetValue('data_criacao').Value)
-             else
-               FLicense.Noticias[I].Data := Now;
-           except
-             FLicense.Noticias[I].Data := Now;
-           end;
-        end;
-    finally
-       DictLidas.Free;
-    end;
-  end;
 end;
 
 function TShield.GenerateOfflineChallenge(const Serial, InstalacaoID: string): string;
@@ -475,7 +385,22 @@ begin
     
   CodTransacao := FAPI.CreateOrder(PlanId, FLicense.Serial, FSession.Token);
   
-  Result := 'https://express.adassoft.com/pagar_pedido.php?cod_transacao=' + CodTransacao;
+  if (Pos('http://', LowerCase(CodTransacao)) = 1) or 
+     (Pos('https://', LowerCase(CodTransacao)) = 1) then
+  begin
+     Result := CodTransacao;
+  end
+  else
+  begin
+     // Constroi URL de Checkout dinamicamente
+     Result := StringReplace(FConfig.BaseUrl, '/api/v1/adassoft', '', [rfReplaceAll, rfIgnoreCase]);
+     if (Result <> '') and (Result[Length(Result)] = '/') then Delete(Result, Length(Result), 1);
+     
+     // Fallback limpo
+     if Result = '' then Result := 'https://express.adassoft.com';
+     
+     Result := Result + '/checkout/pay/' + CodTransacao;
+  end;
 end;
 
 // Novos Métodos de Cadastro
@@ -522,7 +447,7 @@ begin
   end;
 end;
 
-function TShield.ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const CodigoParceiro: string = ''): Boolean;
+function TShield.ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string): Boolean;
 var
   Payload, Resp: TJSONObject;
 begin
@@ -537,9 +462,6 @@ begin
     Payload.AddPair('razao', Razao);
     Payload.AddPair('whatsapp', WhatsApp);
     Payload.AddPair('codigo', Codigo);
-    
-    if CodigoParceiro <> '' then
-       Payload.AddPair('codigo_parceiro', CodigoParceiro);
     
     Resp := FAPI.RegisterUser(Payload);
     try

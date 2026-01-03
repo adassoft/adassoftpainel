@@ -385,7 +385,22 @@ begin
     
   CodTransacao := FAPI.CreateOrder(PlanId, FLicense.Serial, FSession.Token);
   
-  Result := 'https://express.adassoft.com/pagar_pedido.php?cod_transacao=' + CodTransacao;
+  if (Pos('http://', LowerCase(CodTransacao)) = 1) or 
+     (Pos('https://', LowerCase(CodTransacao)) = 1) then
+  begin
+     Result := CodTransacao;
+  end
+  else
+  begin
+     // Constroi URL de Checkout dinamicamente
+     Result := StringReplace(FConfig.BaseUrl, '/api/v1/adassoft', '', [rfReplaceAll, rfIgnoreCase]);
+     if (Result <> '') and (Result[Length(Result)] = '/') then Delete(Result, Length(Result), 1);
+     
+     // Fallback limpo
+     if Result = '' then Result := 'https://express.adassoft.com';
+     
+     Result := Result + '/checkout/pay/' + CodTransacao;
+  end;
 end;
 
 // Novos Métodos de Cadastro
