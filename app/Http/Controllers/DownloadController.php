@@ -206,6 +206,26 @@ class DownloadController extends Controller
         if ($software) {
             // Em softwares, se quiser contar, teria que adicionar coluna contador na tabela softwares
             // Por enquanto, apenas entrega
+
+            // 1. Verifica se está vinculado a um repositório de download (Prioridade)
+            if ($software->id_download_repo) {
+                $linkedDownload = Download::find($software->id_download_repo);
+                if ($linkedDownload) {
+                    $linkedDownload->increment('contador');
+
+                    if (filter_var($linkedDownload->arquivo_path, FILTER_VALIDATE_URL)) {
+                        return redirect()->away($linkedDownload->arquivo_path);
+                    }
+
+                    $path = storage_path('app/public/' . $linkedDownload->arquivo_path);
+                    if (!file_exists($path)) {
+                        $path = storage_path('app/' . $linkedDownload->arquivo_path);
+                    }
+                    return response()->download($path);
+                }
+            }
+
+            // 2. Verifica cadastro direto no software
             if ($software->url_download) { // Externo
                 return redirect()->away($software->url_download);
             }
@@ -214,6 +234,6 @@ class DownloadController extends Controller
             }
         }
 
-        abort(404, 'Arquivo não encontrado.');
+        abort(404, 'Arquivo não encontrado. (Recurso sem arquivo vinculado)');
     }
 }
