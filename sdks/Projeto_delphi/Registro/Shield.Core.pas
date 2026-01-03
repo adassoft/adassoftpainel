@@ -1,0 +1,570 @@
+unit Shield.Core;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, System.JSON, System.DateUtils, System.IOUtils,
+  System.Generics.Collections,
+  Shield.Types, Shield.Config, Shield.Security, Shield.API;
+
+type
+  TShield = class
+  private
+    FConfig: TShieldConfig;
+    FAPI: TShieldAPI;
+    FLicense: TLicenseInfo;
+    FSession: TSessionInfo;
+    FOnChange: TShieldCallback;
+    FIsInitialized: Boolean;
+    
+    function GetCachePath: string;
+    procedure LoadCache;
+    procedure ProcessApiResponse(Json: TJSONObject);
+    function BuildCommonPayload: TJSONObject;
+  public
+    // Métodos de Persistencia
+    procedure SaveCache;
+
+    constructor Create(const AConfig: TShieldConfig);
+    destructor Destroy; override;
+
+    // Métodos Principais
+    function CheckLicense(const Serial: string = ''): Boolean;
+    function Authenticate(const Email, Senha, InstalacaoID: string): Boolean;
+    function GenerateOfflineChallenge(const Serial, InstalacaoID: string): string;
+    procedure Logout;
+    
+    // Renovação e Pagamento
+    function GetAvailablePlans: TPlanArray;
+    function CheckoutPlan(const PlanId: Integer): string;
+    
+    // Propriedades
+    property License: TLicenseInfo read FLicense;
+    property Session: TSessionInfo read FSession;
+    property IsInitialized: Boolean read FIsInitialized;
+    property Config: TShieldConfig read FConfig;
+    
+    // Utilitário
+    function GetMachineFingerprint: string;
+    
+    // Cadastro (Novos métodos 2FA)
+    function SolicitarCodigoCadastro(const Nome, Email, CNPJ, Razao: string): string;
+    function ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const CodigoParceiro: string = ''): Boolean;
+  end;
+
+implementation
+
+{ TShield }
+
+constructor TShield.Create(const AConfig: TShieldConfig);
+begin
+  FConfig := AConfig;
+  if FConfig.CacheDir = '' then
+    FConfig.CacheDir := TPath.Combine(TPath.GetHomePath, 'ShieldApps');
+    
+  if not TDirectory.Exists(FConfig.CacheDir) then
+    TDirectory.CreateDirectory(FConfig.CacheDir);
+    
+  FAPI := TShieldAPI.Create(FConfig);
+  FLicense.Clear;
+  FSession.Clear;
+  FIsInitialized := True;
+  
+  // Tenta carregar estado anterior
+  LoadCache;
+end;
+
+destructor TShield.Destroy;
+begin
+  FAPI.Free;
+  inherited;
+end;
+
+function TShield.GetCachePath: string;
+begin
+  Result := TPath.Combine(FConfig.CacheDir, 'shield_' + IntToStr(FConfig.SoftwareId) + '.dat');
+end;
+
+function TShield.GetMachineFingerprint: string;
+begin
+  Result := TShieldSecurity.GenerateFingerprint;
+end;
+
+procedure TShield.LoadCache;
+var
+  Path: string;
+  Encrypted, JsonStr: string;
+  Obj: TJSONObject;
+begin
+  Path := GetCachePath;
+  if not TFile.Exists(Path) then Exit;
+  
+  try
+    Encrypted := TFile.ReadAllText(Path);
+    JsonStr := TShieldSecurity.DecryptString(Encrypted);
+    Obj := TJSONObject.ParseJSONValue(JsonStr) as TJSONObject;
+    if Obj <> nil then
+    try
+      if Obj.GetValue('token') <> nil then
+        FSession.Token := Obj.GetValue('token').Value;
+        
+      if Obj.GetValue('serial') <> nil then
+        FLicense.Serial := Obj.GetValue('serial').Value;
+
+      // Recupera Data de Validade
+      if Obj.GetValue('data_expiracao') <> nil then
+      begin
+        FLicense.DataExpiracao := ISO8601ToDate(Obj.GetValue('data_expiracao').Value);
+        // Recalcula dias restantes localmente para exibir correto na inicialização
+        if FLicense.DataExpiracao > 0 then
+          FLicense.DiasRestantes := Trunc(FLicense.DataExpiracao) - Trunc(Now);
+      end;
+        
+      // Recupera Aviso offline
+      if Obj.GetValue('aviso_licenca') <> nil then
+        FLicense.AvisoMensagem := Obj.GetValue('aviso_licenca').Value;
+
+      // Recuperar Noticias
+      if Obj.GetValue('noticias') is TJSONArray then
+      begin
+        var NewsArr := Obj.GetValue('noticias') as TJSONArray;
+        SetLength(FLicense.Noticias, NewsArr.Count);
+        for var I := 0 to NewsArr.Count - 1 do
+        begin
+           var NItem := NewsArr.Items[I] as TJSONObject;
+           if NItem.GetValue('id') <> nil then
+             FLicense.Noticias[I].Id := StrToIntDef(NItem.GetValue('id').Value, 0);
+           FLicense.Noticias[I].Titulo := NItem.GetValue('titulo').Value;
+           FLicense.Noticias[I].Conteudo := NItem.GetValue('conteudo').Value;
+           if NItem.GetValue('link_acao') <> nil then
+              FLicense.Noticias[I].Link := NItem.GetValue('link_acao').Value;
+           FLicense.Noticias[I].Prioridade := NItem.GetValue('prioridade').Value;
+           FLicense.Noticias[I].Data := ISO8601ToDate(NItem.GetValue('data_criacao').Value);
+           if NItem.GetValue('lida') <> nil then
+              FLicense.Noticias[I].Lida := NItem.GetValue<TJSONBool>('lida').AsBoolean
+           else
+              FLicense.Noticias[I].Lida := False;
+        end;
+      end;
+
+    finally
+      Obj.Free;
+    end;
+  except
+    TFile.Delete(Path);
+  end;
+end;
+
+procedure TShield.SaveCache;
+var
+  Obj: TJSONObject;
+  JsonStr, Encrypted: string;
+begin
+  Obj := TJSONObject.Create;
+  try
+    if FSession.Token <> '' then
+      Obj.AddPair('token', FSession.Token);
+    
+    if FLicense.Serial <> '' then
+      Obj.AddPair('serial', FLicense.Serial);
+      
+    if FLicense.DataExpiracao > 0 then
+      Obj.AddPair('data_expiracao', DateToISO8601(FLicense.DataExpiracao));
+      
+    if FLicense.AvisoMensagem <> '' then
+      Obj.AddPair('aviso_licenca', FLicense.AvisoMensagem);
+     
+    // Salvar Noticias
+    if Length(FLicense.Noticias) > 0 then
+    begin
+       var NewsArr := TJSONArray.Create;
+       for var I := 0 to High(FLicense.Noticias) do
+       begin
+          var NItem := TJSONObject.Create;
+          NItem.AddPair('id', TJSONNumber.Create(FLicense.Noticias[I].Id));
+          NItem.AddPair('titulo', FLicense.Noticias[I].Titulo);
+          NItem.AddPair('conteudo', FLicense.Noticias[I].Conteudo);
+          NItem.AddPair('prioridade', FLicense.Noticias[I].Prioridade);
+          NItem.AddPair('link_acao', FLicense.Noticias[I].Link);
+          NItem.AddPair('data_criacao', DateToISO8601(FLicense.Noticias[I].Data));
+          NItem.AddPair('lida', TJSONBool.Create(FLicense.Noticias[I].Lida));
+          NewsArr.AddElement(NItem);
+       end;
+       Obj.AddPair('noticias', NewsArr);
+    end;
+      
+    JsonStr := Obj.ToJSON;
+    Encrypted := TShieldSecurity.EncryptString(JsonStr);
+    TFile.WriteAllText(GetCachePath, Encrypted);
+  finally
+    Obj.Free;
+  end;
+end;
+
+function TShield.BuildCommonPayload: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.AddPair('api_key', FConfig.ApiKey);
+  Result.AddPair('software_id', TJSONNumber.Create(FConfig.SoftwareId));
+  if FConfig.SoftwareVersion <> '' then
+    Result.AddPair('versao_software', FConfig.SoftwareVersion);
+    
+  Result.AddPair('mac_address', TShieldSecurity.DetectPrimaryMacAddress);
+  Result.AddPair('nome_computador', GetEnvironmentVariable('COMPUTERNAME'));
+end;
+
+function TShield.Authenticate(const Email, Senha, InstalacaoID: string): Boolean;
+var
+  Payload, Resp: TJSONObject;
+  Instalacao: string;
+begin
+  Result := False;
+  Instalacao := InstalacaoID;
+  if Instalacao = '' then Instalacao := GetMachineFingerprint;
+  
+  Payload := BuildCommonPayload;
+  try
+    Payload.AddPair('action', 'emitir_token');
+    Payload.AddPair('email', Email);
+    Payload.AddPair('senha', Senha);
+    Payload.AddPair('codigo_instalacao', Instalacao);
+    
+    Resp := FAPI.PostRequest('emitir_token', Payload);
+    try
+      if (Resp.GetValue('success') <> nil) and (Resp.GetValue('success') is TJSONBool) and
+         (Resp.GetValue<TJSONBool>('success').AsBoolean) then
+      begin
+        FSession.Token := Resp.GetValue('token').Value;
+        ProcessApiResponse(Resp);
+        SaveCache;
+        Result := True;
+      end
+      else
+        raise Exception.Create(Resp.GetValue('mensagem').Value);
+    finally
+      Resp.Free;
+    end;
+  finally
+    Payload.Free;
+  end;
+end;
+
+function TShield.CheckLicense(const Serial: string): Boolean;
+var
+  Payload, Resp: TJSONObject;
+  LocalSerial: string;
+begin
+  Result := False;
+  LocalSerial := Serial;
+  if LocalSerial = '' then LocalSerial := FLicense.Serial;
+  
+  if (LocalSerial = '') and (FSession.Token = '') then
+  begin
+    FLicense.Status := stInvalid;
+    FLicense.Mensagem := 'Licença não encontrada.';
+    Exit(False);
+  end;
+
+  Payload := BuildCommonPayload;
+  try
+    Payload.AddPair('action', 'validar_serial');
+    if LocalSerial <> '' then
+      Payload.AddPair('serial', LocalSerial);
+    
+    if FSession.Token <> '' then
+      Payload.AddPair('token', FSession.Token);
+      
+    Payload.AddPair('codigo_instalacao', GetMachineFingerprint);
+
+    Resp := FAPI.PostRequest('validar_serial', Payload);
+    try
+      if Resp.GetValue('validacao') <> nil then
+        ProcessApiResponse(Resp);
+        
+      Result := FLicense.IsValid;
+      SaveCache;
+    finally
+      Resp.Free;
+    end;
+  finally
+    Payload.Free;
+  end;
+end;
+
+procedure TShield.ProcessApiResponse(Json: TJSONObject);
+var
+  ValObj: TJSONObject;
+  sDate: string;
+begin
+  if Json.GetValue('validacao') <> nil then
+    ValObj := Json.GetValue('validacao') as TJSONObject
+  else if Json.GetValue('licenca') <> nil then
+    ValObj := Json.GetValue('licenca') as TJSONObject
+  else
+    Exit;
+
+  if ValObj = nil then Exit;
+
+  if ValObj.GetValue('serial') <> nil then
+    FLicense.Serial := ValObj.GetValue('serial').Value;
+
+  if ValObj.GetValue('valido') <> nil then
+  begin
+    if ValObj.GetValue<TJSONBool>('valido').AsBoolean then
+      FLicense.Status := stValid
+    else
+      FLicense.Status := stInvalid;
+  end;
+  
+  // Tenta ler a string bruta
+  if ValObj.GetValue('data_expiracao') <> nil then
+    sDate := ValObj.GetValue('data_expiracao').Value
+  else if ValObj.GetValue('expiracao') <> nil then
+    sDate := ValObj.GetValue('expiracao').Value;
+
+  if sDate <> '' then
+  begin
+      // Tenta parsing manual primeiro, pois eh o mais seguro contra Locale do Windows
+      // Formato esperado da API: YYYY-MM-DD
+      if (Length(sDate) >= 10) and (sDate[5] = '-') and (sDate[8] = '-') then
+      begin
+         try
+           FLicense.DataExpiracao := EncodeDate(
+             StrToInt(Copy(sDate, 1, 4)),
+             StrToInt(Copy(sDate, 6, 2)),
+             StrToInt(Copy(sDate, 9, 2))
+           );
+         except
+           FLicense.DataExpiracao := 0;
+         end;
+      end;
+      
+      // Se falhou o manual, cai no metodo nativo do Delphi
+      if FLicense.DataExpiracao = 0 then
+      begin
+         FLicense.DataExpiracao := ISO8601ToDate(sDate);
+      end;
+  end;  
+  
+  if ValObj.GetValue('dias_restantes') <> nil then
+    FLicense.DiasRestantes :=  StrToIntDef(ValObj.GetValue('dias_restantes').Value, 0);
+
+  if ValObj.GetValue('terminais_permitidos') <> nil then
+    FLicense.TerminaisPermitidos := StrToIntDef(ValObj.GetValue('terminais_permitidos').Value, 0);
+
+  if ValObj.GetValue('terminais_utilizados') <> nil then
+    FLicense.TerminaisUtilizados := StrToIntDef(ValObj.GetValue('terminais_utilizados').Value, 0);
+
+  if ValObj.GetValue('erro') <> nil then
+    FLicense.Mensagem := ValObj.GetValue('erro').Value;
+
+  if ValObj.GetValue('app_alerta_vencimento') <> nil then
+    FLicense.AvisoAtivo := ValObj.GetValue<TJSONBool>('app_alerta_vencimento').AsBoolean
+  else
+    FLicense.AvisoAtivo := True;
+
+  if ValObj.GetValue('app_dias_alerta') <> nil then
+    FLicense.DiasAviso := StrToIntDef(ValObj.GetValue('app_dias_alerta').Value, 5)
+  else
+    FLicense.DiasAviso := 5;
+
+  if ValObj.GetValue('aviso_licenca') <> nil then
+    FLicense.AvisoMensagem := ValObj.GetValue('aviso_licenca').Value
+  else
+    FLicense.AvisoMensagem := '';
+
+  if ValObj.GetValue('noticias') is TJSONArray then
+  begin
+    // 1. Snapshot dos IDs lidos
+    var DictLidas := TDictionary<Integer, Boolean>.Create;
+    try
+        for var I := 0 to High(FLicense.Noticias) do
+           if FLicense.Noticias[I].Lida then
+              DictLidas.AddOrSetValue(FLicense.Noticias[I].Id, True);
+
+        var NewsArr := ValObj.GetValue('noticias') as TJSONArray;
+        SetLength(FLicense.Noticias, NewsArr.Count);
+        for var I := 0 to NewsArr.Count - 1 do
+        begin
+           var NObj := NewsArr.Items[I] as TJSONObject;
+           if NObj.GetValue('id') <> nil then
+              FLicense.Noticias[I].Id := StrToIntDef(NObj.GetValue('id').Value, 0);
+           
+           FLicense.Noticias[I].Titulo := NObj.GetValue('titulo').Value;
+           FLicense.Noticias[I].Conteudo := NObj.GetValue('conteudo').Value;
+           FLicense.Noticias[I].Link := '';
+           if NObj.GetValue('link_acao') <> nil then
+             FLicense.Noticias[I].Link := NObj.GetValue('link_acao').Value;
+           FLicense.Noticias[I].Prioridade := NObj.GetValue('prioridade').Value;
+           
+           // Restaurar status Lida
+           if DictLidas.ContainsKey(FLicense.Noticias[I].Id) then
+              FLicense.Noticias[I].Lida := True
+           else
+              FLicense.Noticias[I].Lida := False;
+
+           // Parse Data Criacao (SQL Format)
+           try
+             if NObj.GetValue('data_criacao') <> nil then
+               FLicense.Noticias[I].Data := ISO8601ToDate(NObj.GetValue('data_criacao').Value)
+             else
+               FLicense.Noticias[I].Data := Now;
+           except
+             FLicense.Noticias[I].Data := Now;
+           end;
+        end;
+    finally
+       DictLidas.Free;
+    end;
+  end;
+end;
+
+function TShield.GenerateOfflineChallenge(const Serial, InstalacaoID: string): string;
+var
+  Obj: TJSONObject;
+begin
+  Obj := BuildCommonPayload;
+  try
+    Obj.AddPair('serial', Serial);
+    Obj.AddPair('instalacao_id', InstalacaoID);
+    Obj.AddPair('timestamp', DateToISO8601(Now, False));
+    Result := Obj.ToJSON;
+  finally
+    Obj.Free;
+  end;
+end;
+
+procedure TShield.Logout;
+begin
+  FSession.Clear;
+  FLicense.Clear;
+  if TFile.Exists(GetCachePath) then
+    TFile.Delete(GetCachePath);
+end;
+
+function TShield.GetAvailablePlans: TPlanArray;
+var
+  JsonArr: TJSONArray;
+  I: Integer;
+  Item: TJSONObject;
+begin
+  SetLength(Result, 0);
+
+  JsonArr := FAPI.GetPlans(FConfig.SoftwareId, FSession.Token);
+  try
+    SetLength(Result, JsonArr.Count);
+    for I := 0 to JsonArr.Count - 1 do
+    begin
+      Item := JsonArr.Items[I] as TJSONObject;
+      Result[I].Id := StrToIntDef(Item.GetValue('id').Value, 0);
+      Result[I].Nome := Item.GetValue('nome_plano').Value;
+      Result[I].Valor := StrToFloatDef(Item.GetValue('valor').Value, 0.0);
+      Result[I].Descricao := Item.GetValue('recorrencia').Value; 
+    end;
+  finally
+    JsonArr.Free;
+  end;
+end;
+
+function TShield.CheckoutPlan(const PlanId: Integer): string;
+var
+  CodTransacao: string;
+begin
+  if (FSession.Token = '') and (FLicense.Serial = '') then
+    raise Exception.Create('É necessário estar autenticado ou ter um serial para criar um pedido.');
+    
+  CodTransacao := FAPI.CreateOrder(PlanId, FLicense.Serial, FSession.Token);
+  
+  Result := 'https://express.adassoft.com/pagar_pedido.php?cod_transacao=' + CodTransacao;
+end;
+
+// Novos Métodos de Cadastro
+
+function TShield.SolicitarCodigoCadastro(const Nome, Email, CNPJ, Razao: string): string;
+var
+  Payload, Resp: TJSONObject;
+begin
+  Payload := TJSONObject.Create;
+  try
+    Payload.AddPair('acao', 'solicitar_codigo');
+    Payload.AddPair('nome', Nome);
+    Payload.AddPair('email', Email);
+    Payload.AddPair('cnpj', CNPJ);
+    Payload.AddPair('razao', Razao);
+    
+    Resp := FAPI.RegisterUser(Payload);
+    try
+      if (Resp <> nil) and (Resp.GetValue('success') is TJSONTrue) then
+      begin
+        if Resp.GetValue('mensagem') <> nil then
+        begin
+          Result := Resp.GetValue('mensagem').Value;
+          if Trim(Result) = '' then Result := 'Código de verificação enviado com sucesso.';
+        end
+        else
+          Result := 'Código de verificação enviado.';
+          
+        if Resp.GetValue('debug_code') <> nil then
+           Result := Result + #13#10 + 'CÓDIGO (TESTE): ' + Resp.GetValue('debug_code').Value;
+      end
+      else if Resp <> nil then
+      begin
+         if Resp.GetValue('error') <> nil then
+           raise Exception.Create(Resp.GetValue('error').Value)
+         else
+           raise Exception.Create('Erro ao solicitar código.');
+      end;
+    finally
+      Resp.Free;
+    end;
+  finally
+    Payload.Free;
+  end;
+end;
+
+function TShield.ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const CodigoParceiro: string = ''): Boolean;
+var
+  Payload, Resp: TJSONObject;
+begin
+  Result := False;
+  Payload := TJSONObject.Create;
+  try
+    Payload.AddPair('acao', 'confirmar_cadastro');
+    Payload.AddPair('nome', Nome);
+    Payload.AddPair('email', Email);
+    Payload.AddPair('senha', Senha);
+    Payload.AddPair('cnpj', CNPJ);
+    Payload.AddPair('razao', Razao);
+    Payload.AddPair('whatsapp', WhatsApp);
+    Payload.AddPair('codigo', Codigo);
+    
+    if CodigoParceiro <> '' then
+       Payload.AddPair('codigo_parceiro', CodigoParceiro);
+    
+    Resp := FAPI.RegisterUser(Payload);
+    try
+      if (Resp <> nil) and (Resp.GetValue('success') is TJSONTrue) then
+      begin
+        if Resp.GetValue('token') <> nil then
+        begin
+           FSession.Token := Resp.GetValue('token').Value;
+           FIsInitialized := True; // Considera autenticado
+           Result := True;
+        end;
+      end
+      else if Resp <> nil then
+      begin
+         if Resp.GetValue('error') <> nil then
+           raise Exception.Create(Resp.GetValue('error').Value)
+         else
+           raise Exception.Create('Erro ao confirmar cadastro.');
+      end;
+    finally
+      Resp.Free;
+    end;
+  finally
+    Payload.Free;
+  end;
+end;
+
+end.

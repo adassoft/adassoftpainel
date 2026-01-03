@@ -1,0 +1,23 @@
+program ProjetoTest;
+
+uses
+  Vcl.Forms,
+  uPrincipal in 'uPrincipal.pas' {Form1},
+  uFrmRegistro in 'Registro\Views\uFrmRegistro.pas' {frmRegistro},
+  uFrmRenovacao in 'Registro\Views\uFrmRenovacao.pas' {frmRenovacao},
+  Shield.API in 'Registro\Shield.API.pas',
+  Shield.Config in 'Registro\Shield.Config.pas',
+  Shield.Core in 'Registro\Shield.Core.pas',
+  Shield.Security in 'Registro\Shield.Security.pas',
+  Shield.Types in 'Registro\Shield.Types.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TfrmRegistro, frmRegistro);
+  Application.CreateForm(TfrmRenovacao, frmRenovacao);
+  Application.Run;
+end.

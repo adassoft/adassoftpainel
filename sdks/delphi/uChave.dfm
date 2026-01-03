@@ -1,0 +1,459 @@
+object frmChave: TfrmChave
+  Left = 0
+  Top = 0
+  Caption = 'Exemplo Delphi - Valida'#231#227'o de Serial'
+  ClientHeight = 860
+  ClientWidth = 760
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  Menu = MainMenu1
+  OnCreate = FormCreate
+  TextHeight = 15
+  object lblResultado: TLabel
+    Left = 0
+    Top = 700
+    Width = 760
+    Height = 15
+    Align = alTop
+    Caption = 'Resposta da API'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Segoe UI'
+    Font.Style = [fsBold]
+    ParentFont = False
+    ExplicitWidth = 88
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 760
+    Height = 700
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 0
+    object lblInfo: TLabel
+      Left = 16
+      Top = 184
+      Width = 398
+      Height = 15
+      Caption = 
+        'Preencha as credenciais e clique em "Validar via API" para testa' +
+        'r o endpoint.'
+      WordWrap = True
+    end
+    object lblApiUrl: TLabel
+      Left = 16
+      Top = 232
+      Width = 42
+      Height = 15
+      Caption = 'API URL'
+    end
+    object lblApiKey: TLabel
+      Left = 16
+      Top = 280
+      Width = 41
+      Height = 15
+      Caption = 'API KEY'
+    end
+    object lblMac: TLabel
+      Left = 272
+      Top = 280
+      Width = 129
+      Height = 15
+      Caption = 'MAC Address (opcional)'
+    end
+    object lblComputer: TLabel
+      Left = 488
+      Top = 280
+      Width = 119
+      Height = 15
+      Caption = 'Nome do computador'
+    end
+    object lblEmail: TLabel
+      Left = 16
+      Top = 328
+      Width = 89
+      Height = 15
+      Caption = 'E-mail do cliente'
+    end
+    object lblSenha: TLabel
+      Left = 272
+      Top = 328
+      Width = 32
+      Height = 15
+      Caption = 'Senha'
+    end
+    object lblSoftwareId: TLabel
+      Left = 488
+      Top = 328
+      Width = 60
+      Height = 15
+      Caption = 'Software ID'
+    end
+    object lblVersao: TLabel
+      Left = 16
+      Top = 376
+      Width = 99
+      Height = 15
+      Caption = 'Vers'#227'o do software'
+    end
+    object lblInstalacao: TLabel
+      Left = 160
+      Top = 376
+      Width = 111
+      Height = 15
+      Caption = 'C'#243'digo da instala'#231#227'o'
+    end
+    object lblSerial: TLabel
+      Left = 16
+      Top = 424
+      Width = 28
+      Height = 15
+      Caption = 'Serial'
+    end
+    object lblToken: TLabel
+      Left = 272
+      Top = 424
+      Width = 61
+      Height = 15
+      Caption = 'Token atual'
+    end
+    object lblOffline: TLabel
+      Left = 16
+      Top = 552
+      Width = 146
+      Height = 15
+      Caption = 'Ativa'#231#245'es offline (sem web)'
+    end
+    object lblChallengeHint: TLabel
+      Left = 16
+      Top = 568
+      Width = 637
+      Height = 15
+      Caption = 
+        'Gere o challenge abaixo e envie ao suporte. Quando receber o tok' +
+        'en offline, cole-o no campo Token atual e use "Validar".'
+      WordWrap = True
+    end
+    object grpStatus: TGroupBox
+      Left = 16
+      Top = 8
+      Width = 720
+      Height = 120
+      Caption = 'Painel da licen'#231'a'
+      TabOrder = 17
+      object lblStatusResumo: TLabel
+        Left = 16
+        Top = 24
+        Width = 168
+        Height = 15
+        Caption = 'Situa'#231#227'o: aguardando valida'#231#227'o'
+      end
+      object lblStatusExpira: TLabel
+        Left = 16
+        Top = 44
+        Width = 144
+        Height = 15
+        Caption = 'Vencimento: n'#227'o verificado'
+      end
+      object lblStatusMensagem: TLabel
+        Left = 16
+        Top = 64
+        Width = 226
+        Height = 15
+        Caption = 'Aguardando sincroniza'#231#227'o com o servidor.'
+      end
+      object lblAvisoVencimento: TLabel
+        Left = 16
+        Top = 84
+        Width = 84
+        Height = 15
+        Caption = 'Licen'#231'a inativa.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clMaroon
+        Font.Height = -12
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Visible = False
+      end
+      object btnRenovar: TButton
+        Left = 568
+        Top = 36
+        Width = 137
+        Height = 33
+        Caption = 'Renovar licen'#231'a'
+        TabOrder = 0
+        Visible = False
+        OnClick = btnRenovarClick
+      end
+      object btnGerenciarTerminais: TButton
+        Left = 408
+        Top = 36
+        Width = 145
+        Height = 33
+        Caption = 'Gerenciar instala'#231#245'es'
+        TabOrder = 1
+        OnClick = btnGerenciarTerminaisClick
+      end
+    end
+    object pnlLoginHint: TPanel
+      Left = 16
+      Top = 136
+      Width = 720
+      Height = 40
+      BevelOuter = bvNone
+      Color = clInfoBk
+      ParentBackground = False
+      TabOrder = 18
+      Visible = False
+      object lblLoginHint: TLabel
+        Left = 0
+        Top = 0
+        Width = 720
+        Height = 40
+        Align = alClient
+        Caption = 
+          'Licen'#231'a inativa. Informe e-mail e senha e clique em "Ativar lice' +
+          'n'#231'a" para liberar o sistema.'
+        Layout = tlCenter
+        WordWrap = True
+        ExplicitWidth = 472
+        ExplicitHeight = 15
+      end
+    end
+    object edtApiUrl: TEdit
+      Left = 16
+      Top = 248
+      Width = 720
+      Height = 23
+      TabOrder = 0
+    end
+    object edtApiKey: TEdit
+      Left = 16
+      Top = 296
+      Width = 240
+      Height = 23
+      PasswordChar = '*'
+      TabOrder = 1
+    end
+    object edtMac: TEdit
+      Left = 272
+      Top = 296
+      Width = 200
+      Height = 23
+      TabOrder = 2
+      TextHint = 'AA:BB:CC:DD:EE:FF'
+    end
+    object edtComputer: TEdit
+      Left = 488
+      Top = 296
+      Width = 248
+      Height = 23
+      TabOrder = 3
+    end
+    object edtEmail: TEdit
+      Left = 16
+      Top = 344
+      Width = 240
+      Height = 23
+      TabOrder = 4
+    end
+    object edtSenha: TEdit
+      Left = 272
+      Top = 344
+      Width = 200
+      Height = 23
+      PasswordChar = '*'
+      TabOrder = 5
+    end
+    object edtSoftwareId: TEdit
+      Left = 488
+      Top = 344
+      Width = 120
+      Height = 23
+      TabOrder = 6
+      Text = '3'
+    end
+    object edtVersao: TEdit
+      Left = 16
+      Top = 392
+      Width = 120
+      Height = 23
+      TabOrder = 7
+    end
+    object edtInstalacao: TEdit
+      Left = 160
+      Top = 392
+      Width = 320
+      Height = 23
+      TabOrder = 8
+    end
+    object edtSerial: TEdit
+      Left = 16
+      Top = 440
+      Width = 240
+      Height = 23
+      CharCase = ecUpperCase
+      TabOrder = 9
+    end
+    object memToken: TMemo
+      Left = 272
+      Top = 440
+      Width = 464
+      Height = 72
+      ScrollBars = ssBoth
+      TabOrder = 10
+      WordWrap = False
+    end
+    object btnGerarToken: TButton
+      Left = 16
+      Top = 512
+      Width = 153
+      Height = 33
+      Caption = 'Ativar licen'#231'a'
+      TabOrder = 11
+      OnClick = btnGerarTokenClick
+    end
+    object btnValidar: TButton
+      Left = 184
+      Top = 512
+      Width = 153
+      Height = 33
+      Caption = 'Validar via API'
+      TabOrder = 12
+      OnClick = btnValidarClick
+    end
+    object btnLimpar: TButton
+      Left = 352
+      Top = 512
+      Width = 153
+      Height = 33
+      Caption = 'Limpar campos'
+      TabOrder = 13
+      OnClick = btnLimparClick
+    end
+    object btnSolicitarPedido: TButton
+      Left = 520
+      Top = 512
+      Width = 217
+      Height = 33
+      Caption = 'Gerar pedido (app)'
+      TabOrder = 14
+      OnClick = btnSolicitarPedidoClick
+    end
+    object memChallenge: TMemo
+      Left = 16
+      Top = 600
+      Width = 720
+      Height = 57
+      ReadOnly = True
+      ScrollBars = ssVertical
+      TabOrder = 15
+    end
+    object btnGerarChallenge: TButton
+      Left = 16
+      Top = 664
+      Width = 185
+      Height = 25
+      Caption = 'Gerar challenge offline'
+      TabOrder = 16
+      OnClick = btnGerarChallengeClick
+    end
+    object btnCopiarChallenge: TButton
+      Left = 216
+      Top = 664
+      Width = 185
+      Height = 25
+      Caption = 'Copiar challenge'
+      TabOrder = 17
+      OnClick = btnCopiarChallengeClick
+    end
+    object lblLicencaId: TLabel
+      Left = 16
+      Top = 352
+      Width = 103
+      Height = 15
+      Caption = 'Licen'#231'a (ID opc.)'
+    end
+    object edtLicencaId: TEdit
+      Left = 16
+      Top = 368
+      Width = 120
+      Height = 23
+      TabOrder = 18
+    end
+    object lblPlanos: TLabel
+      Left = 152
+      Top = 352
+      Width = 81
+      Height = 15
+      Caption = 'Planos (API)'
+    end
+    object cbPlanos: TComboBox
+      Left = 152
+      Top = 368
+      Width = 280
+      Height = 23
+      Style = csDropDownList
+      TabOrder = 19
+    end
+    object btnCarregarPlanos: TButton
+      Left = 448
+      Top = 368
+      Width = 130
+      Height = 25
+      Caption = 'Carregar planos'
+      TabOrder = 20
+      OnClick = btnCarregarPlanosClick
+    end
+  end
+  object memResultado: TMemo
+    Left = 0
+    Top = 715
+    Width = 760
+    Height = 145
+    Align = alClient
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Consolas'
+    Font.Style = []
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssBoth
+    TabOrder = 1
+    WordWrap = False
+  end
+  object MainMenu1: TMainMenu
+    Left = 632
+    Top = 16
+    object mnuSistema: TMenuItem
+      Caption = '&Sistema'
+      object mnuForcarValidar: TMenuItem
+        Caption = 'For'#231'ar valida'#231#227'o agora'
+        OnClick = mnuForcarValidarClick
+      end
+      object mnuLimparCache: TMenuItem
+        Caption = 'Limpar cache de licen'#231'a'
+        OnClick = mnuLimparCacheClick
+      end
+      object mnuSair: TMenuItem
+        Caption = 'Sair'
+        OnClick = mnuSairClick
+      end
+    end
+    object mnuCadastros: TMenuItem
+      Caption = '&Cadastros'
+      object mnuCadastroClientes: TMenuItem
+        Caption = 'Cadastro de Clientes (exemplo)'
+        OnClick = mnuCadastroClientesClick
+      end
+    end
+  end
+end
