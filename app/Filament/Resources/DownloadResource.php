@@ -85,7 +85,7 @@ class DownloadResource extends Resource
                                     ->disk('public')
                                     ->directory('downloads/versions')
                                     ->required()
-                                    ->maxSize(102400) // 100MB
+                                    // ->maxSize(102400) // Removido para evitar crash se o arquivo falhar no upload
                                     ->visibility('public')
                                     ->preserveFilenames()
                                     ->live()
@@ -116,7 +116,7 @@ class DownloadResource extends Resource
                                 ]),
                                 Forms\Components\Textarea::make('changelog')->label('Notas da Versão')->rows(2)->columnSpanFull(),
                             ])
-                            ->orderColumn('data_lancamento')
+                            ->reorderable(false) // Desativa reordenação para não sobrescrever data_lancamento com índices
                             ->defaultItems(1)
                             ->columnSpanFull(),
                     ]),
