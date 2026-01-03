@@ -37,4 +37,9 @@ class Order extends Model
     {
         return $this->belongsTo(Plano::class, 'plano_id');
     }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class, 'order_id');
+    }
 }
