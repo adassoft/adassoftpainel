@@ -71,15 +71,42 @@
                     </div>
 
                     @php
-                        // Sempre usa a rota interna para garantir a contagem
-                        // O Controller decide se faz download direto ou redireciona
-                        $downloadUrl = route('downloads.file', $download->slug ?: $download->id);
+                        // Map icons
+                        $osIcons = [
+                            'windows' => 'fab fa-windows',
+                            'linux' => 'fab fa-linux',
+                            'mac' => 'fab fa-apple',
+                            'ios' => 'fab fa-app-store-ios',
+                            'android' => 'fab fa-android',
+                            'any' => 'fas fa-download'
+                        ];
                     @endphp
 
-                    <a href="{{ $downloadUrl }}" target="_blank"
-                        class="btn btn-primary btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg">
-                        <i class="fas fa-cloud-download-alt mr-2"></i> Baixar Agora
-                    </a>
+                    @if(isset($latestByOs) && $latestByOs->count() > 1)
+                        <div class="mb-4">
+                            <h5 class="font-weight-bold mb-3">Selecione sua Plataforma:</h5>
+                            <div class="d-flex flex-wrap" style="gap: 10px;">
+                                @foreach($latestByOs as $os => $ver)
+                                    <a href="{{ route('downloads.version.file', $ver->id) }}"
+                                        class="btn btn-outline-primary rounded-pill px-4 py-2 font-weight-bold shadow-sm d-flex align-items-center">
+                                        <i class="{{ $osIcons[$os] ?? 'fas fa-download' }} mr-2 fa-lg"></i>
+                                        {{ ucfirst($os) }} <small class="text-muted ml-2">({{ $ver->versao }})</small>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        @php
+                            // Sempre usa a rota interna para garantir a contagem
+                            // O Controller decide se faz download direto ou redireciona
+                            $downloadUrl = route('downloads.file', $download->slug ?: $download->id);
+                        @endphp
+
+                        <a href="{{ $downloadUrl }}" target="_blank"
+                            class="btn btn-primary btn-lg rounded-pill px-5 py-3 font-weight-bold shadow-lg">
+                            <i class="fas fa-cloud-download-alt mr-2"></i> Baixar Agora
+                        </a>
+                    @endif
 
                     @if(isset($software))
                         <div class="mt-5 pt-4 border-top">

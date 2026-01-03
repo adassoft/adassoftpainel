@@ -151,10 +151,21 @@ class DownloadController extends Controller
         // Carregar versões anteriores (apenas se for um objeto Download real)
         $versions = $download instanceof Download ? $download->versions : collect();
 
+        // Agrupar última versão de cada SO
+        $latestByOs = collect();
+        if ($download instanceof Download) {
+            $latestByOs = $versions->groupBy('sistema_operacional')
+                ->map(function ($group) {
+                    return $group->sortByDesc('data_lancamento')->first();
+                })
+                ->sortKeys(); // Windows, Linux, Mac order depends on string, usually OK.
+        }
+
         return view('shop.download-details', [
             'download' => $download,
             'software' => $softwareRelacionado,
-            'versions' => $versions
+            'versions' => $versions,
+            'latestByOs' => $latestByOs
         ]);
     }
 

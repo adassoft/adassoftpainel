@@ -24,6 +24,19 @@ class VersionsRelationManager extends RelationManager
                     ->placeholder('v1.0.0')
                     ->maxLength(255),
 
+                Forms\Components\Select::make('sistema_operacional')
+                    ->label('Sistema Operacional')
+                    ->options([
+                        'windows' => 'Windows',
+                        'linux' => 'Linux',
+                        'mac' => 'macOS',
+                        'android' => 'Android',
+                        'ios' => 'iOS',
+                        'any' => 'Qualquer (Genérico)',
+                    ])
+                    ->default('windows')
+                    ->required(),
+
                 Forms\Components\FileUpload::make('arquivo_path')
                     ->label('Arquivo da Versão')
                     ->disk('public')
@@ -74,12 +87,16 @@ class VersionsRelationManager extends RelationManager
                     ->sortable()
                     ->searchable(),
 
+                Tables\Columns\TextColumn::make('sistema_operacional')
+                    ->label('OS')
+                    ->badge(),
+
                 Tables\Columns\TextColumn::make('tamanho')
                     ->label('Tamanho'),
 
                 Tables\Columns\TextColumn::make('data_lancamento')
                     ->label('Data')
-                    ->dateTime('d/m/Y H:i')
+                    ->dateTime('d/m/Y')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('contador')
@@ -92,16 +109,38 @@ class VersionsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->after(fn($record) => self::syncParentDownload($record->download_id)),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->after(fn($record) => self::syncParentDownload($record->download_id)),
+                Tables\Actions\DeleteAction::make()
+                    ->after(fn($record) => self::syncParentDownload($record->download_id)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    protected static function syncParentDownload($downloadId)
+    {
+        $download = \App\Models\Download::find($downloadId);
+        if (!$download)
+            return;
+
+        // Encontrar a versão mais recente
+        $latest = $download->versions()->orderBy('data_lancamento', 'desc')->first();
+
+        if ($latest) {
+            $download->update([
+                'versao' => $latest->versao,
+                'arquivo_path' => $latest->arquivo_path,
+                'tamanho' => $latest->tamanho,
+                // 'sistema_operacional' => $latest->sistema_operacional // Pai não tem esse campo, ok.
+            ]);
+        }
     }
 }
