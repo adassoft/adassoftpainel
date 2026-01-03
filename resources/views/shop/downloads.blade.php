@@ -80,20 +80,42 @@
         </div>
     </header>
 
-    <!-- Lista de Downloads -->
+    <!-- Busca e Lista de Downloads -->
     <div class="container mb-5 pb-5">
+
+        <!-- Search Bar -->
+        <div class="row justify-content-center mb-5" style="margin-top: -80px; position: relative; z-index: 10;">
+            <div class="col-md-8 col-lg-6">
+                <form action="{{ route('downloads') }}" method="GET" class="card shadow-lg border-0">
+                    <div class="input-group input-group-lg">
+                        <input type="text" name="q" class="form-control border-0 pl-4"
+                            placeholder="Pesquisar software, manual ou driver..." value="{{ request('q') }}"
+                            style="border-radius: 10px 0 0 10px; height: 60px;">
+                        <input type="hidden" name="page" value="1">
+                        <div class="input-group-append">
+                            <button class="btn btn-white bg-white text-primary pr-4" type="submit"
+                                style="border-radius: 0 10px 10px 0;">
+                                <i class="fas fa-search fa-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         @if(count($downloads) == 0)
             <div class="text-center py-5" data-aos="fade-up">
                 <div class="mb-4">
-                    <i class="fas fa-box-open fa-4x text-gray-300"></i>
+                    <i class="fas fa-search fa-4x text-gray-300"></i>
                 </div>
-                <h4 class="text-gray-600 font-weight-bold">Nenhum download disponível no momento.</h4>
-                <p class="text-muted">Estamos organizando nossos arquivos. Volte mais tarde ou entre em contato com nosso
-                    suporte.</p>
-                <a href="{{ route('home') }}" class="btn btn-primary rounded-pill px-4 mt-3">Ir para a Loja</a>
+                <h4 class="text-gray-600 font-weight-bold">
+                    {{ request('q') ? 'Nenhum resultado encontrado para "' . request('q') . '"' : 'Nenhum download disponível no momento.' }}
+                </h4>
+                <p class="text-muted">Tente outro termo ou navegue pelo menu.</p>
+                <a href="{{ route('downloads') }}" class="btn btn-primary rounded-pill px-4 mt-3">Limpar Busca</a>
             </div>
         @else
-            <div class="row">
+            <div class="row pt-3">
                 @foreach ($downloads as $soft)
                     <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="{{ $loop->index * 50 }}">
                         <div class="card download-card h-100">
@@ -174,6 +196,11 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+
+            <!-- Pagination Links -->
+            <div class="d-flex justify-content-center mt-5">
+                {{ $downloads->links() }}
             </div>
         @endif
     </div>

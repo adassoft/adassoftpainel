@@ -8,13 +8,26 @@ use Illuminate\Http\Request;
 
 class DownloadController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Pegar todos os softwares ativos
-        $softwares = Software::where('status', 1)->get();
+        $search = $request->get('q');
 
-        // 2. Pegar todos os downloads extras públicos com versões
-        $extras = Download::where('publico', true)->with('versions')->get();
+        // 1. Pegar todos os softwares ativos com filtro
+        $softwares = Software::where('status', 1)
+            ->when($search, function ($query, $search) {
+                return $query->where('nome_software', 'like', "%{$search}%")
+                    ->orWhere('descricao', 'like', "%{$search}%");
+            })
+            ->get();
+
+        // 2. Pegar todos os downloads extras públicos com versões e filtro
+        $extras = Download::where('publico', true)
+            ->with('versions')
+            ->when($search, function ($query, $search) {
+                return $query->where('titulo', 'like', "%{$search}%")
+                    ->orWhere('descricao', 'like', "%{$search}%");
+            })
+            ->get();
 
         $downloadsCollection = collect();
 
@@ -96,9 +109,21 @@ class DownloadController extends Controller
             }
         }
 
-        $downloads = $downloadsCollection->sortBy('nome_software');
+        // Ordenar e Paginar
+        $downloadsSorted = $downloadsCollection->sortBy('nome_software')->values();
 
-        return view('shop.downloads', compact('downloads'));
+        $perPage = 12;
+        $page = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+
+        $downloads = new \Illuminate\Pagination\LengthAwarePaginator(
+            $downloadsSorted->forPage($page, $perPage),
+            $downloadsSorted->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
+
+        return view('shop.downloads', compact('downloads', 'search'));
     }
 
     public function show($id)
