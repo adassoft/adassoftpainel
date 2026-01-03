@@ -71,9 +71,9 @@
                     </div>
 
                     @php
-                        $downloadUrl = (isset($download->is_external_url) && $download->is_external_url)
-                            ? $download->arquivo_path
-                            : asset('storage/' . $download->arquivo_path);
+                        // Sempre usa a rota interna para garantir a contagem
+                        // O Controller decide se faz download direto ou redireciona
+                        $downloadUrl = route('downloads.file', $download->slug ?: $download->id);
                     @endphp
 
                     <a href="{{ $downloadUrl }}" target="_blank"

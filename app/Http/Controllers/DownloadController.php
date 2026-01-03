@@ -166,4 +166,54 @@ class DownloadController extends Controller
         // Caso contrário, assume que é um upload do Filament (Storage)
         return asset('storage/' . $path);
     }
+
+    public function downloadFile($id)
+    {
+        $download = null;
+
+        // 1. Tenta achar Download (Extra)
+        if (is_numeric($id)) {
+            $download = Download::find($id);
+        } else {
+            $download = Download::where('slug', $id)->first();
+        }
+
+        if ($download) {
+            $download->increment('contador');
+
+            // Se for link externo disfarçado (URL completa no arquivo_path)
+            if (filter_var($download->arquivo_path, FILTER_VALIDATE_URL)) {
+                return redirect()->away($download->arquivo_path);
+            }
+
+            $path = storage_path('app/public/' . $download->arquivo_path);
+            if (!file_exists($path)) {
+                // Tenta sem o public/ se salvou na raiz storage
+                $path = storage_path('app/' . $download->arquivo_path);
+            }
+
+            return response()->download($path);
+        }
+
+        // 2. Fallback: Software (Legacy) - Não tem contador na tabela softwares ainda, mas podemos redirecionar
+        $software = null;
+        if (is_numeric($id)) {
+            $software = Software::find($id);
+        } else {
+            $software = Software::where('slug', $id)->first();
+        }
+
+        if ($software) {
+            // Em softwares, se quiser contar, teria que adicionar coluna contador na tabela softwares
+            // Por enquanto, apenas entrega
+            if ($software->url_download) { // Externo
+                return redirect()->away($software->url_download);
+            }
+            if ($software->arquivo_software) {
+                return response()->download(storage_path('app/public/' . $software->arquivo_software));
+            }
+        }
+
+        abort(404, 'Arquivo não encontrado.');
+    }
 }
