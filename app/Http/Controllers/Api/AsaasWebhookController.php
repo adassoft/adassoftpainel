@@ -63,18 +63,25 @@ class AsaasWebhookController extends Controller
                 Log::info("Pedido {$order->id} ({$externalReference}) atualizado para PAGO.");
 
                 // 1. Lógica de Produtos Digitais (Reativada para Vendas Diretas da Plataforma)
-                if ($order->items()->count() > 0) {
-                    foreach ($order->items as $item) {
-                        if ($item->download_id) {
-                            \App\Models\UserLibrary::firstOrCreate([
-                                'user_id' => $order->user_id,
-                                'download_id' => $item->download_id
-                            ], [
-                                'order_id' => $order->id
-                            ]);
+                try {
+                    if ($order->items()->count() > 0) {
+                        foreach ($order->items as $item) {
+                            if ($item->download_id) {
+                                \App\Models\UserLibrary::firstOrCreate([
+                                    'user_id' => $order->user_id,
+                                    'download_id' => $item->download_id
+                                ], [
+                                    'order_id' => $order->id
+                                ]);
+                            }
                         }
+                        Log::info("Webhook Plataforma: Produtos digitais liberados para usuário {$order->user_id}");
                     }
-                    Log::info("Webhook Plataforma: Produtos digitais liberados para usuário {$order->user_id}");
+                } catch (\Exception $e) {
+                    Log::error("Erro no Webhook Asaas (Produtos Digitais): " . $e->getMessage());
+                    Log::error($e->getTraceAsString());
+                    // Não dar throw para não travar o webhook, mas precisamos saber o erro.
+                    // Se falhar aqui, o pedido fica pago mas o produto não é entregue.
                 }
 
                 // Lógica de Créditos e Planos (Plataforma -> Revenda)
