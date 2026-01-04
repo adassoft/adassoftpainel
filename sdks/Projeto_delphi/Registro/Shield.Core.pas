@@ -224,7 +224,7 @@ begin
     
   Result.AddPair('mac_address', TShieldSecurity.DetectPrimaryMacAddress);
   Result.AddPair('nome_computador', GetEnvironmentVariable('COMPUTERNAME'));
-  // Protecao contra Replay Attack
+  // Proteção contra Replay Attack (Necessário para todas as chamadas autenticadas)
   Result.AddPair('timestamp', DateToISO8601(Now, False));
 end;
 
@@ -261,9 +261,12 @@ begin
       end
       else
       begin
-        // Verificacao de nulo para 'mensagem'
+      begin
+        // Verificacao de nulo para 'mensagem' ou 'error'
         if Resp.GetValue('mensagem') <> nil then
            raise Exception.Create(Resp.GetValue('mensagem').Value)
+        else if Resp.GetValue('error') <> nil then
+           raise Exception.Create(Resp.GetValue('error').Value)
         else
            raise Exception.Create('Erro desconhecido na autenticação (mensagem vazia).');
       end;
