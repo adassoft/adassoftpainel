@@ -204,8 +204,50 @@ class ValidationController extends Controller
             ->first();
 
         if (!$license) {
-            // TODO: Adicionar lógica de auto-reparo baseada no historico_seriais
-            throw new Exception('Licença ativa não encontrada para este software');
+            // Tenta criar licença Trial se for o primeiro acesso e o software permitir
+            $software = \App\Models\Software::find($softwareId);
+
+            // Verifica se já existiu alguma licença deste software para esta empresa (evitar abuso de trial)
+            $jaTeveLicenca = License::where('empresa_codigo', $company->codigo)
+                ->where('software_id', $softwareId)
+                ->exists();
+
+            if ($software && !$jaTeveLicenca) {
+                try {
+                    $diasTeste = $software->setup_dias_teste ?? 7;
+
+                    // Revenda
+                    $cnpjRevenda = $company->cnpj_representante;
+                    if (empty($cnpjRevenda)) {
+                        $master = \App\Models\User::where('acesso', 1)->orderBy('id')->first();
+                        if ($master)
+                            $cnpjRevenda = $master->cnpj;
+                    }
+
+                    $license = License::create([
+                        'empresa_codigo' => $company->codigo,
+                        'software_id' => $softwareId,
+                        'cnpj_revenda' => $cnpjRevenda,
+                        'serial_atual' => sprintf('%04X-%04X-%04X-%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535)),
+                        'data_criacao' => now(),
+                        'data_ativacao' => now(),
+                        'data_expiracao' => now()->addDays((int) $diasTeste),
+                        'terminais_permitidos' => 1,
+                        'terminais_utilizados' => 0,
+                        'status' => 'ativo',
+                        'observacoes' => 'Licença Trial gerada no primeiro login.'
+                    ]);
+
+                    // Recarrega relacionamento para usar abaixo
+                    $license->load('software');
+
+                } catch (Exception $ex) {
+                    \Illuminate\Support\Facades\Log::error('Falha ao criar trial no login: ' . $ex->getMessage());
+                    throw new Exception('Licença ativa não encontrada para este software');
+                }
+            } else {
+                throw new Exception('Licença ativa não encontrada para este software');
+            }
         }
 
         // Gerar Token
