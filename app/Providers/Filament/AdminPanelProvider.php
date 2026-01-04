@@ -79,6 +79,18 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 'panels::body.end',
                 fn() => view('filament.custom-styles'),
-            );
+            )
+            ->plugins([
+                \Jeffgreco13\FilamentBreezy\BreezyCore::make()
+                    ->myProfile(
+                        shouldRegisterUserMenu: true,
+                        shouldRegisterNavigation: false,
+                        hasAvatars: false, // Pode ativar se quiser avatars
+                        slug: 'meu-perfil'
+                    )
+                    ->enableTwoFactorAuthentication(
+                        force: fn() => in_array(auth()->user()?->acesso, [1, 2]), // Obriga Admin (1) e Revenda (2)
+                    ),
+            ]);
     }
 }
