@@ -275,6 +275,7 @@ class ValidationController extends Controller
             'expira_em' => $payload['expira_em'],
             'licenca' => [
                 'serial' => $license->serial_atual,
+                'valido' => ($license->status === 'ativo'), // Corrigido: Campo obrigatório para o SDK
                 'software_id' => $softwareId,
                 'software' => $payload['software'],
                 'versao' => $request->input('versao_software'),
