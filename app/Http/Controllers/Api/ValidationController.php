@@ -203,6 +203,27 @@ class ValidationController extends Controller
             ->where('status', 'ativo')
             ->first();
 
+        // AUTO-REPARO: Verifica se a licença ativa possui histórico de serial (correção de trials anteriores)
+        if ($license && $license->status === 'ativo') {
+            $historyExists = \App\Models\SerialHistory::where('serial_gerado', $license->serial_atual)->exists();
+            if (!$historyExists) {
+                try {
+                    \App\Models\SerialHistory::create([
+                        'empresa_codigo' => $license->empresa_codigo,
+                        'software_id' => $license->software_id,
+                        'serial_gerado' => $license->serial_atual,
+                        'data_geracao' => $license->data_criacao ?? now(),
+                        'validade_licenca' => $license->data_expiracao ? $license->data_expiracao->format('Y-m-d') : null,
+                        'terminais_permitidos' => $license->terminais_permitidos,
+                        'observacoes' => json_encode(['origem' => 'auto_reparo_trial']),
+                        'ativo' => true,
+                    ]);
+                } catch (\Exception $e) {
+                    // Ignora erro de duplicidade se houver race condition
+                }
+            }
+        }
+
         if (!$license) {
             // Tenta criar licença Trial se for o primeiro acesso e o software permitir
             $software = \App\Models\Software::find($softwareId);
@@ -599,19 +620,17 @@ class ValidationController extends Controller
                                     $cnpjRevenda = $master->cnpj;
                             }
 
-                            $licencaCriada = \App\Models\License::create([
-                                'empresa_codigo' => $empresa->codigo,
-                                'software_id' => $software->id,
-                                'cnpj_revenda' => $cnpjRevenda,
-                                'serial_atual' => sprintf('%04X-%04X-%04X-%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535)),
-                                'data_criacao' => now(),
-                                'data_ativacao' => now(),
-                                'data_expiracao' => now()->addDays((int) $diasTeste),
-                                'terminais_permitidos' => 1,
-                                'terminais_utilizados' => 0,
-                                'status' => 'ativo',
-                                'observacoes' => 'Licença de Avaliação criada automaticamente no cadastro.'
-                            ]);
+                            $licencaData = $this->licenseService->createLicense($empresa, $software, (int) $diasTeste, 1);
+                            $licencaCriada = $licencaData['license'];
+
+                            // Atualiza Revenda e Observações na licença recém-criada
+                            if ($licencaCriada) {
+                                $licencaCriada->cnpj_revenda = $cnpjRevenda;
+                                $obs = json_decode($licencaCriada->observacoes, true) ?? [];
+                                $obs['origem'] = 'cadastro_trial';
+                                $licencaCriada->observacoes = json_encode($obs);
+                                $licencaCriada->save();
+                            }
                         } catch (\Exception $e) {
                             \Illuminate\Support\Facades\Log::error('Erro ao criar licença trial: ' . $e->getMessage());
                             // Não falha o cadastro por isso, mas loga.
