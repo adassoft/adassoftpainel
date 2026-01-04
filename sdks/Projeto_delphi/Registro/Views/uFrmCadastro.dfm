@@ -62,6 +62,16 @@ object frmCadastro: TfrmCadastro
       TabOrder = 1
       OnClick = btnCancelarClick
     end
+    object btnReenviar: TButton
+      Left = 10
+      Top = 6
+      Width = 75
+      Height = 30
+      Caption = 'Reenviar'
+      TabOrder = 2
+      Visible = False
+      OnClick = btnReenviarClick
+    end
   end
   object pnlCentro: TPanel
     Left = 0

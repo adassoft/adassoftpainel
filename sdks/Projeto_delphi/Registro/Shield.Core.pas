@@ -637,6 +637,9 @@ begin
     
     if Parceiro <> '' then
        Payload.AddPair('codigo_parceiro', Parceiro);
+
+    // Enviar ID do Software para criar licença de avaliação
+    Payload.AddPair('software_id', TJSONNumber.Create(FConfig.SoftwareId));
     
     Resp := FAPI.RegisterUser(Payload);
     try

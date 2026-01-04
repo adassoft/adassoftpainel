@@ -536,14 +536,71 @@ class ValidationController extends Controller
                     'status' => 'aprovado'
                 ]);
 
+                // *** Criação Automática de Licença de Avaliação ***
+                $softwareId = $request->input('software_id');
+                $licencaCriada = null;
+
+                if ($softwareId) {
+                    $software = \App\Models\Software::find($softwareId);
+                    if ($software) {
+                        try {
+                            $diasTeste = $software->setup_dias_teste ?? 7;
+
+                            // Define Revenda da Licença
+                            $cnpjRevenda = $empresa->cnpj_representante;
+                            if (empty($cnpjRevenda)) {
+                                // Fallback para revenda principal (User ID 1 ou config)
+                                // Se não achar admin, deixa null (sem revenda)
+                                $master = User::where('acesso', 1)->orderBy('id')->first();
+                                if ($master)
+                                    $cnpjRevenda = $master->cnpj;
+                            }
+
+                            $licencaCriada = \App\Models\License::create([
+                                'empresa_codigo' => $empresa->codigo,
+                                'software_id' => $software->id,
+                                'cnpj_revenda' => $cnpjRevenda,
+                                'serial_atual' => sprintf('%04X-%04X-%04X-%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535)),
+                                'data_criacao' => now(),
+                                'data_ativacao' => now(),
+                                'data_expiracao' => now()->addDays((int) $diasTeste),
+                                'terminais_permitidos' => 1,
+                                'terminais_utilizados' => 0,
+                                'status' => 'ativo',
+                                'observacoes' => 'Licença de Avaliação criada automaticamente no cadastro.'
+                            ]);
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error('Erro ao criar licença trial: ' . $e->getMessage());
+                            // Não falha o cadastro por isso, mas loga.
+                        }
+                    }
+                }
+
                 // Auto-login: Emitir token
-                $payload = [
-                    'usuario_id' => $user->id,
-                    'empresa_codigo' => $empresa->codigo,
-                    'usuario_email' => $user->email,
-                    'emitido_em' => now()->toIso8601String(),
-                    'expira_em' => now()->addMinutes(60)->toIso8601String()
-                ];
+                // Se criamos a licença, usamos os dados dela para um token completo
+                if ($licencaCriada) {
+                    $payload = [
+                        'serial' => $licencaCriada->serial_atual,
+                        'empresa_codigo' => $empresa->codigo,
+                        'software_id' => $licencaCriada->software_id,
+                        'software' => $software->nome_software ?? 'Software',
+                        'usuario_email' => $user->email,
+                        'usuario_id' => $user->id,
+                        'licenca_id' => $licencaCriada->id,
+                        'emitido_em' => now()->toIso8601String(),
+                        'expira_em' => now()->addMinutes(60)->toIso8601String()
+                    ];
+                } else {
+                    // Token parcial (sem licença)
+                    $payload = [
+                        'usuario_id' => $user->id,
+                        'empresa_codigo' => $empresa->codigo,
+                        'usuario_email' => $user->email,
+                        'emitido_em' => now()->toIso8601String(),
+                        'expira_em' => now()->addMinutes(60)->toIso8601String()
+                    ];
+                }
+
                 $token = $this->licenseService->generateLicenseToken($payload);
 
                 return response()->json([
