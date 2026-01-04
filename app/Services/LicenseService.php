@@ -243,10 +243,20 @@ class LicenseService
             return ['success' => false, 'erro' => 'Licença não encontrada'];
 
         // Verifica se terminal já existe
-        $terminal = \App\Models\Terminal::firstOrCreate(
-            ['MAC' => $mac],
-            ['NOME_COMPUTADOR' => $computerName]
-        );
+        $terminal = \App\Models\Terminal::where('MAC', $mac)->first();
+
+        if (!$terminal) {
+            // Gera ID manual pois banco legado não é AutoIncrement
+            $maxId = \App\Models\Terminal::max('CODIGO') ?? 0;
+            $novoId = $maxId + 1;
+
+            $terminal = new \App\Models\Terminal();
+            $terminal->CODIGO = $novoId;
+            $terminal->MAC = $mac;
+            $terminal->NOME_COMPUTADOR = $computerName;
+            $terminal->FK_EMPRESA = $license->empresa_codigo; // Vincula à empresa da licença
+            $terminal->save();
+        }
 
         // Verifica vínculo
         $vinculo = \App\Models\TerminalSoftware::where('licenca_id', $license->id)
