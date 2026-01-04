@@ -533,7 +533,7 @@ class ValidationController extends Controller
                     'cnpj' => $empresa->cnpj, // Vinculo
                     'nivel' => 'CLIENTE',
                     'acesso' => 3, // 3 = Cliente
-                    'status' => 'aprovado'
+                    'status' => 'Ativo'
                 ]);
 
                 // *** Criação Automática de Licença de Avaliação ***
