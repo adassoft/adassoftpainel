@@ -28,7 +28,7 @@ class ResellerResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         // Filtra apenas usuários com nível de acesso 2 (Revenda)
-        return parent::getEloquentQuery()->where('acesso', 2);
+        return parent::getEloquentQuery()->whereIn('acesso', [1, 2]);
     }
 
     public static function form(Form $form): Form
@@ -79,6 +79,23 @@ class ResellerResource extends Resource
                             ->default('Ativo')
                             ->required(),
                     ])->columns(2),
+
+                Section::make('Dados da Empresa e Pagamento')
+                    ->description('Configurações da empresa vinculada a esta revenda.')
+                    ->relationship('empresa') // Edita a tabela empresa via relacionamento
+                    ->schema([
+                        TextInput::make('razao')
+                            ->label('Razão Social')
+                            ->required()
+                            ->maxLength(255),
+
+                        TextInput::make('asaas_access_token')
+                            ->label('Token de Acesso Asaas (API Key)')
+                            ->helperText('Chave (começada com $aact_...) obtida no painel do Asaas. Obrigatório para receber pagamentos via Pix.')
+                            ->password()
+                            ->revealable()
+                            ->columnSpanFull(),
+                    ])->collapsible(),
             ]);
     }
 
