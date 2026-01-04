@@ -403,8 +403,10 @@ class ValidationController extends Controller
     {
         $softwareId = $software_id ?? $request->input('software_id');
 
-        $query = \App\Models\Plano::where('status', '!=', 'inativo')
-            ->orWhereNull('status');
+        $query = \App\Models\Plano::where(function ($q) {
+            $q->where('status', '!=', 'inativo')
+                ->orWhereNull('status');
+        });
 
         if ($softwareId) {
             $query->where('software_id', $softwareId);
