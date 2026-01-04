@@ -461,7 +461,9 @@ class ValidationController extends Controller
             if ($serialEnviado) {
                 $licencaAlvo = \App\Models\License::where('serial_atual', $serialEnviado)->first();
                 if ($licencaAlvo && !empty($licencaAlvo->cnpj_revenda)) {
-                    $empresaRecebedora = \App\Models\Company::where('cnpj', $licencaAlvo->cnpj_revenda)->first();
+                    // Busca CNPJ Limpo
+                    $cnpjRevendaLimpo = preg_replace('/\D/', '', $licencaAlvo->cnpj_revenda);
+                    $empresaRecebedora = \App\Models\Company::where('cnpj', $cnpjRevendaLimpo)->first();
                 }
             }
 
@@ -470,12 +472,14 @@ class ValidationController extends Controller
                 // Identificar a Empresa do Usuário
                 $empresaCliente = null;
                 if ($user->cnpj) {
-                    $empresaCliente = \App\Models\Company::where('cnpj', $user->cnpj)->first();
+                    $cnpjUserLimpo = preg_replace('/\D/', '', $user->cnpj);
+                    $empresaCliente = \App\Models\Company::where('cnpj', $cnpjUserLimpo)->first();
                 }
 
                 if ($empresaCliente && !empty($empresaCliente->cnpj_representante)) {
                     // Busca a revenda apontada
-                    $empresaRecebedora = \App\Models\Company::where('cnpj', $empresaCliente->cnpj_representante)->first();
+                    $cnpjRepLimpo = preg_replace('/\D/', '', $empresaCliente->cnpj_representante);
+                    $empresaRecebedora = \App\Models\Company::where('cnpj', $cnpjRepLimpo)->first();
                 }
 
                 // Se a própria empresa do usuário for revenda
@@ -492,13 +496,17 @@ class ValidationController extends Controller
             $asaasToken = $empresaRecebedora->asaas_access_token ?? null;
             $asaasMode = env('ASAAS_MODE', 'production');
 
-            // Fallback Dev
-            if (empty($asaasToken) && !env('ASAAS_API_KEY')) {
+            if (empty($asaasToken) && env('ASAAS_API_KEY')) {
                 $asaasToken = env('ASAAS_API_KEY');
             }
 
             if (empty($asaasToken)) {
-                throw new Exception('Configuração de Pagamento (Asaas) não encontrada para esta revenda.');
+                $debugInfo = "Revenda CNPJ: " . ($empresaRecebedora->cnpj ?? 'N/A');
+                if (isset($licencaAlvo))
+                    $debugInfo .= " (Licença Revenda: " . ($licencaAlvo->cnpj_revenda ?? 'N/A') . ")";
+                $debugInfo .= " | Cliente CNPJ: " . ($user->cnpj ?? 'N/A');
+
+                throw new Exception("Configuração de Pagamento (Asaas) não encontrada. Detalhes: $debugInfo");
             }
 
             $asaasService = new \App\Services\AsaasService($asaasToken, $asaasMode);
