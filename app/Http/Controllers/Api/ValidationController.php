@@ -203,8 +203,33 @@ class ValidationController extends Controller
             ->where('status', 'ativo')
             ->first();
 
-        // AUTO-REPARO: Verifica se a licença ativa possui histórico de serial (correção de trials anteriores)
+        // AUTO-REPARO: Verifica integridade da licença (Histórico e Token)
         if ($license && $license->status === 'ativo') {
+            $needsSave = false;
+            $obs = json_decode($license->observacoes, true) ?? [];
+
+            // 1. Garante que existe Token Offline gerado (para o Painel)
+            if (!isset($obs['token'])) {
+                $payloadOffline = [
+                    'serial' => $license->serial_atual,
+                    'empresa_codigo' => $license->empresa_codigo,
+                    'software_id' => $license->software_id,
+                    'validade' => $license->data_expiracao ? $license->data_expiracao->format('Y-m-d') : null,
+                    'terminais' => $license->terminais_permitidos,
+                    'emitido_em' => now()->toIso8601String()
+                ];
+                $tokenOffline = $this->licenseService->generateToken($payloadOffline);
+                $obs['token'] = $tokenOffline;
+                $obs['modo'] = 'auto_reparo';
+                $license->observacoes = json_encode($obs);
+                $needsSave = true;
+            }
+
+            if ($needsSave) {
+                $license->save();
+            }
+
+            // 2. Garante Histórico de Serial
             $historyExists = \App\Models\SerialHistory::where('serial_gerado', $license->serial_atual)->exists();
             if (!$historyExists) {
                 try {
@@ -215,11 +240,11 @@ class ValidationController extends Controller
                         'data_geracao' => $license->data_criacao ?? now(),
                         'validade_licenca' => $license->data_expiracao ? $license->data_expiracao->format('Y-m-d') : null,
                         'terminais_permitidos' => $license->terminais_permitidos,
-                        'observacoes' => json_encode(['origem' => 'auto_reparo_trial']),
+                        'observacoes' => $license->observacoes, // Copia observações com o token
                         'ativo' => true,
                     ]);
                 } catch (\Exception $e) {
-                    // Ignora erro de duplicidade se houver race condition
+                    // Ignora erro
                 }
             }
         }
