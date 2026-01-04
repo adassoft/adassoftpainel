@@ -399,9 +399,9 @@ class ValidationController extends Controller
     }
     // === Métodos de Compatibilidade Legado (SDK Delphi) ===
 
-    public function listPlans(Request $request)
+    public function listPlans(Request $request, $software_id = null)
     {
-        $softwareId = $request->input('software_id');
+        $softwareId = $software_id ?? $request->input('software_id');
 
         $query = \App\Models\Plano::where('status', '!=', 'inativo')
             ->orWhereNull('status');
