@@ -729,7 +729,7 @@ class ValidationController extends Controller
                         'usuario_id' => $user->id,
                         'licenca_id' => $licencaCriada->id,
                         'emitido_em' => now()->toIso8601String(),
-                        'expira_em' => now()->addMinutes(60)->toIso8601String()
+                        'expira_em' => now()->addDays(30)->toIso8601String()
                     ];
                 } else {
                     // Token parcial (sem licença)
@@ -738,7 +738,7 @@ class ValidationController extends Controller
                         'empresa_codigo' => $empresa->codigo,
                         'usuario_email' => $user->email,
                         'emitido_em' => now()->toIso8601String(),
-                        'expira_em' => now()->addMinutes(60)->toIso8601String()
+                        'expira_em' => now()->addDays(30)->toIso8601String()
                     ];
                 }
 
