@@ -312,13 +312,13 @@ class ValidationController extends Controller
     public function createOrder(Request $request)
     {
         try {
-            // Autenticação via Token Legado
+            // Autenticação via Token Legado ou Header
             $token = $request->header('Authorization') ? str_replace('Bearer ', '', $request->header('Authorization')) : $request->input('token');
             $payload = $this->getPayloadFromToken($token);
 
             $userId = $payload['usuario_id'];
             $planId = $request->input('plan_id');
-            $serial = $request->input('licenca_serial'); // Opcional (renovação)
+            // $serial = $request->input('licenca_serial'); // Opcional (renovação)
 
             // Verifica Plano
             $plano = \App\Models\Plano::find($planId);
@@ -330,9 +330,26 @@ class ValidationController extends Controller
             if (!$user)
                 throw new Exception('Usuário não encontrado.');
 
-            // Criação do Pedido
+            // Criação do Pedido (Dados Iniciais)
             $codTransacao = 'ORD-' . strtoupper(uniqid());
 
+            // --- Integração Asaas (Geração de Pix) ---
+            // TODO: Implementar lógica de Revenda (buscar API Key da revenda se aplicável)
+            $asaasService = new \App\Services\AsaasService(env('ASAAS_API_KEY'), env('ASAAS_MODE', 'production'));
+
+            // 1. Criar/Recuperar Cliente Asaas
+            $customerId = $asaasService->createCustomer($user);
+
+            // 2. Criar Cobrança Pix
+            $descricao = "Licenca Soft: " . ($plano->nome_plano ?? 'Plano') . " (Ref: $codTransacao)";
+            $pixData = $asaasService->createPixCharge(
+                $customerId,
+                $plano->valor,
+                $descricao,
+                $codTransacao
+            );
+
+            // Persiste o Pedido com dados do Asaas
             $order = \App\Models\Order::create([
                 'user_id' => $user->id,
                 'plano_id' => $plano->id,
@@ -341,20 +358,68 @@ class ValidationController extends Controller
                 'status' => 'pending',
                 'external_reference' => $codTransacao,
                 'situacao' => 'AGUARDANDO',
-                'licenca_id' => $payload['licenca_id'] ?? null, // Tenta vincular à licença atual se houver
-                'cnpj' => $user->cnpj, // CNPJ do cliente
-                'cnpj_revenda' => null, // TODO: Identificar revenda pelo usuário se necessário
-                'recorrencia' => $plano->recorrencia
+                'licenca_id' => $payload['licenca_id'] ?? null,
+                'cnpj' => $user->cnpj,
+                'recorrencia' => $plano->recorrencia,
+                'asaas_payment_id' => $pixData->id,
+                'payment_method' => 'PIX'
             ]);
 
-            // Retorna o código de transação para o Delphi montar a URL de pagamento
+            // Retorna o payload completo para o Delphi montar a tela de Pix
             return response()->json([
                 'success' => true,
-                'cod_transacao' => $codTransacao
+                'cod_transacao' => $codTransacao,
+                'payment' => [
+                    'id' => $pixData->id,
+                    'qr_code_base64' => $pixData->encodedImage,
+                    'qr_code_payload' => $pixData->payload, // Copia e Cola
+                    'valor' => $pixData->value,
+                    'vencimento' => $pixData->expirationDate
+                ]
             ]);
 
         } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
+            return response()->json(['error' => $e->getMessage(), 'details' => $e->getTraceAsString()], 400);
+        }
+    }
+
+    public function checkPaymentStatus(Request $request)
+    {
+        try {
+            // Autenticação Opcional ou via Token? Melhor protejer.
+            // Para polling simples, vamos permitir check pelo External Reference + Token
+            $token = $request->header('Authorization') ? str_replace('Bearer ', '', $request->header('Authorization')) : $request->input('token');
+            // Validar token se necessário (mas polling pode ser frequente, validar token toda vez onera.
+            // Vamos assumir que quem tem o TransactionID (External Reference) é dono do pedido).
+
+            $codTransacao = $request->input('cod_transacao');
+            if (!$codTransacao)
+                throw new Exception('Código de transação obrigatório.');
+
+            $order = \App\Models\Order::where('external_reference', $codTransacao)->first();
+
+            if (!$order)
+                throw new Exception('Pedido não encontrado.');
+
+            // Se ainda está pendente no nosso banco, consulta o Asaas para garantir (caso webhook falhe/atrase)
+            // OBS: Consultar Asaas a cada 3s por milhares de clientes pode dar Rate Limit.
+            // O ideal é confiar no Webhook. Mas para UX "Real Time", consultar se o webhook ainda não bateu.
+            // Vamos confiar no banco local primeiro. Se status == 'paid', retorna OK.
+
+            // Se quiser forçar check no Asaas (cuidado com cota):
+            // $asaasService->getPaymentStatus($order->asaas_payment_id);
+
+            $pago = in_array(strtolower($order->status), ['paid', 'received', 'confirmed']) ||
+                in_array(strtolower($order->situacao), ['pago', 'aprovado']);
+
+            return response()->json([
+                'success' => true,
+                'pago' => $pago,
+                'status' => $order->status
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }
 

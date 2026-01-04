@@ -32,6 +32,7 @@ Route::prefix('v1/adassoft')->middleware(['throttle:60,1', 'shield.auth'])->grou
     // Cadastros e Pedidos (Geral)
     Route::get('/software/{software_id}/plans', [ValidationController::class, 'listPlans']);
     Route::post('/orders', [ValidationController::class, 'createOrder']);
+    Route::post('/orders/status', [ValidationController::class, 'checkPaymentStatus']);
 
     // Rotas legadas (removidas pois estamos começando do zero)
 });
