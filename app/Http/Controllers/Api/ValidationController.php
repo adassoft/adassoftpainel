@@ -347,6 +347,12 @@ class ValidationController extends Controller
 
         $validacao = $this->licenseService->validateSerialFull($serial);
 
+        \Illuminate\Support\Facades\Log::info("DEBUG VALIDAR_SERIAL", [
+            'serial' => $serial,
+            'software_id_request' => $request->input('software_id'), // Se vier
+            'resultado' => $validacao
+        ]);
+
         // TODO: Inserir lógica de registro de terminal (registrarUsoTerminal)
         // Por enquanto, apenas valida o serial.
 
