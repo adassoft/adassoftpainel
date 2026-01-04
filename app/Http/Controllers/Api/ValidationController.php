@@ -454,26 +454,37 @@ class ValidationController extends Controller
 
             // Lógica para obter Credenciais do Asaas (Revenda ou Matriz)
 
-            // 1. Identificar a Empresa do Usuário
-            $empresaCliente = null;
-            if ($user->cnpj) {
-                $empresaCliente = \App\Models\Company::where('cnpj', $user->cnpj)->first();
-            }
-
-            // 2. Identificar a Revenda Pai (Quem vai receber o $$)
             $empresaRecebedora = null;
+            $serialEnviado = $request->input('licenca_serial');
 
-            if ($empresaCliente && !empty($empresaCliente->cnpj_representante)) {
-                // Busca a revenda apontada
-                $empresaRecebedora = \App\Models\Company::where('cnpj', $empresaCliente->cnpj_representante)->first();
+            // 1. Prioridade: Buscar Revenda vinculada à Licença (Renovação)
+            if ($serialEnviado) {
+                $licencaAlvo = \App\Models\License::where('serial_atual', $serialEnviado)->first();
+                if ($licencaAlvo && !empty($licencaAlvo->cnpj_revenda)) {
+                    $empresaRecebedora = \App\Models\Company::where('cnpj', $licencaAlvo->cnpj_revenda)->first();
+                }
             }
 
-            // 3. Se não achou revenda pai, verifica se a própria empresa do usuário é uma revenda (tem token configurado)
-            if (!$empresaRecebedora && $empresaCliente && !empty($empresaCliente->asaas_access_token)) {
-                $empresaRecebedora = $empresaCliente;
+            // 2. Fallback: Revenda Padrão do Cliente (Se não achou pela licença)
+            if (!$empresaRecebedora) {
+                // Identificar a Empresa do Usuário
+                $empresaCliente = null;
+                if ($user->cnpj) {
+                    $empresaCliente = \App\Models\Company::where('cnpj', $user->cnpj)->first();
+                }
+
+                if ($empresaCliente && !empty($empresaCliente->cnpj_representante)) {
+                    // Busca a revenda apontada
+                    $empresaRecebedora = \App\Models\Company::where('cnpj', $empresaCliente->cnpj_representante)->first();
+                }
+
+                // Se a própria empresa do usuário for revenda
+                if (!$empresaRecebedora && $empresaCliente && !empty($empresaCliente->asaas_access_token)) {
+                    $empresaRecebedora = $empresaCliente;
+                }
             }
 
-            // 4. Fallback: Matriz (ID 1)
+            // 3. Fallback Final: Matriz (ID 1)
             if (!$empresaRecebedora || empty($empresaRecebedora->asaas_access_token)) {
                 $empresaRecebedora = \App\Models\Company::find(1);
             }
