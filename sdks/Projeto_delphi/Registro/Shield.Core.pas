@@ -261,7 +261,6 @@ begin
       end
       else
       begin
-      begin
         // Verificacao de nulo para 'mensagem' ou 'error'
         if Resp.GetValue('mensagem') <> nil then
            raise Exception.Create(Resp.GetValue('mensagem').Value)
