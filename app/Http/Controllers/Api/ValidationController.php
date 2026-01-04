@@ -488,9 +488,15 @@ class ValidationController extends Controller
                 }
             }
 
-            // 3. Fallback Final: Matriz (ID 1)
+            // 3. Fallback Final: Revenda Padrão do Sistema
             if (!$empresaRecebedora || empty($empresaRecebedora->asaas_access_token)) {
-                $empresaRecebedora = \App\Models\Company::find(1);
+                // Busca quem está marcado como padrão
+                $empresaRecebedora = \App\Models\Company::where('revenda_padrao', true)->first();
+
+                // Se ainda assim não achar, tenta ID 1 como última esperança
+                if (!$empresaRecebedora) {
+                    $empresaRecebedora = \App\Models\Company::find(1);
+                }
             }
 
             $asaasToken = $empresaRecebedora->asaas_access_token ?? null;

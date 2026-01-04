@@ -95,6 +95,11 @@ class ResellerResource extends Resource
                             ->password()
                             ->revealable()
                             ->columnSpanFull(),
+
+                        Forms\Components\Toggle::make('revenda_padrao')
+                            ->label('Revenda Padrão do Sistema')
+                            ->helperText('Se marcado, essa revenda será usada como fallback para clientes sem vínculo definido.')
+                            ->columnSpanFull(),
                     ])->collapsible(),
             ]);
     }
