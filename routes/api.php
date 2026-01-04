@@ -20,6 +20,9 @@ Route::post('/webhooks/reseller/asaas', [App\Http\Controllers\Api\ResellerWebhoo
 
 // === API AdasSoft V1 (RESTful) ===
 Route::prefix('v1/adassoft')->middleware(['throttle:60,1', 'shield.auth'])->group(function () {
+    // Compatibilidade Legado (action=...)
+    Route::match(['get', 'post'], '/', [ValidationController::class, 'handle']);
+
     // Validação e Status
     Route::post('/validate', [ValidationController::class, 'handle']); // Mantém handle por enquanto ou refatora para 'validateSerial'
     // Ações Sensíveis (Login/Cadastro) - Limite Rígido anti-bruteforce
