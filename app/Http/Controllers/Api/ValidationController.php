@@ -455,17 +455,42 @@ class ValidationController extends Controller
                 $nome = $request->input('nome');
                 $cnpj = $request->input('cnpj');
                 $razao = $request->input('razao');
+                $whatsapp = $request->input('whatsapp');
+                $parceiroCode = $request->input('codigo_parceiro');
 
                 // Valida Código
                 $savedCode = \Illuminate\Support\Facades\Cache::get("register_code_{$email}");
                 if (!$savedCode || (string) $savedCode !== (string) $codigo) {
-                    throw new Exception('Código inválido ou expirado.');
+                    throw new Exception('Código de verificação inválido ou expirado.');
+                }
+
+                // Verifica Parceiro/Revenda
+                $cnpjRepresentante = null; // Revenda Padrão (Null ou config do sistema)
+                if (!empty($parceiroCode)) {
+                    // Busca por ID, CNPJ ou codigo_revenda (se houver)
+                    // Assume que User nivel Revenda tem CNPJ.
+                    // Busca User Revenda pelo ID ou CNPJ
+                    $revenda = User::where(function ($q) use ($parceiroCode) {
+                        $q->where('id', $parceiroCode)
+                            ->orWhere('cnpj', $parceiroCode);
+                        // ->orWhere('slug', $parceiroCode); // Futuro
+                    })
+                        ->whereIn('acesso', [1, 2]) // Admin ou Revenda
+                        ->first();
+
+                    if ($revenda) {
+                        $cnpjRepresentante = $revenda->cnpj;
+                    }
+                }
+
+                // Se não achou parceiro específico, verifica se existe Revenda Padrão configurada no sistema
+                if (empty($cnpjRepresentante)) {
+                    // Lógica opcional: Buscar revenda com flag 'revenda_padrao' ou similar.
+                    // Por enquanto deixa null.
                 }
 
                 // Cria Empresa
                 if (\App\Models\Company::where('cnpj', $cnpj)->exists()) {
-                    // Se empresa existe, associa user? Ou erro? SDK assume cadastro novo completo.
-                    // Vamos assumir erro por duplicidade
                     throw new Exception('CNPJ já cadastrado.');
                 }
 
@@ -473,7 +498,10 @@ class ValidationController extends Controller
                     'cnpj' => preg_replace('/\D/', '', $cnpj),
                     'razao' => $razao,
                     'status' => 'Ativo',
-                    'data' => now()
+                    'data' => now(),
+                    'fone' => $whatsapp,
+                    'email' => $email,
+                    'cnpj_representante' => $cnpjRepresentante
                 ]);
 
                 // Cria Usuário
@@ -482,7 +510,8 @@ class ValidationController extends Controller
                     'email' => $email,
                     'senha' => Hash::make($senha),
                     'cnpj' => $empresa->cnpj, // Vinculo
-                    'nivel' => 'ADMIN', // Default SDK
+                    'nivel' => 'CLIENTE',
+                    'acesso' => 3, // 3 = Cliente
                     'status' => 'aprovado'
                 ]);
 
