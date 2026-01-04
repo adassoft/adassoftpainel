@@ -353,24 +353,39 @@ class ValidationController extends Controller
             'resultado' => $validacao
         ]);
 
-        // TODO: Inserir lógica de registro de terminal (registrarUsoTerminal)
-        // Por enquanto, apenas valida o serial.
-
+        // Registro de Terminal
         if ($validacao['valido'] && !empty($macAddress)) {
+            $ip = $request->ip();
+            $computerName = $request->input('nome_computador') ?? 'PC-Unknown';
+            $instalacaoId = $request->input('codigo_instalacao') ?? $macAddress;
+
             $registroTerminal = $this->licenseService->registerTerminalUsage(
                 $serial,
                 $macAddress,
-                $request->input('nome_computador') ?? 'PC-Unknown',
-                $request->input('codigo_instalacao') ?? '',
-                $request->ip()
+                $computerName,
+                $instalacaoId,
+                $ip
             );
 
-            $validacao['terminal_registrado'] = $registroTerminal['success'];
-
             if (!$registroTerminal['success']) {
-                $validacao['erro_terminal'] = $registroTerminal['erro'];
+                // Se falhar o registro (ex: limite excedido), invalida a resposta
+                return response()->json([
+                    'success' => true, // Request em si foi OK
+                    'validacao' => [
+                        'valido' => false,
+                        'erro' => $registroTerminal['erro'] ?? 'Limite de terminais atingido ou erro ao registrar máquina.'
+                    ],
+                    'timestamp' => now()->toDateTimeString()
+                ]);
             }
+
+            // Se registrou com sucesso, precisamos atualizar a contagem de terminais utilizados na resposta
+            // O registroTerminal atualiza o banco, mas o $validacao tem dados antigos.
+            // Vamos recarregar os dados da licença ou incrementar manualmente.
+            $validacao['terminais_utilizados']++;
         }
+
+
 
         return response()->json([
             'success' => true,
