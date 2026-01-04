@@ -38,5 +38,27 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Plan::observe(\App\Observers\PlanObserver::class);
         \App\Models\ResellerConfig::observe(\App\Observers\ResellerConfigObserver::class);
         \App\Models\DownloadVersion::observe(\App\Observers\DownloadVersionObserver::class);
+
+        // Carrega Configuração de E-mail do Banco de Dados
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('configuracoes')) { // Evita erro no setup inicial
+                $emailConfig = \App\Models\Configuration::where('chave', 'email_config')->first();
+                if ($emailConfig) {
+                    $config = json_decode($emailConfig->valor, true);
+                    if ($config) {
+                        \Illuminate\Support\Facades\Config::set('mail.mailers.smtp.host', $config['host'] ?? null);
+                        \Illuminate\Support\Facades\Config::set('mail.mailers.smtp.port', $config['port'] ?? 587);
+                        \Illuminate\Support\Facades\Config::set('mail.mailers.smtp.encryption', $config['secure'] ?? 'tls');
+                        \Illuminate\Support\Facades\Config::set('mail.mailers.smtp.username', $config['username'] ?? null);
+                        \Illuminate\Support\Facades\Config::set('mail.mailers.smtp.password', $config['password'] ?? null);
+                        \Illuminate\Support\Facades\Config::set('mail.from.address', $config['from_email'] ?? 'noreply@adassoft.com');
+                        \Illuminate\Support\Facades\Config::set('mail.from.name', $config['from_name'] ?? 'Adassoft');
+                        \Illuminate\Support\Facades\Config::set('mail.default', 'smtp');
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Silencioso em caso de erro de DB ou migração
+        }
     }
 }
