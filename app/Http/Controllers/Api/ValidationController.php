@@ -442,11 +442,13 @@ class ValidationController extends Controller
 
                 \Illuminate\Support\Facades\Cache::put("register_code_{$email}", $code, 600); // 10 min
 
+                $appName = config('app.name', 'Adassoft');
+
                 // Envia E-mail
                 try {
-                    \Illuminate\Support\Facades\Mail::raw("Seu código de verificação Shield é: {$code}", function ($message) use ($email) {
+                    \Illuminate\Support\Facades\Mail::raw("Seu código de verificação {$appName} é: {$code}", function ($message) use ($email, $appName) {
                         $message->to($email)
-                            ->subject('Código de Verificação Shield');
+                            ->subject("Código de Verificação - {$appName}");
                     });
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::error('Erro ao enviar e-mail de código: ' . $e->getMessage());
@@ -455,7 +457,7 @@ class ValidationController extends Controller
 
                 $response = [
                     'success' => true,
-                    'mensagem' => 'Código enviado para ' . $email
+                    'mensagem' => "Código enviado para {$email}"
                 ];
 
                 // Retorna código para teste apenas se NÃO for produção
