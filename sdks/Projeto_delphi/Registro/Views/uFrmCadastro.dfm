@@ -2,7 +2,7 @@ object frmCadastro: TfrmCadastro
   Left = 0
   Top = 0
   Caption = 'Criar Nova Conta Shield'
-  ClientHeight = 480
+  ClientHeight = 520
   ClientWidth = 400
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -27,7 +27,7 @@ object frmCadastro: TfrmCadastro
       Top = 13
       Width = 143
       Height = 16
-      Caption = 'Cadastro de Usuário'
+      Caption = 'Cadastro de Usu'#225'rio'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
       Font.Height = -13
@@ -38,7 +38,7 @@ object frmCadastro: TfrmCadastro
   end
   object pnlBottom: TPanel
     Left = 0
-    Top = 439
+    Top = 479
     Width = 400
     Height = 41
     Align = alBottom
@@ -49,7 +49,7 @@ object frmCadastro: TfrmCadastro
       Top = 6
       Width = 200
       Height = 30
-      Caption = 'Enviar Código de Validação'
+      Caption = 'Enviar C'#243'digo de Valida'#231#227'o'
       TabOrder = 0
       OnClick = btnCadastrarClick
     end
@@ -67,7 +67,7 @@ object frmCadastro: TfrmCadastro
     Left = 0
     Top = 41
     Width = 400
-    Height = 398
+    Height = 438
     Align = alClient
     TabOrder = 2
     object Label1: TLabel
@@ -103,7 +103,7 @@ object frmCadastro: TfrmCadastro
       Top = 215
       Width = 129
       Height = 13
-      Caption = 'Razão Social da Empresa'
+      Caption = 'Raz'#227'o Social da Empresa'
     end
     object Label6: TLabel
       Left = 20
@@ -112,12 +112,19 @@ object frmCadastro: TfrmCadastro
       Height = 13
       Caption = 'WhatsApp'
     end
+    object LabelParceiro: TLabel
+      Left = 200
+      Top = 265
+      Width = 125
+      Height = 13
+      Caption = 'C'#243'd. Parceiro (Opcional)'
+    end
     object LabelCodigo: TLabel
       Left = 20
-      Top = 315
+      Top = 325
       Width = 196
       Height = 13
-      Caption = 'CÓDIGO DE VERIFICAÇÃO (E-MAIL)*'
+      Caption = 'C'#211'DIGO DE VERIFICA'#199#195'O (E-MAIL)*'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clRed
       Font.Height = -11
@@ -165,16 +172,23 @@ object frmCadastro: TfrmCadastro
     object edtWhatsapp: TEdit
       Left = 20
       Top = 282
-      Width = 350
+      Width = 160
       Height = 21
       TabOrder = 5
     end
-    object edtCodigo: TEdit
-      Left = 20
-      Top = 332
-      Width = 150
+    object edtParceiro: TEdit
+      Left = 200
+      Top = 282
+      Width = 170
       Height = 21
       TabOrder = 6
+    end
+    object edtCodigo: TEdit
+      Left = 20
+      Top = 342
+      Width = 150
+      Height = 21
+      TabOrder = 7
       Visible = False
     end
   end

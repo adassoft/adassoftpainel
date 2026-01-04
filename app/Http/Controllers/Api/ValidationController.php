@@ -439,14 +439,33 @@ class ValidationController extends Controller
 
                 $code = rand(100000, 999999);
                 // Armazenar código em cache/banco temporário (Cache::put("register_$email", $code, 600))
+
                 \Illuminate\Support\Facades\Cache::put("register_code_{$email}", $code, 600); // 10 min
 
-                // TODO: Enviar E-mail Real. Por enquanto retorna debug_code para facilitar teste
-                return response()->json([
+                // Envia E-mail
+                try {
+                    \Illuminate\Support\Facades\Mail::raw("Seu código de verificação Shield é: {$code}", function ($message) use ($email) {
+                        $message->to($email)
+                            ->subject('Código de Verificação Shield');
+                    });
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Erro ao enviar e-mail de código: ' . $e->getMessage());
+                    // Não trava o processo, mas avisa? Melhor deixar passar se for dev, mas em prod é critico.
+                }
+
+                $response = [
                     'success' => true,
-                    'mensagem' => 'Código enviado para ' . $email,
-                    'debug_code' => (string) $code
-                ]);
+                    'mensagem' => 'Código enviado para ' . $email
+                ];
+
+                // Retorna código para teste apenas se NÃO for produção
+                if (!app()->environment('production')) {
+                    $response['debug_code'] = (string) $code;
+                    // Opcional: Anexa na mensagem para o Delphi exibir se ele usa 'mensagem' direto
+                    $response['mensagem'] .= " (DEBUG: $code)";
+                }
+
+                return response()->json($response);
 
             } elseif ($acao === 'confirmar_cadastro') {
                 $email = $request->input('email');

@@ -63,6 +63,15 @@ type
   end;
   TPlanArray = TArray<TPlan>;
 
+  TPaymentInfo = record
+    TransactionId: string;
+    QrCodeBase64: string;
+    QrCodePayload: string; // Copia e Cola
+    Valor: Double;
+    Vencimento: string;
+    procedure Clear;
+  end;
+
   TShieldCallback = reference to procedure(const Success: Boolean; const Msg: string);
 
 implementation
@@ -118,6 +127,17 @@ procedure TUserInfo.Clear;
 begin
   Email := '';
   Nome := '';
+end;
+
+{ TPaymentInfo }
+
+procedure TPaymentInfo.Clear;
+begin
+  TransactionId := '';
+  QrCodeBase64 := '';
+  QrCodePayload := '';
+  Valor := 0;
+  Vencimento := '';
 end;
 
 end.

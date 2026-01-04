@@ -35,7 +35,7 @@ implementation
 {$R *.dfm}
 
 uses
-  ShellAPI;
+  ShellAPI, uFrmCheckout;
 
 { TfrmRenovacao }
 
@@ -102,7 +102,6 @@ end;
 procedure TfrmRenovacao.btnPagarClick(Sender: TObject);
 var
   PlanID: Integer;
-  Url: string;
 begin
   if lstPlanos.ItemIndex < 0 then
   begin
@@ -112,18 +111,11 @@ begin
 
   PlanID := Integer(lstPlanos.Selected.Data);
   
-  Screen.Cursor := crHourGlass;
-  try
-    try
-      Url := FShield.CheckoutPlan(PlanID);
-      ShellExecute(0, 'open', PChar(Url), nil, nil, SW_SHOWNORMAL);
-      Close; // Fecha pois o navegador vai abrir
-    except
-      on E: Exception do
-        ShowMessage('Erro ao gerar pagamento: ' + E.Message);
-    end;
-  finally
-    Screen.Cursor := crDefault;
+  // Chama a nova tela de Checkout Pix Integrado
+  if TFrmCheckout.Execute(FShield, PlanID) then
+  begin
+     ShowMessage('Renovação concluída com sucesso!');
+     ModalResult := mrOk;
   end;
 end;
 

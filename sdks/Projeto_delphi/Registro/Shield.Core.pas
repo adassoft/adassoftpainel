@@ -36,7 +36,8 @@ type
     
     // Renovação e Pagamento
     function GetAvailablePlans: TPlanArray;
-    function CheckoutPlan(const PlanId: Integer): string;
+    function CheckoutPlan(const PlanId: Integer): TPaymentInfo;
+    function CheckPaymentStatus(const TransactionId: string): string;
     
     // Propriedades
     property License: TLicenseInfo read FLicense;
@@ -49,7 +50,7 @@ type
     
     // Cadastro (Novos métodos 2FA)
     function SolicitarCodigoCadastro(const Nome, Email, CNPJ, Razao: string): string;
-    function ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string): Boolean;
+    function ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const Parceiro: string = ''): Boolean;
   end;
 
 implementation
@@ -554,31 +555,20 @@ begin
   end;
 end;
 
-function TShield.CheckoutPlan(const PlanId: Integer): string;
-var
-  CodTransacao: string;
+function TShield.CheckoutPlan(const PlanId: Integer): TPaymentInfo;
 begin
   if (FSession.Token = '') and (FLicense.Serial = '') then
     raise Exception.Create('É necessário estar autenticado ou ter um serial para criar um pedido.');
     
-  CodTransacao := FAPI.CreateOrder(PlanId, FLicense.Serial, FSession.Token);
+  Result := FAPI.CreateOrder(PlanId, FLicense.Serial, FSession.Token);
   
-  if (Pos('http://', LowerCase(CodTransacao)) = 1) or 
-     (Pos('https://', LowerCase(CodTransacao)) = 1) then
-  begin
-     Result := CodTransacao;
-  end
-  else
-  begin
-     // Constroi URL de Checkout dinamicamente
-     Result := StringReplace(FConfig.BaseUrl, '/api/v1/adassoft', '', [rfReplaceAll, rfIgnoreCase]);
-     if (Result <> '') and (Result[Length(Result)] = '/') then Delete(Result, Length(Result), 1);
-     
-     // Fallback limpo
-     if Result = '' then Result := 'https://express.adassoft.com';
-     
-     Result := Result + '/checkout/pay/' + CodTransacao;
-  end;
+  if Result.TransactionId = '' then
+     raise Exception.Create('Erro ao criar pedido. API não retornou ID.');
+end;
+
+function TShield.CheckPaymentStatus(const TransactionId: string): string;
+begin
+   Result := FAPI.CheckPaymentStatus(TransactionId, FSession.Token);
 end;
 
 // Novos Métodos de Cadastro
@@ -594,6 +584,8 @@ begin
     Payload.AddPair('email', Email);
     Payload.AddPair('cnpj', CNPJ);
     Payload.AddPair('razao', Razao);
+    // Timestamp obrigatório para evitar Replay Attack
+    Payload.AddPair('timestamp', DateToISO8601(Now, False));
     
     Resp := FAPI.RegisterUser(Payload);
     try
@@ -625,7 +617,7 @@ begin
   end;
 end;
 
-function TShield.ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string): Boolean;
+function TShield.ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const Parceiro: string = ''): Boolean;
 var
   Payload, Resp: TJSONObject;
 begin
@@ -640,6 +632,11 @@ begin
     Payload.AddPair('razao', Razao);
     Payload.AddPair('whatsapp', WhatsApp);
     Payload.AddPair('codigo', Codigo);
+    // Timestamp obrigatório
+    Payload.AddPair('timestamp', DateToISO8601(Now, False));
+    
+    if Parceiro <> '' then
+       Payload.AddPair('codigo_parceiro', Parceiro);
     
     Resp := FAPI.RegisterUser(Payload);
     try

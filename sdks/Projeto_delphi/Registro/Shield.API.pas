@@ -18,7 +18,11 @@ type
     function PostRequest(const Action: string; Payload: TJSONObject; const Token: string = ''): TJSONObject;
     function GetRequest(const Action: string; const Token: string = ''): TJSONObject;
     function GetPlans(const SoftwareId: Integer; const Token: string): TJSONArray;
-    function CreateOrder(const PlanId: Integer; const Serial: string; const Token: string): string;
+    
+    // Updated to return full payment info
+    function CreateOrder(const PlanId: Integer; const Serial: string; const Token: string): TPaymentInfo;
+    function CheckPaymentStatus(const TransactionId: string; const Token: string): string;
+    
     function RegisterUser(Payload: TJSONObject): TJSONObject;
   end;
 
@@ -47,6 +51,9 @@ begin
   Result.Request.ContentType := 'application/json';
   Result.Request.CharSet := 'utf-8';
   Result.Request.UserAgent := 'ShieldSDK/1.0 (Delphi)';
+  
+  if FConfig.ApiKey <> '' then
+    Result.Request.CustomHeaders.Values['X-API-KEY'] := FConfig.ApiKey;
 end;
 
 function TShieldAPI.Ping: Boolean;
@@ -139,7 +146,7 @@ begin
   end;
 end;
 
-    function TShieldAPI.GetPlans(const SoftwareId: Integer; const Token: string): TJSONArray;
+function TShieldAPI.GetPlans(const SoftwareId: Integer; const Token: string): TJSONArray;
 var
   Http: TIdHTTP;
   RespString: string;
@@ -188,15 +195,16 @@ begin
   end;
 end;
 
-function TShieldAPI.CreateOrder(const PlanId: Integer; const Serial: string; const Token: string): string;
+function TShieldAPI.CreateOrder(const PlanId: Integer; const Serial: string; const Token: string): TPaymentInfo;
 var
   Http: TIdHTTP;
   ReqStream: TStringStream;
   Payload: TJSONObject;
   RespString: string;
   Url: string;
-  RespJson: TJSONObject;
+  RespJson, PayObj: TJSONObject;
 begin
+  Result.Clear;
   Http := CreateClient;
   Payload := TJSONObject.Create;
   try
@@ -221,14 +229,26 @@ begin
         if (RespJson <> nil) then
         begin
              if RespJson.GetValue('cod_transacao') <> nil then
-                Result := RespJson.GetValue('cod_transacao').Value
-             else if RespJson.GetValue('init_point') <> nil then
-                 Result := RespJson.GetValue('init_point').Value
-             else
-                 Result := '';
+                Result.TransactionId := RespJson.GetValue('cod_transacao').Value;
+
+             if RespJson.GetValue('payment') is TJSONObject then
+             begin
+                PayObj := RespJson.GetValue('payment') as TJSONObject;
+                if PayObj.GetValue('qr_code_base64') <> nil then
+                   Result.QrCodeBase64 := PayObj.GetValue('qr_code_base64').Value;
+                   
+                if PayObj.GetValue('qr_code_payload') <> nil then
+                   Result.QrCodePayload := PayObj.GetValue('qr_code_payload').Value;
+                   
+                if PayObj.GetValue('valor') <> nil then
+                   Result.Valor := StrToFloatDef(PayObj.GetValue('valor').Value, 0.0);
+                   
+                if PayObj.GetValue('vencimento') <> nil then
+                   Result.Vencimento := PayObj.GetValue('vencimento').Value;
+             end;
         end
         else
-          raise Exception.Create('Failed to create order: No transaction code returned.');
+          raise Exception.Create('Failed to create order: No valid JSON response.');
       finally
         RespJson.Free;
       end;
@@ -236,6 +256,53 @@ begin
       ReqStream.Free;
     end;
   finally
+    Payload.Free;
+    Http.Free;
+  end;
+end;
+
+function TShieldAPI.CheckPaymentStatus(const TransactionId: string; const Token: string): string;
+var
+  Http: TIdHTTP;
+  ReqStream: TStringStream;
+  Payload: TJSONObject;
+  RespString: string;
+  Url: string;
+  RespJson: TJSONObject;
+begin
+  Result := 'pending';
+  Http := CreateClient;
+  Payload := TJSONObject.Create;
+  try
+    if Token <> '' then
+      Http.Request.CustomHeaders.Values['Authorization'] := 'Bearer ' + Token;
+
+    // Rota: /orders/status (POST para enviar JSON body com cod_transacao)
+    Url := FConfig.BaseUrl;
+    if Url[Length(Url)] = '/' then Delete(Url, Length(Url), 1);
+    Url := Url + '/orders/status';
+    
+    Payload.AddPair('cod_transacao', TransactionId);
+      
+    ReqStream := TStringStream.Create(Payload.ToJSON, TEncoding.UTF8);
+    try
+      RespString := Http.Post(Url, ReqStream);
+      
+      RespJson := TJSONObject.ParseJSONValue(RespString) as TJSONObject;
+      try
+        if (RespJson <> nil) and (RespJson.GetValue('status') <> nil) then
+        begin
+             Result := RespJson.GetValue('status').Value;
+        end;
+      finally
+        RespJson.Free;
+      end;
+    except
+       // Se der erro de conexão etc, retorna pending para tentar de novo
+       Result := 'error'; 
+    end;
+  finally
+    ReqStream.Free;
     Payload.Free;
     Http.Free;
   end;

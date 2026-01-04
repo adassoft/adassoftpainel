@@ -31,6 +31,8 @@ type
     edtWhatsapp: TEdit;
     LabelCodigo: TLabel;
     edtCodigo: TEdit;
+    LabelParceiro: TLabel;
+    edtParceiro: TEdit;
     procedure btnCadastrarClick(Sender: TObject);
     procedure btnCancelarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -103,6 +105,7 @@ begin
         btnCadastrar.Caption := 'CONFIRMAR CADASTRO';
         
         edtEmail.Enabled := False; 
+        edtParceiro.Enabled := False; 
         edtCodigo.SetFocus;
       except
         on E: Exception do
@@ -127,7 +130,7 @@ begin
     try
       try
          if FShield.ConfirmarCadastro(edtNome.Text, edtEmail.Text, edtSenha.Text, 
-                                      edtCNPJ.Text, edtRazao.Text, edtWhatsapp.Text, edtCodigo.Text) then
+                                      edtCNPJ.Text, edtRazao.Text, edtWhatsapp.Text, edtCodigo.Text, edtParceiro.Text) then
          begin
            ShowMessage('Cadastro realizado com sucesso! Você já está autenticado.');
            ModalResult := mrOk;
