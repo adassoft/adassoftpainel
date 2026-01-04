@@ -291,7 +291,13 @@ class LicenseService
             ]);
         }
 
-        $license->increment('terminais_utilizados');
+        // Recalcula o total real de terminais ativos para evitar inconsistência
+        $totalAtivos = \App\Models\TerminalSoftware::where('licenca_id', $license->id)
+            ->where('ativo', 1)
+            ->count();
+
+        $license->terminais_utilizados = $totalAtivos;
+        $license->save();
 
         return ['success' => true, 'msg' => 'Terminal registrado com sucesso'];
     }

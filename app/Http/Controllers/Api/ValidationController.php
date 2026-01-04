@@ -382,7 +382,11 @@ class ValidationController extends Controller
             // Se registrou com sucesso, precisamos atualizar a contagem de terminais utilizados na resposta
             // O registroTerminal atualiza o banco, mas o $validacao tem dados antigos.
             // Vamos recarregar os dados da licença ou incrementar manualmente.
-            $validacao['terminais_utilizados']++;
+            // Atualiza a contagem na resposta com o valor real do banco após o registro
+            $licenseFresh = \App\Models\License::find($validacao['licenca_id'] ?? 0);
+            if ($licenseFresh) {
+                $validacao['terminais_utilizados'] = $licenseFresh->terminais_utilizados;
+            }
         }
 
 
