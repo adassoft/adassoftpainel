@@ -450,8 +450,35 @@ class ValidationController extends Controller
             $codTransacao = 'ORD-' . strtoupper(uniqid());
 
             // --- Integração Asaas (Geração de Pix) ---
-            // TODO: Implementar lógica de Revenda (buscar API Key da revenda se aplicável)
-            $asaasService = new \App\Services\AsaasService(env('ASAAS_API_KEY'), env('ASAAS_MODE', 'production'));
+            // --- Integração Asaas (Geração de Pix) ---
+
+            // Lógica para obter Credenciais do Asaas (Revenda ou Matriz)
+            // 1. Tenta identificar se o usuário é uma revenda comprando
+            $empresa = null;
+            if ($user->cnpj) {
+                $empresa = \App\Models\Empresa::where('cnpj', $user->cnpj)->first();
+            }
+
+            // 2. Se não achou ou não tem token (é cliente final), usa a Matriz (ID 1)
+            // TODO: Se tiver lógica de "Cliente pertence a Revenda X", implementar aqui buscando a revenda pai.
+            if (!$empresa || empty($empresa->asaas_access_token)) {
+                $empresa = \App\Models\Empresa::find(1);
+            }
+
+            $asaasToken = $empresa->asaas_access_token ?? null;
+            $asaasMode = env('ASAAS_MODE', 'production');
+
+            // Se não tiver token configurado no banco e nem no env (fallback de dev), erro.
+            if (empty($asaasToken) && !env('ASAAS_API_KEY')) {
+                // Permite fallback para ENV se existir (para dev local sem banco populado)
+                $asaasToken = env('ASAAS_API_KEY');
+            }
+
+            if (empty($asaasToken)) {
+                throw new Exception('Configuração de Pagamento (Asaas) não encontrada para esta empresa/revenda.');
+            }
+
+            $asaasService = new \App\Services\AsaasService($asaasToken, $asaasMode);
 
             // 1. Criar/Recuperar Cliente Asaas
             $customerId = $asaasService->createCustomer($user);
