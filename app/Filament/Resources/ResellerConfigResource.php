@@ -57,17 +57,75 @@ class ResellerConfigResource extends Resource
                             ->required(),
 
                         Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('suggest_colors_ia')
+                                ->label('Sugerir Cores via IA')
+                                ->icon('heroicon-m-sparkles')
+                                ->color('violet')
+                                ->size('sm')
+                                ->tooltip('Analisa a Logo e sugere gradiente harmônico')
+                                ->action(function (Forms\Get $get, Forms\Set $set) {
+                                    $logoPath = $get('logo_path');
+
+                                    // Trata array do FileUpload
+                                    if (is_array($logoPath)) {
+                                        $logoPath = reset($logoPath);
+                                    }
+
+                                    if (!$logoPath) {
+                                        \Filament\Notifications\Notification::make()->warning()->title('Logo não encontrada')->body('Faça o upload da logo e salve (ou aguarde o upload terminar) antes de pedir sugestão.')->send();
+                                        return;
+                                    }
+
+                                    $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($logoPath);
+
+                                    if (!file_exists($fullPath)) {
+                                        \Filament\Notifications\Notification::make()->danger()->title('Arquivo inacessível')->body('Não foi possível ler o arquivo da imagem. Salve o formulário primeiro.')->send();
+                                        return;
+                                    }
+
+                                    try {
+                                        $imageData = file_get_contents($fullPath);
+                                        $base64 = base64_encode($imageData);
+                                        $mimeType = mime_content_type($fullPath);
+
+                                        \Filament\Notifications\Notification::make()->info()->title('Analisando cores...')->body('Consultando IA...')->send();
+
+                                        $service = new \App\Services\GeminiService();
+                                        $prompt = "Atue como um Designer de UI Sênior. Analise esta logo. Identifique a cor dominante principal e uma cor secundária harmônica para criar um degradê (gradiente) moderno e profissional. Retorne APENAS um JSON estrito (sem markdown) no formato: {\"start\": \"#colorHex\", \"end\": \"#colorHex\"}. Exemplo: {\"start\": \"#1a2980\", \"end\": \"#26d0ce\"}.";
+
+                                        $response = $service->generateContent($prompt, $base64, $mimeType);
+
+                                        if (!$response['success']) {
+                                            throw new \Exception($response['error'] ?? 'Erro desconhecido na IA.');
+                                        }
+
+                                        $reply = $response['reply'];
+                                        $jsonString = preg_replace('/^`{3}json\s*|\s*`{3}$/m', '', $reply);
+                                        $colors = json_decode($jsonString, true);
+
+                                        if (json_last_error() === JSON_ERROR_NONE && isset($colors['start']) && isset($colors['end'])) {
+                                            $set('cor_primaria_gradient_start', $colors['start']);
+                                            $set('cor_primaria_gradient_end', $colors['end']);
+                                            \Filament\Notifications\Notification::make()->success()->title('Cores Aplicadas!')->body("Sugerido: {$colors['start']} -> {$colors['end']}")->send();
+                                        } else {
+                                            throw new \Exception("Formato inválido da IA.");
+                                        }
+
+                                    } catch (\Exception $e) {
+                                        \Filament\Notifications\Notification::make()->danger()->title('Erro')->body($e->getMessage())->send();
+                                    }
+                                }),
+
                             Forms\Components\Actions\Action::make('reset_colors')
-                                ->label('Restaurar Cores Padrão')
+                                ->label('Restaurar Padrão')
                                 ->icon('heroicon-m-arrow-path')
                                 ->color('gray')
                                 ->size('sm')
-                                ->tooltip('Voltar para o Azul original do sistema')
                                 ->action(function (Forms\Set $set) {
                                     $set('cor_primaria_gradient_start', '#4e73df');
                                     $set('cor_primaria_gradient_end', '#224abe');
                                 }),
-                        ]),
+                        ])->fullWidth(),
 
                         Forms\Components\ColorPicker::make('cor_primaria_gradient_start')
                             ->label('Cor Início (Gradiente)')
