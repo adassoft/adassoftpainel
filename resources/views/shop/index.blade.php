@@ -5,7 +5,7 @@
 @section('extra-css')
     <style>
         .hero-store {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
             color: white;
             padding: 120px 0 80px;
             /* Increased top padding to account for overlap */
@@ -80,13 +80,13 @@
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 700;
-            color: #4e73df;
+            color: var(--primary-gradient-start);
             z-index: 2;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .btn-buy {
-            background: #4e73df;
+            background: var(--primary-gradient-start);
             color: white;
             border-radius: 10px;
             font-weight: 700;
@@ -97,7 +97,7 @@
         }
 
         .btn-buy:hover {
-            background: #224abe;
+            background: var(--primary-gradient-end);
             transform: scale(1.02);
             color: white;
         }
@@ -107,7 +107,7 @@
             color: #fff;
             padding: 80px 0 60px;
             text-align: center;
-            border-top: 5px solid #4e73df;
+            border-top: 5px solid var(--primary-gradient-start);
         }
 
         .price-tag {

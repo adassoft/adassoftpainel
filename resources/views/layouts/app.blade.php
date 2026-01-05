@@ -12,21 +12,21 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
+
     {{-- SEO Canonical: Evita conteúdo duplicado em revendas --}}
     @php
         $currentUrl = url()->current();
         // Pega a URL base do sistema principal (ex: https://adassoft.com.br)
         $baseUrl = config('app.url');
-        
+
         // Verifica se é o domínio principal
         $isMainDomain = \App\Services\ResellerBranding::isDefault();
-        
+
         // Se estiver numa revenda, forçamos o canonical para o domínio principal (para produtos/paginas padrão)
         // A menos que a view defina um canonical específico (ex: conteudo exclusivo da revenda)
         $canonical = $isMainDomain ? $currentUrl : str_replace(request()->root(), $baseUrl, $currentUrl);
     @endphp
-    
+
     <link rel="canonical" href="@yield('canonical', $canonical)" />
 
     <title>@yield('title', $appName . ' | Store')</title>
@@ -74,8 +74,8 @@
 
         /* Ajuste para logo não distorcer */
         .navbar-brand img {
-            max-height: 40px; 
-            width: auto;      
+            max-height: 40px;
+            width: auto;
             object-fit: contain;
         }
 
@@ -135,8 +135,53 @@
             max-width: 1240px !important;
         }
     </style>
+    <style>
+        /* White Label - Cores Dinâmicas */
+        :root {
+            --primary-gradient-start:
+                {{ $branding['cor_start'] ?? '#4e73df' }}
+            ;
+            --primary-gradient-end:
+                {{ $branding['cor_end'] ?? '#224abe' }}
+            ;
+            --primary-btn-bg:
+                {{ $branding['cor_start'] ?? '#4e73df' }}
+            ;
+            --primary-btn-hover:
+                {{ $branding['cor_end'] ?? '#224abe' }}
+            ;
+        }
+
+        /* Aplicações Globais que usam a cor da marca */
+        .navbar-landing {
+            border-bottom-color: var(--primary-gradient-start) !important;
+        }
+
+        .navbar-brand,
+        .nav-link {
+            color: var(--primary-gradient-start) !important;
+        }
+
+        .nav-link.active-link {
+            color: var(--primary-gradient-end) !important;
+        }
+
+        .btn-login {
+            border-color: var(--primary-gradient-start) !important;
+            color: var(--primary-gradient-start) !important;
+        }
+
+        .btn-register {
+            background: var(--primary-gradient-start) !important;
+        }
+
+        .footer {
+            border-top-color: var(--primary-gradient-start) !important;
+        }
+    </style>
     @yield('extra-css')
 </head>
+
 
 <body>
     <!-- Navbar -->
