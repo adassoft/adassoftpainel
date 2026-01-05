@@ -61,7 +61,7 @@
                         </div>
 
                         <a href="#planos"
-                            style="background-color: var(--primary-gradient-start);"
+                            style="background-color: var(--color-accent);"
                             class="inline-flex items-center justify-center px-8 py-4 text-white font-bold rounded-full hover:opacity-90 transition shadow-lg hover:shadow-xl group">
                             Ver Planos Disponíveis
                             <i class="fas fa-arrow-down ml-2 group-hover:translate-y-1 transition-transform"></i>
@@ -119,7 +119,7 @@
                     @endphp
 
                     <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="card h-100 border-0 shadow-sm rounded-lg {{ $isFeatured ? 'border-primary border-2 shadow-lg scale-105 z-10' : '' }}" style="border-radius: 20px; transition: transform 0.3s; {{ $isFeatured ? 'transform: scale(1.05); border: 2px solid var(--primary-gradient-start) !important;' : '' }}">
+                        <div class="card h-100 border-0 shadow-sm rounded-lg {{ $isFeatured ? 'border-accent border-2 shadow-lg scale-105 z-10' : '' }}" style="border-radius: 20px; transition: transform 0.3s; {{ $isFeatured ? 'transform: scale(1.05); border: 2px solid var(--color-accent) !important;' : '' }}">
                             
                             @if($isFeatured)
                                 <div class="text-center" style="margin-top: -12px;">
