@@ -67,6 +67,7 @@ class ResellerResource extends Resource
                         TextInput::make('cnpj')
                             ->label('CNPJ')
                             ->mask('99.999.999/9999-99')
+                            ->dehydrateStateUsing(fn($state) => preg_replace('/\D/', '', $state ?? ''))
                             ->maxLength(20),
 
                         Select::make('status')
@@ -99,6 +100,7 @@ class ResellerResource extends Resource
                         Forms\Components\Toggle::make('revenda_padrao')
                             ->label('Revenda Padrão do Sistema')
                             ->helperText('Se marcado, essa revenda será usada como fallback para clientes sem vínculo definido.')
+                            ->dehydrated(true)
                             ->columnSpanFull(),
                     ])->collapsible(),
             ]);
