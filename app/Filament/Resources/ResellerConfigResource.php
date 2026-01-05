@@ -56,12 +56,25 @@ class ResellerConfigResource extends Resource
                             ->helperText('Para testar agora, use "localhost"')
                             ->required(),
 
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('reset_colors')
+                                ->label('Restaurar Cores Padrão')
+                                ->icon('heroicon-m-arrow-path')
+                                ->color('gray')
+                                ->size('sm')
+                                ->tooltip('Voltar para o Azul original do sistema')
+                                ->action(function (Forms\Set $set) {
+                                    $set('cor_primaria_gradient_start', '#4e73df');
+                                    $set('cor_primaria_gradient_end', '#224abe');
+                                }),
+                        ]),
+
                         Forms\Components\ColorPicker::make('cor_primaria_gradient_start')
-                            ->label('Cor Início')
+                            ->label('Cor Início (Gradiente)')
                             ->default('#1a2980'),
 
                         Forms\Components\ColorPicker::make('cor_primaria_gradient_end')
-                            ->label('Cor Fim')
+                            ->label('Cor Fim (Gradiente)')
                             ->default('#26d0ce'),
 
                         Forms\Components\TextInput::make('logo_path')
