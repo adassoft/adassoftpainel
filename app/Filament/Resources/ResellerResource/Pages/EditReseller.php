@@ -29,7 +29,7 @@ class EditReseller extends EditRecord
                     $empresa = \App\Models\Company::where('cnpj', $cleanCnpj)->first();
 
                     if ($empresa) {
-                        $action->fill([
+                        $action->fillForm([
                             'razao' => $empresa->razao,
                             'asaas_access_token' => $empresa->asaas_access_token,
                             'revenda_padrao' => (bool) $empresa->revenda_padrao,
