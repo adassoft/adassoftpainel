@@ -99,6 +99,10 @@ class CompanyProfile extends Page
                     ->label('Número')
                     ->required(),
 
+                TextInput::make('complemento')
+                    ->label('Complemento')
+                    ->maxLength(255),
+
                 TextInput::make('bairro')
                     ->label('Bairro')
                     ->required(),
