@@ -412,13 +412,37 @@ class ValidationController extends Controller
             $query->where('software_id', $softwareId);
         }
 
-        // Recupera o Usuário para identificar a Revenda
+        // Recupera o Usuário e tenta extrair contexto da Licença do Token
         $user = $request->user();
         $cnpjRevenda = null;
 
-        if ($user && $user->cnpj) {
-            // Busca empresa do cliente para ver quem é o representante (revenda)
-            // Normaliza CNPJ removendo pontuação para garantir o match
+        // Tenta obter dados da Licença através do Token bearer, se disponível
+        $token = $request->bearerToken() ?? $request->input('token');
+        if ($token) {
+            try {
+                // Decodifica o token para pegar o payload (assumindo que o método getPayloadFromToken existe e é acessível)
+                // Se for protected, usamos reflection ou duplicamos a lógica simples de decode se for JWT padrão
+                // Mas como estamos no Controller, podemos usar $this->getPayloadFromToken se for private/protected (php permite call interna)
+                $payload = $this->getPayloadFromToken($token);
+
+                if (!empty($payload['licenca_id'])) {
+                    $licenca = \App\Models\License::find($payload['licenca_id']);
+                    if ($licenca && !empty($licenca->cnpj_revenda)) {
+                        $cnpjRevenda = preg_replace('/\D/', '', $licenca->cnpj_revenda);
+                    }
+                } elseif (!empty($payload['serial'])) {
+                    $licenca = \App\Models\License::where('serial_atual', $payload['serial'])->first();
+                    if ($licenca && !empty($licenca->cnpj_revenda)) {
+                        $cnpjRevenda = preg_replace('/\D/', '', $licenca->cnpj_revenda);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Token inválido ou erro de parse, ignora e segue lógica padrão
+            }
+        }
+
+        // Fallback: Se não achou pela Licença, tenta pelo Representante da Empresa do Usuário
+        if (!$cnpjRevenda && $user && $user->cnpj) {
             $cnpjUserLimpo = preg_replace('/\D/', '', $user->cnpj);
             $empresaCliente = \App\Models\Company::where('cnpj', $cnpjUserLimpo)->first();
 
@@ -435,7 +459,8 @@ class ValidationController extends Controller
                 $planoRevenda = \App\Models\PlanoRevenda::where('cnpj_revenda', $cnpjRevenda)
                     ->where('plano_id', $p->id)
                     ->first();
-                // Se existir registro e tiver valor definido
+
+                // Prioriza valor de venda da revenda se existir
                 if ($planoRevenda && isset($planoRevenda->valor_venda)) {
                     $valorFinal = $planoRevenda->valor_venda;
                 }
