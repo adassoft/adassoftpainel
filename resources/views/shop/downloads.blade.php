@@ -27,13 +27,13 @@
             background: #f8f9fc;
             border-radius: 50%;
             margin: 0 auto 20px;
-            color: #4e73df;
+            color: var(--primary-gradient-start);
             font-size: 2rem;
             border: 1px solid #eaecf4;
         }
 
         .hero-downloads {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
             color: white;
             padding: 80px 0;
             margin-bottom: 50px;
@@ -55,7 +55,7 @@
         }
 
         .btn-download {
-            background: #4e73df;
+            background: var(--primary-gradient-start);
             color: white !important;
             border-radius: 50px;
             padding: 10px 20px;
@@ -64,9 +64,9 @@
         }
 
         .btn-download:hover {
-            background: #2e59d9;
+            background: var(--primary-gradient-end);
             transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(78, 115, 223, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
     </style>
 @endsection
@@ -93,8 +93,8 @@
                             style="border-radius: 10px 0 0 10px; height: 60px;">
                         <input type="hidden" name="page" value="1">
                         <div class="input-group-append">
-                            <button class="btn btn-white bg-white text-primary pr-4" type="submit"
-                                style="border-radius: 0 10px 10px 0;">
+                            <button class="btn btn-white bg-white pr-4" type="submit"
+                                style="border-radius: 0 10px 10px 0; color: var(--primary-gradient-start);">
                                 <i class="fas fa-search fa-lg"></i>
                             </button>
                         </div>
@@ -145,7 +145,8 @@
                                                 class="font-weight-bold text-dark">{{ $soft['data_info'] }}</span></div>
                                     @endif
                                     @if(isset($soft['contador']) && $soft['contador'] > 0)
-                                        <div class="mt-2 text-primary font-weight-bold">
+                                        <div class="mt-2 text-primary font-weight-bold"
+                                            style="color: var(--primary-gradient-start) !important;">
                                             <i class="fas fa-cloud-download-alt mr-1"></i> {{ $soft['contador'] }} downloads realizados
                                         </div>
                                     @endif

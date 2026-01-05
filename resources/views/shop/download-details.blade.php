@@ -21,7 +21,7 @@
             align-items: center;
             justify-content: center;
             font-size: 3.5rem;
-            color: #4e73df;
+            color: var(--primary-gradient-start);
             margin-bottom: 25px;
         }
 
@@ -43,7 +43,7 @@
             align-items: center;
             justify-content: center;
             margin-right: 15px;
-            color: #4e73df;
+            color: var(--primary-gradient-start);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
         }
     </style>

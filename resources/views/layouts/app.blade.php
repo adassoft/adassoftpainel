@@ -178,6 +178,30 @@
         .footer {
             border-top-color: var(--primary-gradient-start) !important;
         }
+
+        /* Bootstrap Overrides for White Label */
+        .btn-primary {
+            background-color: var(--primary-gradient-start) !important;
+            border-color: var(--primary-gradient-start) !important;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-gradient-end) !important;
+            border-color: var(--primary-gradient-end) !important;
+        }
+        .btn-outline-primary {
+            color: var(--primary-gradient-start) !important;
+            border-color: var(--primary-gradient-start) !important;
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--primary-gradient-start) !important;
+            color: #fff !important;
+        }
+        .text-primary {
+            color: var(--primary-gradient-start) !important;
+        }
+        .border-primary {
+            border-color: var(--primary-gradient-start) !important;
+        }
     </style>
     @yield('extra-css')
 </head>

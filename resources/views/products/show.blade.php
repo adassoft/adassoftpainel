@@ -38,7 +38,7 @@
                         </span>
                         <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
                             {{ $product->nome_software }} <span
-                                class="text-blue-600 text-2xl font-normal">v{{ $product->versao ?? '1.0' }}</span>
+                                class="text-2xl font-normal" style="color: var(--primary-gradient-start)">v{{ $product->versao ?? '1.0' }}</span>
                         </h1>
                         <p class="text-xl text-gray-600 mb-8 max-w-2xl leading-relaxed">
                             {{ $product->descricao }}
@@ -61,7 +61,8 @@
                         </div>
 
                         <a href="#planos"
-                            class="inline-flex items-center justify-center px-8 py-4 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition shadow-lg hover:shadow-xl group">
+                            style="background-color: var(--primary-gradient-start);"
+                            class="inline-flex items-center justify-center px-8 py-4 text-white font-bold rounded-full hover:opacity-90 transition shadow-lg hover:shadow-xl group">
                             Ver Planos Disponíveis
                             <i class="fas fa-arrow-down ml-2 group-hover:translate-y-1 transition-transform"></i>
                         </a>
@@ -118,7 +119,7 @@
                     @endphp
 
                     <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="card h-100 border-0 shadow-sm rounded-lg {{ $isFeatured ? 'border-primary border-2 shadow-lg scale-105 z-10' : '' }}" style="border-radius: 20px; transition: transform 0.3s; {{ $isFeatured ? 'transform: scale(1.05); border: 2px solid #4e73df !important;' : '' }}">
+                        <div class="card h-100 border-0 shadow-sm rounded-lg {{ $isFeatured ? 'border-primary border-2 shadow-lg scale-105 z-10' : '' }}" style="border-radius: 20px; transition: transform 0.3s; {{ $isFeatured ? 'transform: scale(1.05); border: 2px solid var(--primary-gradient-start) !important;' : '' }}">
                             
                             @if($isFeatured)
                                 <div class="text-center" style="margin-top: -12px;">
