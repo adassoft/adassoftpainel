@@ -35,23 +35,34 @@ class ManageAapanel extends Page
                 Section::make('Configuração de Conexão')
                     ->description('Conecte seu painel aaPanel para criar subdomínios automaticamente.')
                     ->schema([
+                        \Filament\Forms\Components\Toggle::make('ativo')
+                            ->label('Ativar Integração Automática')
+                            ->helperText('Se desativado, o gerenciamento de domínios deverá ser feito manualmente no servidor.')
+                            ->default(false)
+                            ->live(),
+
                         TextInput::make('url')
                             ->label('URL do Painel')
                             ->placeholder('http://SEU_IP:8888')
                             ->helperText('Informe a URL completa de acesso ao painel, incluindo a porta.')
-                            ->required()
-                            ->url(),
+                            ->required(fn(\Filament\Forms\Get $get) => $get('ativo'))
+                            ->url()
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('ativo')),
+
                         TextInput::make('main_domain')
                             ->label('Domínio Principal')
                             ->placeholder('express.adassoft.com')
                             ->helperText('O site pai no aaPanel que receberá os Aliases.')
-                            ->required(),
+                            ->required(fn(\Filament\Forms\Get $get) => $get('ativo'))
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('ativo')),
+
                         TextInput::make('key')
                             ->label('API Key')
                             ->password()
                             ->revealable()
                             ->helperText('Obtenha em Settings > API no seu aaPanel.')
-                            ->required(),
+                            ->required(fn(\Filament\Forms\Get $get) => $get('ativo'))
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('ativo')),
                     ])->columns(1),
             ])
             ->statePath('data');

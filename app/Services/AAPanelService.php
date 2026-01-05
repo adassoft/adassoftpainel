@@ -18,10 +18,9 @@ class AAPanelService
 
     public function adicionarDominio($dominioCompleto)
     {
-        // Se não houver config, assumimos que a integração está desativada e retornamos sucesso
-        // para não bloquear o fluxo de aprovação no painel.
-        if (empty($this->config) || empty($this->config['url'])) {
-            return ['success' => true, 'msg' => 'Integração aaPanel não configurada (Skipped).'];
+        // Se a integração estiver desativada explícitamente ou não configurada
+        if (empty($this->config) || empty($this->config['ativo']) || !$this->config['ativo']) {
+            return ['success' => true, 'msg' => 'Integração aaPanel desativada pelo administrador (Skipped).'];
         }
 
         $url = rtrim($this->config['url'] ?? '', '/');
