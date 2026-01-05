@@ -62,7 +62,6 @@ class ManageResellerApprovals extends Page
 
         if (count($errors) > 0) {
             if ($force) {
-                // Se forçado, notifica erro mas prossegue (Warning em vez de Danger e return)
                 Notification::make()
                     ->warning()
                     ->title('Atenção: Erros na Integração (Aprovado Forçadamente)')
@@ -70,7 +69,6 @@ class ManageResellerApprovals extends Page
                     ->persistent()
                     ->send();
             } else {
-                // Comportamento padrão: Bloqueia
                 Notification::make()
                     ->danger()
                     ->title('Erro na Integração Server')
@@ -89,12 +87,23 @@ class ManageResellerApprovals extends Page
             'ativo' => true,
         ]);
 
-        // Fix: Tratar campos nulos para evitar erro SQL 1048 se colunas não forem nullable
+        // Fix: Tratar campos nulos e garantir defaults
         $updateData['logo_path'] = $updateData['logo_path'] ?? '';
-        $updateData['icone_path'] = $updateData['icone_path'] ?? ''; // Garante que não é null
+        $updateData['icone_path'] = $updateData['icone_path'] ?? '';
         $updateData['dominios'] = $updateData['dominios'] ?? '';
 
-        $config->update($updateData);
+        // SEGURANÇA: Filtrar apenas colunas que existem no Model (fillable)
+        // Isso evita erros "Column not found" se o JSON tiver dados extras
+        $fillable = $config->getFillable();
+        $safeData = array_intersect_key($updateData, array_flip($fillable));
+
+        // Garante campos cruciais mesmo após filtro
+        $safeData['status_aprovacao'] = 'aprovado';
+        $safeData['dados_pendentes'] = null;
+        $safeData['mensagem_rejeicao'] = null;
+        $safeData['ativo'] = true;
+
+        $config->update($safeData);
 
         // Log Histórico
         ResellerConfigHistory::create([
@@ -204,9 +213,11 @@ class ManageResellerApprovals extends Page
         $prompt .= "- Nome proposto: " . ($dadosPendentes['nome_sistema'] ?? 'N/A') . "\n";
         $prompt .= "- Slogan: " . ($dadosPendentes['slogan'] ?? 'N/A') . "\n";
         $prompt .= "- Domínios: " . ($dadosPendentes['dominios'] ?? 'N/A') . "\n";
-        $prompt .= "- Cores: " . ($dadosPendentes['cor_primaria_gradient_start'] ?? '') . " até " . ($dadosPendentes['cor_primaria_gradient_end'] ?? '') . "\n\n";
+        $prompt .= "- Cores (Start/End): " . ($dadosPendentes['cor_primaria_gradient_start'] ?? '?') . " até " . ($dadosPendentes['cor_primaria_gradient_end'] ?? '?') . "\n";
+        $prompt .= "- Cor Acento: " . ($dadosPendentes['cor_acento'] ?? 'N/A') . "\n";
+        $prompt .= "- Cor Secundária: " . ($dadosPendentes['cor_secundaria'] ?? 'N/A') . "\n";
         $prompt .= $dnsInfo . "\n";
-        $prompt .= "Instruções:\n1. Verifique se há termos ofensivos ou marcas famosas.\n2. Verifique o DNS.\n3. Responda em HTML simples (<b>, <p>).\n4. Dê um Veredito: Aprovar, Rejeitar ou Investigar.";
+        $prompt .= "Instruções:\n1. Verifique se há termos ofensivos ou marcas famosas.\n2. Avalie se as cores são visualmente agradáveis e harmônicas.\n3. Verifique o DNS.\n4. Responda em HTML simples (<b>, <p>).\n5. Dê um Veredito: Aprovar, Rejeitar ou Investigar.";
 
         try {
             $response = \Illuminate\Support\Facades\Http::post("https://generativelanguage.googleapis.com/v1beta/models/{$modelName}:generateContent?key=" . $apiKey, [
