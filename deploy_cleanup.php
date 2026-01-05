@@ -57,10 +57,41 @@ foreach ($empresas as $emp) {
 }
 echo "   -> $empCount empresas corrigidas.\n";
 
-// 3. Limpar Cache do Laravel
-echo "3. Limpando Cache do Sistema...\n";
+// 3. REFATORAÇÃO ESTRUTURAL (User -> Empresa ID)
+echo "3. Verificando e Corrigindo Estrutura (Empresa ID)...\n";
+
+if (!\Illuminate\Support\Facades\Schema::hasColumn('usuario', 'empresa_id')) {
+    echo "   -> Criando coluna 'empresa_id' na tabela 'usuario'...\n";
+    \Illuminate\Support\Facades\Schema::table('usuario', function (\Illuminate\Database\Schema\Blueprint $table) {
+        $table->integer('empresa_id')->nullable()->after('id')->index();
+    });
+}
+
+// Vincular usuários às empresas via CNPJ (migração)
+$users = \App\Models\User::whereNull('empresa_id')->whereNotNull('cnpj')->get();
+$linkedCount = 0;
+
+foreach ($users as $user) {
+    if (empty($user->cnpj))
+        continue;
+    $cleanCnpj = preg_replace('/\D/', '', $user->cnpj);
+
+    $empresa = \App\Models\Company::where('cnpj', $cleanCnpj)->first();
+
+    if ($empresa) {
+        // Update direto para ser rápido e seguro
+        \Illuminate\Support\Facades\DB::table('usuario')
+            ->where('id', $user->id)
+            ->update(['empresa_id' => $empresa->codigo]);
+        $linkedCount++;
+    }
+}
+echo "   -> $linkedCount usuários vinculados por ID.\n";
+
+// 4. Limpar Cache do Laravel
+echo "4. Limpando Cache do Sistema...\n";
 \Illuminate\Support\Facades\Artisan::call('optimize:clear');
 echo "   -> Cache limpo.\n";
 
 echo "=== CONCLUÍDO COM SUCESSO ===\n";
-echo "Agora você pode acessar o Painel Admin e configurar o Token Asaas da Revenda Padrão.\n";
+

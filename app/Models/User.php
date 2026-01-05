@@ -37,14 +37,15 @@ class User extends Authenticatable implements FilamentUser
      */
     protected $fillable = [
         'nome',
-        'name', // Virtual para Filament/Laravel
+        'name',
         'login',
         'email',
         'senha',
-        'password', // Virtual para Filament/Laravel
+        'password',
         'acesso',
         'status',
         'cnpj',
+        'empresa_id', // Novo campo FK
         'foto',
         'uf',
         'data',
@@ -68,21 +69,14 @@ class User extends Authenticatable implements FilamentUser
     {
         return [
             'data' => 'datetime',
-            // 'senha' => 'hashed', // Removido para permitir controle manual e evitar conflitos
         ];
     }
 
-    /**
-     * Get the password for the user.
-     *
-     * @return string
-     */
     public function getAuthPasswordName()
     {
         return 'senha';
     }
 
-    // Compatibility for 'name' -> 'nome'
     public function getNameAttribute()
     {
         return $this->nome ?? $this->login;
@@ -93,7 +87,6 @@ class User extends Authenticatable implements FilamentUser
         $this->attributes['nome'] = $value;
     }
 
-    // Compatibility for setting 'password' -> 'senha'
     public function setPasswordAttribute($value)
     {
         $this->attributes['senha'] = $value;
@@ -101,22 +94,18 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // Bloqueia acesso se status não for Ativo
         if ($this->status !== 'Ativo') {
             return false;
         }
 
-        // Admin geral pode acessar qualquer painel
         if ($this->email === 'admin@adassoft.com' || strtolower($this->acesso ?? '') === 'admin' || $this->acesso == 1) {
             return true;
         }
 
-        // Usuário comum só acessa o painel 'app'
         if ($panel->getId() === 'app') {
             return true;
         }
 
-        // Revendedor acessa o painel 'reseller' (Acesso 2)
         if ($panel->getId() === 'reseller' && (int) $this->acesso === 2) {
             return true;
         }
@@ -126,7 +115,8 @@ class User extends Authenticatable implements FilamentUser
 
     public function empresa()
     {
-        return $this->hasOne(Empresa::class, 'cnpj', 'cnpj');
+        // Agora usamos chave estrangeira real (empresa_id) apontando para a PK da empresa (codigo)
+        return $this->belongsTo(Company::class, 'empresa_id', 'codigo');
     }
 
     public function library()
