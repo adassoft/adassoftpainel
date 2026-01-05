@@ -22,6 +22,9 @@ class EditReseller extends EditRecord
                 ->color('success')
                 ->mountUsing(function (Actions\Action $action, EditReseller $livewire) {
                     $user = $livewire->record;
+                    // Garante dados frescos do banco
+                    $user->refresh();
+
                     $empresa = $user->empresa;
 
                     // Fallback para caso o ID não tenha sido migrado ainda
@@ -30,6 +33,7 @@ class EditReseller extends EditRecord
                         $empresa = \App\Models\Company::where('cnpj', $cleanCnpj)->first();
 
                         if ($empresa) {
+                            // Se achou, já salva o vínculo pra corrigir para a próxima vez
                             $user->empresa_id = $empresa->codigo;
                             $user->saveQuietly();
                         }
@@ -40,7 +44,7 @@ class EditReseller extends EditRecord
                             'razao' => $empresa->razao,
                             'asaas_access_token' => $empresa->asaas_access_token,
                             'asaas_wallet_id' => $empresa->asaas_wallet_id,
-                            'asaas_mode' => $empresa->asaas_mode ?? 'homologacao', // Default safe
+                            'asaas_mode' => $empresa->asaas_mode ?? 'homologacao',
                             'revenda_padrao' => (bool) $empresa->revenda_padrao,
                         ]);
                     }
