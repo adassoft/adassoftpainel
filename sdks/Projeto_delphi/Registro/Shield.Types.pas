@@ -37,6 +37,7 @@ type
     DiasAviso: Integer;
     DataInicio: TDateTime;
     DataExpiracao: TDateTime;
+
     DiasRestantes: Integer;
     Status: TShieldStatus;
     Mensagem: string;

@@ -228,9 +228,9 @@ object frmRegistro: TfrmRegistro
     TabOrder = 2
     Visible = False
     object lblStatusTexto: TLabel
-      Left = 200
+      Left = 144
       Top = 46
-      Width = 99
+      Width = 249
       Height = 17
       Alignment = taCenter
       AutoSize = False
@@ -288,10 +288,10 @@ object frmRegistro: TfrmRegistro
       ParentFont = False
     end
     object pnlStatusColor: TPanel
-      Left = 192
+      Left = 144
       Top = 67
-      Width = 113
-      Height = 4
+      Width = 249
+      Height = 7
       BevelOuter = bvNone
       Color = clLime
       ParentBackground = False

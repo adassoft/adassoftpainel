@@ -124,6 +124,15 @@ begin
           FLicense.DiasRestantes := Trunc(FLicense.DataExpiracao) - Trunc(Now);
       end;
         
+      if Obj.GetValue('terminais_permitidos') <> nil then
+        FLicense.TerminaisPermitidos := StrToIntDef(Obj.GetValue('terminais_permitidos').Value, 0);
+
+      if Obj.GetValue('terminais_utilizados') <> nil then
+        FLicense.TerminaisUtilizados := StrToIntDef(Obj.GetValue('terminais_utilizados').Value, 0);
+
+      if Obj.GetValue('data_inicio') <> nil then
+        FLicense.DataInicio := ISO8601ToDate(Obj.GetValue('data_inicio').Value);
+        
       // Recupera Aviso offline
       if Obj.GetValue('aviso_licenca') <> nil then
         FLicense.AvisoMensagem := Obj.GetValue('aviso_licenca').Value;
@@ -183,6 +192,15 @@ begin
 
     if FLicense.DataExpiracao > 0 then
       Obj.AddPair('data_expiracao', DateToISO8601(FLicense.DataExpiracao));
+      
+    if FLicense.TerminaisPermitidos > 0 then
+      Obj.AddPair('terminais_permitidos', TJSONNumber.Create(FLicense.TerminaisPermitidos));
+
+    if FLicense.TerminaisUtilizados > 0 then
+      Obj.AddPair('terminais_utilizados', TJSONNumber.Create(FLicense.TerminaisUtilizados));
+
+    if FLicense.DataInicio > 0 then
+      Obj.AddPair('data_inicio', DateToISO8601(FLicense.DataInicio));
       
     if FLicense.AvisoMensagem <> '' then
       Obj.AddPair('aviso_licenca', FLicense.AvisoMensagem);
@@ -266,8 +284,10 @@ begin
            raise Exception.Create(Resp.GetValue('mensagem').Value)
         else if Resp.GetValue('error') <> nil then
            raise Exception.Create(Resp.GetValue('error').Value)
+        else if Resp.GetValue('message') <> nil then
+           raise Exception.Create(Resp.GetValue('message').Value)
         else
-           raise Exception.Create('Erro desconhecido na autenticação (mensagem vazia).');
+           raise Exception.Create('Erro desconhecido. Resposta: ' + Resp.ToString);
       end;
     finally
       Resp.Free;
@@ -307,7 +327,20 @@ begin
     Resp := FAPI.PostRequest('validar_serial', Payload);
     try
       if Resp.GetValue('validacao') <> nil then
-        ProcessApiResponse(Resp);
+        ProcessApiResponse(Resp)
+      else 
+      begin
+         // Se nao veio validacao, verifica se tem erro explicito
+         if Resp.GetValue('error') <> nil then
+           FLicense.Mensagem := Resp.GetValue('error').Value
+         else if Resp.GetValue('mensagem') <> nil then
+           FLicense.Mensagem := Resp.GetValue('mensagem').Value
+         else if Resp.GetValue('message') <> nil then
+           FLicense.Mensagem := Resp.GetValue('message').Value;
+           
+         if FLicense.Mensagem <> '' then
+           FLicense.Status := stInvalid;  
+      end;
         
       Result := FLicense.IsValid;
       SaveCache;
@@ -338,7 +371,8 @@ begin
 
   if ValObj.GetValue('valido') <> nil then
   begin
-    if ValObj.GetValue<TJSONBool>('valido').AsBoolean then
+    var sVal := ValObj.GetValue('valido').Value.ToLower;
+    if (sVal = 'true') or (sVal = '1') then
       FLicense.Status := stValid
     else
       FLicense.Status := stInvalid;
@@ -378,11 +412,19 @@ begin
   begin
       sDate := ValObj.GetValue('data_inicio').Value;
       if sDate <> '' then
-         FLicense.DataInicio := ISO8601ToDate(sDate);
+      begin
+         try
+           FLicense.DataInicio := ISO8601ToDate(sDate);
+         except
+           FLicense.DataInicio := 0;
+         end;
+      end;
   end;
   
   if ValObj.GetValue('dias_restantes') <> nil then
-    FLicense.DiasRestantes :=  StrToIntDef(ValObj.GetValue('dias_restantes').Value, 0);
+    FLicense.DiasRestantes :=  StrToIntDef(ValObj.GetValue('dias_restantes').Value, 0)
+  else if FLicense.DataExpiracao > 0 then
+    FLicense.DiasRestantes := Trunc(FLicense.DataExpiracao) - Trunc(Now);
 
   if ValObj.GetValue('terminais_permitidos') <> nil then
     FLicense.TerminaisPermitidos := StrToIntDef(ValObj.GetValue('terminais_permitidos').Value, 0);
@@ -549,7 +591,11 @@ begin
       Item := JsonArr.Items[I] as TJSONObject;
       Result[I].Id := StrToIntDef(Item.GetValue('id').Value, 0);
       Result[I].Nome := Item.GetValue('nome_plano').Value;
-      Result[I].Valor := StrToFloatDef(Item.GetValue('valor').Value, 0.0);
+      
+      // Garante parsing correto de decimal com Ponto (JSON) independente do Locale do Windows
+      var ValStr := Item.GetValue('valor').Value;
+      Result[I].Valor := StrToFloatDef(ValStr, 0.0, TFormatSettings.Invariant);
+      
       Result[I].Descricao := Item.GetValue('recorrencia').Value; 
     end;
   finally

@@ -127,21 +127,29 @@
             <Form>Form1</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="Registro\Shield.API.pas"/>
+        <DCCReference Include="Registro\Shield.Config.pas"/>
+        <DCCReference Include="Registro\Shield.Core.pas"/>
+        <DCCReference Include="Registro\Shield.Security.pas"/>
+        <DCCReference Include="Registro\Shield.Types.pas"/>
+        <DCCReference Include="Registro\Views\uFrmAlert.pas">
+            <Form>frmAlert</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="Registro\Views\uFrmCadastro.pas">
+            <Form>frmCadastro</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="Registro\Views\uFrmCheckout.pas">
+            <Form>FrmCheckout</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <DCCReference Include="Registro\Views\uFrmRegistro.pas">
             <Form>frmRegistro</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="Registro\Views\uFrmRenovacao.pas">
             <Form>frmRenovacao</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="Registro\Shield.API.pas"/>
-        <DCCReference Include="Registro\Shield.Config.pas"/>
-        <DCCReference Include="Registro\Shield.Core.pas"/>
-        <DCCReference Include="Registro\Shield.Security.pas"/>
-        <DCCReference Include="Registro\Shield.Types.pas"/>
-        <DCCReference Include="Registro\Views\uFrmCadastro.pas">
-            <Form>frmCadastro</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Base">

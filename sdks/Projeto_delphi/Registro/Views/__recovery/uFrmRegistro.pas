@@ -41,6 +41,7 @@ type
     LabelInfo: TLabel;
     LabelInfo2: TLabel;
     btnCriarConta: TButton;
+    Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure btnFecharClick(Sender: TObject);
     procedure btnAtivarClick(Sender: TObject);
@@ -73,6 +74,8 @@ begin
   Form := TfrmRegistro.Create(nil);
   try
     Form.FShield := AShield;
+    // Tenta validar usando o cache carregado (Token/Serial) ao abrir a tela
+    Form.FShield.CheckLicense;
     Form.AtualizarUI;
     Form.ShowModal;
   finally
@@ -107,7 +110,8 @@ begin
     end
     else
     begin
-      lblStatusTexto.Caption := 'Status: EXPIRADO / INVÁLIDO';
+      lblStatusTexto.Caption := 'Status: EXPIRADO / INVÁLIDO (' + Info.Mensagem + ')';
+      Memo1.Lines.Add(Info.Mensagem);
       SetStatusColor(False);
     end;
     
@@ -127,8 +131,16 @@ begin
       lblDiasRestantes.Font.Style := [fsBold];
     end;
     
-    pbTempo.Max := 365; 
-    pbTempo.Position := 365 - Info.DiasRestantes;
+    if (Info.DataExpiracao > 0) and (Info.DataInicio > 0) then
+      pbTempo.Max := Trunc(Info.DataExpiracao) - Trunc(Info.DataInicio)
+    else
+      pbTempo.Max := 30; // Fallback visual
+      
+    if pbTempo.Max <= 0 then pbTempo.Max := 1;
+
+    // Barra de Progresso como "Tempo Decorrido" (Vazia no inicio, Cheia no fim)
+    pbTempo.Position := pbTempo.Max - Info.DiasRestantes;
+    
     if pbTempo.Position < 0 then pbTempo.Position := 0;
     
     if Info.DataInicio > 0 then

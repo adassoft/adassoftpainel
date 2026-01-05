@@ -228,10 +228,10 @@ object frmRegistro: TfrmRegistro
     TabOrder = 2
     Visible = False
     object lblStatusTexto: TLabel
-      Left = 200
-      Top = 46
-      Width = 99
-      Height = 17
+      Left = 8
+      Top = 38
+      Width = 476
+      Height = 18
       Alignment = taCenter
       AutoSize = False
       Caption = 'Status: ATIVO'
@@ -288,10 +288,10 @@ object frmRegistro: TfrmRegistro
       ParentFont = False
     end
     object pnlStatusColor: TPanel
-      Left = 192
+      Left = 144
       Top = 67
-      Width = 113
-      Height = 4
+      Width = 249
+      Height = 7
       BevelOuter = bvNone
       Color = clLime
       ParentBackground = False
@@ -310,6 +310,15 @@ object frmRegistro: TfrmRegistro
       Width = 299
       Height = 15
       TabOrder = 2
+    end
+    object Memo1: TMemo
+      Left = 8
+      Top = 175
+      Width = 483
+      Height = 210
+      Lines.Strings = (
+        'Memo1')
+      TabOrder = 3
     end
   end
   object pnlFooter: TPanel

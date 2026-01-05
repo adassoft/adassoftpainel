@@ -242,6 +242,9 @@ class LicenseService
         if (!$license)
             return ['success' => false, 'erro' => 'Licença não encontrada'];
 
+        // AUTO-REPARO: Remove vínculos inválidos (ID 0) criados por falhas anteriores
+        \App\Models\TerminalSoftware::where('terminal_codigo', 0)->delete();
+
         // Verifica se terminal já existe
         $terminal = \App\Models\Terminal::where('MAC', $mac)->first();
 

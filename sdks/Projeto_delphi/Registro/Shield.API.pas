@@ -3,7 +3,7 @@ unit Shield.API;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.JSON, IdHTTP, IdSSLOpenSSL,
+  System.SysUtils, System.Classes, System.JSON, IdHTTP, IdSSLOpenSSL, IdURI, System.DateUtils,
   Shield.Types, Shield.Config;
 
 type
@@ -166,6 +166,10 @@ begin
     
     Url := Url + '/software/' + IntToStr(SoftwareId) + '/plans';
     
+    // Auth Params para Middleware
+    Url := Url + '?api_key=' + TIdURI.ParamsEncode(FConfig.ApiKey);
+    Url := Url + '&timestamp=' + TIdURI.ParamsEncode(DateToISO8601(Now, False));
+    
     try
       RespString := Http.Get(Url);
       
@@ -220,8 +224,13 @@ begin
     if Serial <> '' then
       Payload.AddPair('licenca_serial', Serial);
       
+    // Auth Params obrigatórios
+    Payload.AddPair('api_key', FConfig.ApiKey);
+    Payload.AddPair('timestamp', DateToISO8601(Now, False));
+      
     ReqStream := TStringStream.Create(Payload.ToJSON, TEncoding.UTF8);
     try
+      try
       RespString := Http.Post(Url, ReqStream);
       
       RespJson := TJSONObject.ParseJSONValue(RespString) as TJSONObject;
@@ -240,8 +249,8 @@ begin
                 if PayObj.GetValue('qr_code_payload') <> nil then
                    Result.QrCodePayload := PayObj.GetValue('qr_code_payload').Value;
                    
-                if PayObj.GetValue('valor') <> nil then
-                   Result.Valor := StrToFloatDef(PayObj.GetValue('valor').Value, 0.0);
+                 if PayObj.GetValue('valor') <> nil then
+                   Result.Valor := StrToFloatDef(PayObj.GetValue('valor').Value, 0.0, TFormatSettings.Invariant);
                    
                 if PayObj.GetValue('vencimento') <> nil then
                    Result.Vencimento := PayObj.GetValue('vencimento').Value;
@@ -252,6 +261,23 @@ begin
       finally
         RespJson.Free;
       end;
+    except
+      on E: EIdHTTPProtocolException do
+      begin
+         // Tenta ler o JSON de erro
+         RespString := E.ErrorMessage;
+         if RespString = '' then RespString := '{}';
+         RespJson := TJSONObject.ParseJSONValue(RespString) as TJSONObject;
+         try
+           if (RespJson <> nil) and (RespJson.GetValue('error') <> nil) then
+              raise Exception.Create('API Error: ' + RespJson.GetValue('error').Value)
+           else
+              raise Exception.Create('HTTP Error ' + IntToStr(E.ErrorCode) + ': ' + E.Message);
+         finally
+           RespJson.Free;
+         end;
+      end;
+    end;
     finally
       ReqStream.Free;
     end;

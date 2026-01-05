@@ -20,6 +20,7 @@ class EditReseller extends EditRecord
                 ->label('Configurar Pagamento / Empresa')
                 ->icon('heroicon-o-currency-dollar')
                 ->color('success')
+                ->slideOver() // Abre como gaveta lateral
                 ->mountUsing(function (Actions\Action $action, EditReseller $livewire) {
                     $user = $livewire->record;
                     // Garante dados frescos do banco
@@ -27,7 +28,12 @@ class EditReseller extends EditRecord
 
                     $empresa = $user->empresa;
 
-                    // Fallback para caso o ID não tenha sido migrado ainda
+                    // Fallback 1: Se a relação falhou mas tem o ID gravado (Debug)
+                    if (!$empresa && $user->empresa_id) {
+                        $empresa = \App\Models\Company::find($user->empresa_id);
+                    }
+
+                    // Fallback 2: Se não tem ID, tenta pelo CNPJ (Legado -> Migração)
                     if (!$empresa && $user->cnpj) {
                         $cleanCnpj = preg_replace('/\D/', '', $user->cnpj);
                         $empresa = \App\Models\Company::where('cnpj', $cleanCnpj)->first();
@@ -46,6 +52,13 @@ class EditReseller extends EditRecord
                             'asaas_wallet_id' => $empresa->asaas_wallet_id,
                             'asaas_mode' => $empresa->asaas_mode ?? 'homologacao',
                             'revenda_padrao' => (bool) $empresa->revenda_padrao,
+                        ]);
+                    } else {
+                        // Se não tem empresa, sugere os dados do usuário para criar uma nova
+                        $action->fillForm([
+                            'razao' => $user->nome ?? $user->login,
+                            'asaas_mode' => 'homologacao',
+                            'revenda_padrao' => false,
                         ]);
                     }
                 })

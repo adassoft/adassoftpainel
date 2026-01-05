@@ -1,4 +1,4 @@
-unit uPrincipal;
+﻿unit uPrincipal;
 
 interface
 
@@ -67,10 +67,10 @@ begin
   // Configuracao (Pegue a API Key no painel Shield)
   Config := TShieldConfig.Create(
     'https://express.adassoft.com/api/v1/adassoft', // URL Base (Novo Padrão REST)
-    '71c47afc' + '5447f8d4' + '04fb1585' + 'e6c5297d' + 'bfb377d1' + '4216c984' + '1d158605' + '04e738e', // API Key Ofuscada
-    1,                                                  // ID do Software (Teste Dev)
+    'd8ae56db' + '7cabcc42' + '9d6f418e' + 'f8ed47d4' + '8e06e1a9' + '3b75062e' + '4f79dd37' + '0d60d2e0',  // API Key Ofuscada
+    3,                                                  // ID do Software (Teste Dev)
     '3.10.14',                                          // Versao
-    'SK-4A62-B' + '133-AA44' + '-B67F-0F' + '71-9F3C' + '-FFC7-3E51'        // Segredo validacao offline (Ofuscado)
+    '3547f5d0' + '0316ab9e' + 'd1b967bc' + '36685622' + '8bc32194' + 'ad8df4df' + 'e663844a' + '3a50e107' // Segredo validacao offline (Ofuscado)
   );
 
   MeuShield := TShield.Create(Config);
