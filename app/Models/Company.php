@@ -38,6 +38,7 @@ class Company extends Model
         'revenda_padrao',
         'asaas_access_token',
         'asaas_wallet_id',
+        'asaas_mode',
         'revenda_id', // FK para a empresa revendedora
     ];
 

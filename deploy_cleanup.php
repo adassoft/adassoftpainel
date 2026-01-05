@@ -112,6 +112,21 @@ foreach ($empresas as $emp) {
 }
 echo "   -> $migratedRevendas empresas vinculadas a revendas.\n";
 
+// 4.1. NOVAS COLUNAS: Wallet e Mode
+echo "4.1. Verificando colunas Asaas (Wallet e Mode)...\n";
+if (!\Illuminate\Support\Facades\Schema::hasColumn('empresa', 'asaas_wallet_id')) {
+    \Illuminate\Support\Facades\Schema::table('empresa', function (\Illuminate\Database\Schema\Blueprint $table) {
+        $table->string('asaas_wallet_id')->nullable()->after('asaas_access_token');
+    });
+    echo "   -> Coluna 'asaas_wallet_id' criada.\n";
+}
+if (!\Illuminate\Support\Facades\Schema::hasColumn('empresa', 'asaas_mode')) {
+    \Illuminate\Support\Facades\Schema::table('empresa', function (\Illuminate\Database\Schema\Blueprint $table) {
+        $table->string('asaas_mode')->default('homologacao')->after('asaas_wallet_id');
+    });
+    echo "   -> Coluna 'asaas_mode' criada.\n";
+}
+
 // 5. Limpar Cache do Laravel
 echo "5. Limpando Cache do Sistema...\n";
 \Illuminate\Support\Facades\Artisan::call('optimize:clear');
