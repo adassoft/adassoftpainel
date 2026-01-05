@@ -49,7 +49,8 @@ class EditReseller extends EditRecord
                 ->form([
                     Forms\Components\TextInput::make('razao')
                         ->label('Razão Social')
-                        ->disabled(),
+                        ->required()
+                        ->maxLength(255),
 
                     Forms\Components\TextInput::make('asaas_access_token')
                         ->label('Token Asaas')
@@ -61,13 +62,25 @@ class EditReseller extends EditRecord
                 ])
                 ->action(function (array $data, EditReseller $livewire) {
                     $user = $livewire->record;
-                    $empresa = $user->empresa; // Agora deve estar populado via update no mount ou já existente
-        
-                    // Fallback de segurança se o user não recarregou
+                    $empresa = $user->empresa;
+
+                    // Fallback de segurança + Criação se não existir
                     if (!$empresa && $user->cnpj) {
                         $cleanCnpj = preg_replace('/\D/', '', $user->cnpj);
                         $empresa = \App\Models\Company::where('cnpj', $cleanCnpj)->first();
 
+                        // SE AINDA NÃO EXISTE, CRIA
+                        if (!$empresa) {
+                            $empresa = new \App\Models\Company();
+                            $empresa->cnpj = $cleanCnpj;
+                            $empresa->razao = $data['razao'];
+                            $empresa->email = $user->email;
+                            $empresa->status = 'Ativo';
+                            $empresa->data = now();
+                            $empresa->save();
+                        }
+
+                        // Vincula
                         if ($empresa) {
                             $user->empresa_id = $empresa->codigo;
                             $user->saveQuietly();
@@ -76,6 +89,7 @@ class EditReseller extends EditRecord
 
                     if ($empresa) {
                         $empresa->update([
+                            'razao' => $data['razao'],
                             'asaas_access_token' => $data['asaas_access_token'],
                             'revenda_padrao' => $data['revenda_padrao'],
                         ]);
@@ -86,8 +100,8 @@ class EditReseller extends EditRecord
                             ->send();
                     } else {
                         \Filament\Notifications\Notification::make()
-                            ->title('Erro: Nenhuma empresa vinculada.')
-                            ->body('Verifique o CNPJ ou contate o suporte.')
+                            ->title('Erro: Usuário sem CNPJ.')
+                            ->body('Verifique o cadastro do usuário.')
                             ->danger()
                             ->send();
                     }
