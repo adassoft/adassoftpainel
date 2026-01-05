@@ -119,6 +119,7 @@ class ResellerBranding
             'cor_secondary' => $config->cor_secundaria ?? '#858796',
             'google_analytics_id' => $config->google_analytics_id,
             'facebook_pixel_id' => $config->facebook_pixel_id,
+            'microsoft_clarity_id' => $config->microsoft_clarity_id,
         ];
     }
 

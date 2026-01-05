@@ -202,6 +202,10 @@ class ResellerConfigResource extends Resource
                             ->label('Facebook Pixel ID')
                             ->placeholder('123456789012345')
                             ->numeric(),
+                        Forms\Components\TextInput::make('microsoft_clarity_id')
+                            ->label('Microsoft Clarity ID')
+                            ->placeholder('Ex: j4l920ls9')
+                            ->helperText('O ID do projeto (aparece na URL ou settings).'),
                     ])->columns(2)->collapsible(),
             ]);
     }

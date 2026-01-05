@@ -23,6 +23,7 @@ class ResellerConfig extends Model
         'exibir_documento',
         'google_analytics_id',
         'facebook_pixel_id',
+        'microsoft_clarity_id',
         'cor_secundaria',
         'dominios',
         'ativo',

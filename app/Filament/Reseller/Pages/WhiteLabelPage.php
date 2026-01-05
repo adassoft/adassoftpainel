@@ -65,6 +65,7 @@ class WhiteLabelPage extends Page implements HasForms
         $dadosIniciais['cor_secundaria'] = $dadosIniciais['cor_secundaria'] ?? '#858796';
         $dadosIniciais['google_analytics_id'] = $dadosIniciais['google_analytics_id'] ?? '';
         $dadosIniciais['facebook_pixel_id'] = $dadosIniciais['facebook_pixel_id'] ?? '';
+        $dadosIniciais['microsoft_clarity_id'] = $dadosIniciais['microsoft_clarity_id'] ?? '';
 
         $this->form->fill($dadosIniciais);
     }
@@ -76,7 +77,7 @@ class WhiteLabelPage extends Page implements HasForms
                 Section::make('Identidade Visual')
                     ->description('Defina como seus clientes verão o sistema.')
                     ->schema([
-                        // ... (identidade visual) ...
+                        // Linha 1: Nome e Slogan
                         TextInput::make('nome_sistema')
                             ->label('Nome do Sistema')
                             ->required()
@@ -111,7 +112,7 @@ class WhiteLabelPage extends Page implements HasForms
                             ->live()
                             ->columnSpanFull(),
 
-                        // Cores
+                        // IA Action
                         \Filament\Forms\Components\Actions::make([
                             \Filament\Forms\Components\Actions\Action::make('suggestColors')
                                 ->label('🎨 Sugerir Paleta Completa com IA')
@@ -128,6 +129,7 @@ class WhiteLabelPage extends Page implements HasForms
                                 ]),
                         ])->fullWidth(),
 
+                        // Grid de Cores
                         Grid::make(2)->schema([
                             TextInput::make('cor_primaria_gradient_start')
                                 ->label('Cor Degradê Início')
@@ -172,6 +174,10 @@ class WhiteLabelPage extends Page implements HasForms
                             ->label('Facebook Pixel ID')
                             ->placeholder('Somente números')
                             ->numeric(),
+                        TextInput::make('microsoft_clarity_id')
+                            ->label('Microsoft Clarity Project ID')
+                            ->placeholder('Ex: k8l293j2')
+                            ->columnSpanFull(),
                     ])->columns(2)->collapsible(),
 
                 Section::make('Configuração de Domínio')
