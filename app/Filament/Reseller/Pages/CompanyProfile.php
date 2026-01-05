@@ -2,7 +2,7 @@
 
 namespace App\Filament\Reseller\Pages;
 
-use App\Models\Empresa;
+use App\Models\Company;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -19,8 +19,6 @@ class CompanyProfile extends Page
     protected static ?string $title = 'Dados da Empresa';
     protected static ?string $slug = 'configurar-empresa';
 
-
-
     protected static string $view = 'filament.reseller.pages.company-profile';
 
     public ?array $data = [];
@@ -29,14 +27,29 @@ class CompanyProfile extends Page
     {
         $user = Auth::user();
 
-        // Tenta achar a empresa pelo CNPJ do usuário
-        $empresa = Empresa::where('cnpj', $user->cnpj)->first();
+        // Estratégia de Carregamento: ID (Vínculo Seguro) > CNPJ (Legado)
+        $empresa = null;
+        if ($user->empresa_id) {
+            $empresa = Company::find($user->empresa_id);
+        }
+
+        if (!$empresa && $user->cnpj) {
+            $cleanCnpj = preg_replace('/\D/', '', $user->cnpj);
+            $empresa = Company::where('cnpj', $cleanCnpj)->first();
+
+            // Auto-fix vínculo
+            if ($empresa) {
+                $user->empresa_id = $empresa->codigo;
+                $user->saveQuietly();
+            }
+        }
 
         if ($empresa) {
             $this->form->fill($empresa->toArray());
         } else {
             $this->form->fill([
-                'email' => $user->email, // Preenche email por conveniência
+                'email' => $user->email,
+                'razao' => $user->nome,
             ]);
         }
     }
@@ -50,17 +63,16 @@ class CompanyProfile extends Page
                     ->required()
                     ->maxLength(255),
 
-                TextInput::make('nome_fantasia')
+                TextInput::make('nome_fantasia') // Campo "nome_fantasia" não existe no Model Company original, mapear para razao se necessário ou manter se coluna existir
                     ->label('Nome Fantasia')
-                    ->required()
                     ->maxLength(255),
 
                 TextInput::make('cnpj')
                     ->label('CNPJ')
                     ->required()
                     ->mask('99.999.999/9999-99')
-                    ->unique('empresa', 'cnpj', ignoreRecord: true)
-                    ->live(onBlur: true), // Validação ao sair do campo
+                    ->dehydrateStateUsing(fn($state) => preg_replace('/\D/', '', $state ?? ''))
+                    ->live(onBlur: true),
 
                 TextInput::make('email')
                     ->label('Email Corporativo')
@@ -70,11 +82,13 @@ class CompanyProfile extends Page
                 TextInput::make('fone')
                     ->label('Telefone/WhatsApp')
                     ->mask('(99) 99999-9999')
+                    ->dehydrateStateUsing(fn($state) => preg_replace('/\D/', '', $state ?? ''))
                     ->required(),
 
                 TextInput::make('cep')
                     ->label('CEP')
                     ->mask('99999-999')
+                    ->dehydrateStateUsing(fn($state) => preg_replace('/\D/', '', $state ?? ''))
                     ->required(),
 
                 TextInput::make('endereco')
@@ -108,16 +122,44 @@ class CompanyProfile extends Page
             $data = $this->form->getState();
             $user = Auth::user();
 
-            // Lógica de Create or Update baseada no CNPJ
-            // Problema: se ele mudar o CNPJ, criamos uma nova ou atualizamos?
-            // Como CNPJ é a chave de ligação, se mudar o CNPJ tem que atualizar no User também.
+            // Limpeza de dados
+            $data['cnpj'] = preg_replace('/\D/', '', $data['cnpj']);
+            $data['fone'] = preg_replace('/\D/', '', $data['fone']);
+            $data['cep'] = preg_replace('/\D/', '', $data['cep']);
 
-            $empresa = Empresa::updateOrCreate(
-                ['cnpj' => $data['cnpj']], // Busca por CNPJ
-                $data // Atualiza tudo
-            );
+            // Recupera Empresa existente
+            $empresa = null;
+            if ($user->empresa_id) {
+                $empresa = Company::find($user->empresa_id);
+            }
 
-            // Atualiza o usuário para ter esse CNPJ
+            if ($empresa) {
+                // UPDATE: Atualiza empresa existente
+                $empresa->update($data);
+            } else {
+                // CREATE: Nova empresa (Cuidado com duplicação de CNPJ)
+                // Verifica se já existe empresa solta com esse CNPJ
+                $existingCompany = Company::where('cnpj', $data['cnpj'])->first();
+
+                if ($existingCompany) {
+                    // Se existe, apropria-se dela
+                    $existingCompany->update($data);
+                    $empresa = $existingCompany;
+                } else {
+                    // Cria nova
+                    $empresa = new Company();
+                    $empresa->fill($data);
+                    $empresa->status = 'Ativo';
+                    $empresa->data = now();
+                    $empresa->save();
+                }
+
+                // Vincula
+                $user->empresa_id = $empresa->codigo;
+                $user->save();
+            }
+
+            // Sincroniza CNPJ no User para manter compatibilidade legado
             if ($user->cnpj !== $data['cnpj']) {
                 $user->cnpj = $data['cnpj'];
                 $user->save();
@@ -127,9 +169,6 @@ class CompanyProfile extends Page
                 ->success()
                 ->title('Empresa salva com sucesso!')
                 ->send();
-
-            // Se veio redirecionado, talvez recarregar a página para limpar o aviso
-            // Mas o middleware vai deixar passar agora.
 
         } catch (Halt $exception) {
             return;
