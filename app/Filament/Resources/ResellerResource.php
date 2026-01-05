@@ -80,6 +80,17 @@ class ResellerResource extends Resource
                             ->default('Ativo')
                             ->required(),
                     ])->columns(2),
+
+                Section::make('Configurações Globais')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_revenda_padrao')
+                            ->label('Esta é a Revenda Padrão do Sistema?')
+                            ->helperText('Se ativado, esta revenda receberá os pagamentos de clientes sem vínculo específico.')
+                            ->onColor('success')
+                            ->offColor('danger')
+                            ->formatStateUsing(fn($record) => $record?->empresa?->revenda_padrao ?? false)
+                            ->dehydrated(false),
+                    ]),
             ]);
     }
 
