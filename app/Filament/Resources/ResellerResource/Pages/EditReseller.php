@@ -20,26 +20,25 @@ class EditReseller extends EditRecord
                 ->label('Configurar Pagamento / Empresa')
                 ->icon('heroicon-o-currency-dollar')
                 ->color('success')
-                ->slideOver() // Abre como gaveta lateral
+                ->modalWidth('lg') // Remove slideOver e fixa tamanho
                 ->mountUsing(function (Actions\Action $action, EditReseller $livewire) {
                     $user = $livewire->record;
-                    // Garante dados frescos do banco
                     $user->refresh();
 
-                    $empresa = $user->empresa;
+                    // DEBUG: Verifique storage/logs/laravel.log
+                    \Illuminate\Support\Facades\Log::info("EditReseller Mount: User ID {$user->id}, Empresa ID: {$user->empresa_id}");
 
-                    // Fallback 1: Se a relação falhou mas tem o ID gravado (Debug)
-                    if (!$empresa && $user->empresa_id) {
+                    $empresa = null;
+                    if ($user->empresa_id) {
                         $empresa = \App\Models\Company::find($user->empresa_id);
                     }
 
-                    // Fallback 2: Se não tem ID, tenta pelo CNPJ (Legado -> Migração)
+                    // Fallback CNPJ se não achou por ID
                     if (!$empresa && $user->cnpj) {
                         $cleanCnpj = preg_replace('/\D/', '', $user->cnpj);
                         $empresa = \App\Models\Company::where('cnpj', $cleanCnpj)->first();
 
                         if ($empresa) {
-                            // Se achou, já salva o vínculo pra corrigir para a próxima vez
                             $user->empresa_id = $empresa->codigo;
                             $user->saveQuietly();
                         }
@@ -54,7 +53,7 @@ class EditReseller extends EditRecord
                             'revenda_padrao' => (bool) $empresa->revenda_padrao,
                         ]);
                     } else {
-                        // Se não tem empresa, sugere os dados do usuário para criar uma nova
+                        // Preenchimento automático para criação
                         $action->fillForm([
                             'razao' => $user->nome ?? $user->login,
                             'asaas_mode' => 'homologacao',
@@ -75,7 +74,7 @@ class EditReseller extends EditRecord
 
                     Forms\Components\TextInput::make('asaas_wallet_id')
                         ->label('Wallet ID')
-                        ->helperText('ID da carteira Asaas (opcional)'),
+                        ->helperText('Opcional'),
 
                     Forms\Components\Select::make('asaas_mode')
                         ->label('Ambiente Asaas')
@@ -92,7 +91,13 @@ class EditReseller extends EditRecord
                 ])
                 ->action(function (array $data, EditReseller $livewire) {
                     $user = $livewire->record;
-                    $empresa = $user->empresa;
+                    \Illuminate\Support\Facades\Log::info("EditReseller Action: User ID {$user->id}, Data: " . json_encode($data));
+
+                    // Busca fresca para evitar erro de objeto "stale"
+                    $empresa = null;
+                    if ($user->empresa_id) {
+                        $empresa = \App\Models\Company::find($user->empresa_id);
+                    }
 
                     // Fallback + Criação
                     if (!$empresa && $user->cnpj) {
@@ -114,13 +119,12 @@ class EditReseller extends EditRecord
                     }
 
                     if ($empresa) {
-                        $empresa->update([
+                        // Update explícito usando Query Builder para evitar Mutators estranhos
+                        \App\Models\Company::where('codigo', $empresa->codigo)->update([
                             'razao' => $data['razao'],
                             'asaas_access_token' => $data['asaas_access_token'],
                             'asaas_wallet_id' => $data['asaas_wallet_id'],
                             'asaas_mode' => $data['asaas_mode'],
-                            // Removemos o cast complexo, confiando que o Toggle retorna true/false
-                            // Se o form vier null, usamos false
                             'revenda_padrao' => $data['revenda_padrao'] ? 1 : 0,
                         ]);
 
