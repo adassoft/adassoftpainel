@@ -117,7 +117,14 @@ class WhiteLabelPage extends Page implements HasForms
                                 ->action('analyzeLogoColor')
                                 ->tooltip('A IA analisará sua logo e sugerirá gradientes, cores de destaque e tons secundários.')
                                 ->color('violet')
-                                ->icon('heroicon-m-sparkles'),
+                                ->icon('heroicon-m-sparkles')
+                                ->size('lg')
+                                ->extraAttributes([
+                                    'class' => 'w-full mb-4 shadow-lg hover:scale-[1.01] transition-transform',
+                                    'wire:loading.attr' => 'disabled',
+                                    'wire:loading.class' => 'opacity-70 cursor-wait',
+                                    'wire:target' => 'analyzeLogoColor',
+                                ]),
                         ])->fullWidth(),
 
                         Grid::make(2)->schema([
