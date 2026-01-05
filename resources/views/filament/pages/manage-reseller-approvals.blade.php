@@ -156,16 +156,43 @@
                                         class="px-4 py-4 font-bold bg-gray-50/50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
                                         Logo</td>
                                     <td class="px-4 py-4 border-r border-gray-200 dark:border-gray-700">
-                                        <span
-                                            class="text-xs font-mono text-gray-400">{{ $item->logo_path ?? 'favicon.svg' }}</span>
+                                        <div class="flex flex-col gap-1">
+                                            <span
+                                                class="text-xs font-mono text-gray-400">{{ $item->logo_path ?? 'favicon.svg' }}</span>
+                                            @if(!empty($item->logo_path))
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($item->logo_path) }}"
+                                                    class="h-10 mt-1 border border-gray-200 dark:border-gray-700 rounded p-1 object-contain bg-gray-50 opacity-75">
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-4 py-4">
                                         <div class="flex flex-col gap-1">
                                             <span
                                                 class="text-xs font-mono text-gray-600 dark:text-gray-300">{{ $novos['logo_path'] ?? 'favicon.svg' }}</span>
                                             @if(!empty($novos['logo_path']))
-                                                <img src="{{ $novos['logo_path'] }}"
-                                                    class="h-10 mt-1 border border-gray-200 dark:border-gray-700 rounded p-1 object-contain bg-white">
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($novos['logo_path']) }}"
+                                                    class="h-14 mt-1 border border-gray-200 dark:border-gray-700 rounded p-1 object-contain bg-white">
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{-- Row: Icone --}}
+                                <tr>
+                                    <td
+                                        class="px-4 py-4 font-bold bg-gray-50/50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
+                                        Ícone (Favicon)
+                                    </td>
+                                    <td class="px-4 py-4 border-r border-gray-200 dark:border-gray-700">
+                                        <span
+                                            class="text-xs font-mono text-gray-400">{{ $item->icone_path ?? 'favicon.png' }}</span>
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        <div class="flex flex-col gap-1">
+                                            <span
+                                                class="text-xs font-mono text-gray-600 dark:text-gray-300">{{ $novos['icone_path'] ?? 'favicon.png' }}</span>
+                                            @if(!empty($novos['icone_path']))
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($novos['icone_path']) }}"
+                                                    class="h-8 w-8 mt-1 border border-gray-200 dark:border-gray-700 rounded p-0.5 object-contain bg-white">
                                             @endif
                                         </div>
                                     </td>
@@ -181,12 +208,12 @@
                             <x-filament::button color="info" icon="heroicon-m-sparkles"
                                 class="w-full justify-center shadow-md bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
                                 @click="
-                                                    loading = true;
-                                                    $wire.analyzeIA({{ $item->id }}).then(res => {
-                                                        analysis = res;
-                                                        loading = false;
-                                                    })
-                                                " x-show="!analysis && !loading">
+                                                            loading = true;
+                                                            $wire.analyzeIA({{ $item->id }}).then(res => {
+                                                                analysis = res;
+                                                                loading = false;
+                                                            })
+                                                        " x-show="!analysis && !loading">
                                 Usar Assistente de IA para Analisar Risco
                             </x-filament::button>
 
@@ -286,9 +313,9 @@
                                     <div class="flex justify-end gap-3">
                                         <x-filament::button color="gray" @click="close">Cancelar</x-filament::button>
                                         <x-filament::button color="warning" @click="
-                                                                $wire.requestCorrection({{ $item->id }}, $refs.correction_text.value);
-                                                                close();
-                                                            ">
+                                                                        $wire.requestCorrection({{ $item->id }}, $refs.correction_text.value);
+                                                                        close();
+                                                                    ">
                                             Enviar Solicitação
                                         </x-filament::button>
                                     </div>
@@ -322,9 +349,9 @@
                                     <div class="flex justify-end gap-3">
                                         <x-filament::button color="gray" @click="close">Cancelar</x-filament::button>
                                         <x-filament::button color="danger" @click="
-                                                                $wire.reject({{ $item->id }}, $refs.rejection_text.value);
-                                                                close();
-                                                            ">
+                                                                        $wire.reject({{ $item->id }}, $refs.rejection_text.value);
+                                                                        close();
+                                                                    ">
                                             Confirmar Rejeição
                                         </x-filament::button>
                                     </div>
