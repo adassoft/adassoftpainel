@@ -113,7 +113,10 @@ class ManageResellerApprovals extends Page
             'admin_id' => auth()->id(),
         ]);
 
-        Notification::make()->success()->title('Aprovado!')->body('Configurações aplicadas com sucesso.')->send();
+        // Cache Busting: Nuclear Option (Garante que View, Config e Cache sejam limpos)
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+
+        Notification::make()->success()->title('Aprovado!')->body('Configurações aplicadas e caches do servidor limpos.')->send();
         $this->loadRequests();
     }
 
