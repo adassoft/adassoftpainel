@@ -104,9 +104,15 @@ class ResellerConfigResource extends Resource
                                         $colors = json_decode($jsonString, true);
 
                                         if (json_last_error() === JSON_ERROR_NONE && isset($colors['start']) && isset($colors['end'])) {
+                                            $colors['accent'] = $colors['accent'] ?? $colors['start'];
+                                            $colors['secondary'] = $colors['secondary'] ?? '#858796';
+
                                             $set('cor_primaria_gradient_start', $colors['start']);
                                             $set('cor_primaria_gradient_end', $colors['end']);
-                                            \Filament\Notifications\Notification::make()->success()->title('Cores Aplicadas!')->body("Sugerido: {$colors['start']} -> {$colors['end']}")->send();
+                                            $set('cor_acento', $colors['accent']);
+                                            $set('cor_secundaria', $colors['secondary']);
+
+                                            \Filament\Notifications\Notification::make()->success()->title('Paleta Aplicada!')->body("Sugerido: {$colors['start']} -> {$colors['end']}")->send();
                                         } else {
                                             throw new \Exception("Formato inválido da IA.");
                                         }
@@ -129,11 +135,23 @@ class ResellerConfigResource extends Resource
 
                         Forms\Components\ColorPicker::make('cor_primaria_gradient_start')
                             ->label('Cor Início (Gradiente)')
-                            ->default('#1a2980'),
+                            ->default('#1a2980')
+                            ->regex('/^#([a-f0-9]{6}|[a-f0-9]{3})$/i'),
 
                         Forms\Components\ColorPicker::make('cor_primaria_gradient_end')
                             ->label('Cor Fim (Gradiente)')
-                            ->default('#26d0ce'),
+                            ->default('#26d0ce')
+                            ->regex('/^#([a-f0-9]{6}|[a-f0-9]{3})$/i'),
+
+                        Forms\Components\ColorPicker::make('cor_acento')
+                            ->label('Cor de Acento (Botões)')
+                            ->default('#4e73df')
+                            ->regex('/^#([a-f0-9]{6}|[a-f0-9]{3})$/i'),
+
+                        Forms\Components\ColorPicker::make('cor_secundaria')
+                            ->label('Cor Secundária (Detalhes)')
+                            ->default('#858796')
+                            ->regex('/^#([a-f0-9]{6}|[a-f0-9]{3})$/i'),
 
                         Forms\Components\TextInput::make('logo_path')
                             ->label('Caminho da Logo (URL ou Arquivo)')

@@ -132,23 +132,31 @@ class WhiteLabelPage extends Page implements HasForms
                                 ->label('Cor Degradê Início')
                                 ->type('color')
                                 ->required()
+                                ->regex('/^#([a-f0-9]{6}|[a-f0-9]{3})$/i')
+                                ->length(7)
                                 ->live(),
                             TextInput::make('cor_primaria_gradient_end')
                                 ->label('Cor Degradê Fim')
                                 ->type('color')
                                 ->required()
+                                ->regex('/^#([a-f0-9]{6}|[a-f0-9]{3})$/i')
+                                ->length(7)
                                 ->live(),
                             TextInput::make('cor_acento')
                                 ->label('Cor de Destaque (Botões)')
                                 ->helperText('Usada nos botões de compra e chamadas para ação.')
                                 ->type('color')
                                 ->required()
+                                ->regex('/^#([a-f0-9]{6}|[a-f0-9]{3})$/i')
+                                ->length(7)
                                 ->live(),
                             TextInput::make('cor_secundaria')
                                 ->label('Cor Secundária (Detalhes)')
                                 ->helperText('Usada em ícones e textos de apoio.')
                                 ->type('color')
                                 ->required()
+                                ->regex('/^#([a-f0-9]{6}|[a-f0-9]{3})$/i')
+                                ->length(7)
                                 ->live(),
                         ]),
                     ]),
