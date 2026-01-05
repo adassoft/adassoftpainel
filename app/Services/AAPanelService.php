@@ -56,9 +56,10 @@ class AAPanelService
                 return ['success' => true, 'msg' => "Domínio $dominioCompleto adicionado com sucesso."];
             }
 
+            Log::warning("AAPanel Domain Add Failed: " . json_encode($result));
             return ['success' => false, 'msg' => $result['msg'] ?? 'Erro desconhecido no aaPanel.'];
         } catch (\Exception $e) {
-            Log::error("AAPanel Error: " . $e->getMessage());
+            Log::error("AAPanel Connection Error: " . $e->getMessage());
             return ['success' => false, 'msg' => 'Conexão falhou: ' . $e->getMessage()];
         }
     }
