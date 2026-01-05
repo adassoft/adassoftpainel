@@ -15,4 +15,31 @@ class CreateReseller extends CreateRecord
         $data['acesso'] = 2; // Garante que é criado como Revenda
         return $data;
     }
+
+    protected function afterCreate(): void
+    {
+        $user = $this->record;
+
+        if (!empty($user->cnpj)) {
+            $cleanCnpj = preg_replace('/\D/', '', $user->cnpj);
+
+            // Verifica se empresa já existe
+            $empresa = \App\Models\Company::where('cnpj', $cleanCnpj)->first();
+
+            if (!$empresa) {
+                // Cria nova empresa
+                $empresa = new \App\Models\Company();
+                $empresa->cnpj = $cleanCnpj;
+                $empresa->razao = $user->nome ?? 'Nova Revenda';
+                $empresa->email = $user->email;
+                $empresa->status = 'Ativo';
+                $empresa->data = now();
+                $empresa->save();
+            }
+
+            // Vincula ao usuário recém criado
+            $user->empresa_id = $empresa->codigo;
+            $user->saveQuietly();
+        }
+    }
 }
