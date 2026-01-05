@@ -536,20 +536,31 @@ class ValidationController extends Controller
             if (!$empresaRecebedora) {
                 // Identificar a Empresa do Usuário
                 $empresaCliente = null;
-                if ($user->cnpj) {
+
+                // Tenta achar a empresa cliente via USER
+                if ($user->empresa) {
+                    $empresaCliente = $user->empresa;
+                } elseif ($user->cnpj) {
+                    // Legado
                     $cnpjUserLimpo = preg_replace('/\D/', '', $user->cnpj);
                     $empresaCliente = \App\Models\Company::where('cnpj', $cnpjUserLimpo)->first();
                 }
 
-                if ($empresaCliente && !empty($empresaCliente->cnpj_representante)) {
-                    // Busca a revenda apontada
-                    $cnpjRepLimpo = preg_replace('/\D/', '', $empresaCliente->cnpj_representante);
-                    $empresaRecebedora = \App\Models\Company::where('cnpj', $cnpjRepLimpo)->first();
-                }
+                if ($empresaCliente) {
+                    // Tenta achar a Revenda vinculada
+                    if ($empresaCliente->revenda) {
+                        // Novo padrão: ID
+                        $empresaRecebedora = $empresaCliente->revenda;
+                    } elseif (!empty($empresaCliente->cnpj_representante)) {
+                        // Velho padrão: CNPJ String
+                        $cnpjRepLimpo = preg_replace('/\D/', '', $empresaCliente->cnpj_representante);
+                        $empresaRecebedora = \App\Models\Company::where('cnpj', $cnpjRepLimpo)->first();
+                    }
 
-                // Se a própria empresa do usuário for revenda
-                if (!$empresaRecebedora && $empresaCliente && !empty($empresaCliente->asaas_access_token)) {
-                    $empresaRecebedora = $empresaCliente;
+                    // Se a própria empresa do usuário for revenda (tem token)
+                    if (!$empresaRecebedora && !empty($empresaCliente->asaas_access_token)) {
+                        $empresaRecebedora = $empresaCliente;
+                    }
                 }
             }
 
@@ -565,7 +576,11 @@ class ValidationController extends Controller
             }
 
             $asaasToken = $empresaRecebedora->asaas_access_token ?? null;
-            $asaasMode = env('ASAAS_MODE', 'production');
+
+            // Determina modo: Preferência do Banco > ENV > 'production'
+            $asaasMode = $empresaRecebedora->asaas_mode ?? env('ASAAS_MODE', 'production');
+            // Normaliza modo para o construtor do Service (se for 'producao' vira 'production', etc)
+            $asaasMode = ($asaasMode === 'homologacao' || $asaasMode === 'sandbox') ? 'sandbox' : 'production';
 
             if (empty($asaasToken) && env('ASAAS_API_KEY')) {
                 $asaasToken = env('ASAAS_API_KEY');
