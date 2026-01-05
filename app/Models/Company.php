@@ -17,6 +17,8 @@ class Company extends Model
         'cnpj',
         'razao',
         'endereco',
+        'numero',
+        'complemento',
         'cidade',
         'bairro',
         'cep',

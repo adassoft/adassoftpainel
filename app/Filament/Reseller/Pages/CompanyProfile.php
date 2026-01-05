@@ -170,6 +170,9 @@ class CompanyProfile extends Page
                 ->title('Empresa salva com sucesso!')
                 ->send();
 
+            // Recarrega os dados no formulário visível
+            $this->form->fill($empresa->fresh()->toArray());
+
         } catch (Halt $exception) {
             return;
         }
