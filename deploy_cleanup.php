@@ -88,8 +88,32 @@ foreach ($users as $user) {
 }
 echo "   -> $linkedCount usuários vinculados por ID.\n";
 
-// 4. Limpar Cache do Laravel
-echo "4. Limpando Cache do Sistema...\n";
+// 4. ESTRUTURA: Empresa -> Revenda (ID)
+echo "4. Migrando Empresa -> Revenda ID...\n";
+if (!\Illuminate\Support\Facades\Schema::hasColumn('empresa', 'revenda_id')) {
+    \Illuminate\Support\Facades\Schema::table('empresa', function (\Illuminate\Database\Schema\Blueprint $table) {
+        $table->integer('revenda_id')->nullable()->index()->after('cnpj_representante');
+    });
+}
+// Migra dados
+$empresas = \App\Models\Company::whereNotNull('cnpj_representante')->whereNull('revenda_id')->get();
+$migratedRevendas = 0;
+foreach ($empresas as $emp) {
+    if (empty($emp->cnpj_representante))
+        continue;
+    $cleanRep = preg_replace('/\D/', '', $emp->cnpj_representante);
+    $revenda = \App\Models\Company::where('cnpj', $cleanRep)->first();
+    if ($revenda && $revenda->codigo !== $emp->codigo) {
+        \Illuminate\Support\Facades\DB::table('empresa')
+            ->where('codigo', $emp->codigo)
+            ->update(['revenda_id' => $revenda->codigo]);
+        $migratedRevendas++;
+    }
+}
+echo "   -> $migratedRevendas empresas vinculadas a revendas.\n";
+
+// 5. Limpar Cache do Laravel
+echo "5. Limpando Cache do Sistema...\n";
 \Illuminate\Support\Facades\Artisan::call('optimize:clear');
 echo "   -> Cache limpo.\n";
 

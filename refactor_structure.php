@@ -72,9 +72,37 @@ foreach ($users as $user) {
 echo "      -> Vínculos existentes atualizados: $updated\n";
 echo "      -> Novas empresas criadas: $created\n";
 
-// 3. Opcional: Adicionar FK constraint (se o banco for InnoDB e suportar)
-// Schema::table('usuario', function (Blueprint $table) {
-//     $table->foreign('empresa_id')->references('codigo')->on('empresa');
-// });
+// 4. Migração: Empresa -> Revenda (ID)
+echo "\n[3/4] Criando coluna 'revenda_id' na tabela 'empresa' e migrando vínculos...\n";
 
-echo "\n[3/3] Concluído. Agora atualize os Models e o Filament Resource!\n";
+if (!Schema::hasColumn('empresa', 'revenda_id')) {
+    Schema::table('empresa', function (Blueprint $table) {
+        $table->integer('revenda_id')->nullable()->index()->after('cnpj_representante');
+    });
+    echo "      -> Coluna 'revenda_id' criada.\n";
+}
+
+$empresas = Company::whereNotNull('cnpj_representante')->whereNull('revenda_id')->get();
+$migratedRevendas = 0;
+
+foreach ($empresas as $emp) {
+    if (empty($emp->cnpj_representante))
+        continue;
+
+    $cleanRep = preg_replace('/\D/', '', $emp->cnpj_representante);
+
+    // Busca a Revenda pelo CNPJ
+    $revenda = Company::where('cnpj', $cleanRep)->first();
+
+    if ($revenda) {
+        // Evita auto-referência
+        if ($revenda->codigo !== $emp->codigo) {
+            $emp->revenda_id = $revenda->codigo;
+            $emp->saveQuietly();
+            $migratedRevendas++;
+        }
+    }
+}
+echo "      -> $migratedRevendas empresas vinculadas à sua revenda por ID.\n";
+
+echo "\n[4/4] Concluído. Atualize os Models Company e ValidationController!\n";

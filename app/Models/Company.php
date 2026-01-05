@@ -38,6 +38,7 @@ class Company extends Model
         'revenda_padrao',
         'asaas_access_token',
         'asaas_wallet_id',
+        'revenda_id', // FK para a empresa revendedora
     ];
 
     protected $casts = [
@@ -62,5 +63,10 @@ class Company extends Model
     public function users()
     {
         return $this->hasMany(User::class, 'cnpj', 'cnpj');
+    }
+
+    public function revenda()
+    {
+        return $this->belongsTo(Company::class, 'revenda_id', 'codigo');
     }
 }

@@ -442,12 +442,24 @@ class ValidationController extends Controller
         }
 
         // Fallback: Se não achou pela Licença, tenta pelo Representante da Empresa do Usuário
-        if (!$cnpjRevenda && $user && $user->cnpj) {
-            $cnpjUserLimpo = preg_replace('/\D/', '', $user->cnpj);
-            $empresaCliente = \App\Models\Company::where('cnpj', $cnpjUserLimpo)->first();
+        if (!$cnpjRevenda && $user) {
+            // NEW: Tenta usar a relação direta por ID (Mais seguro e rápido)
+            if ($user->empresa && $user->empresa->revenda) {
+                $cnpjRevenda = preg_replace('/\D/', '', $user->empresa->revenda->cnpj);
+            }
+            // LEGACY: Fallback para busca textual se a relação ID não existir
+            elseif ($user->cnpj) {
+                $cnpjUserLimpo = preg_replace('/\D/', '', $user->cnpj);
+                $empresaCliente = \App\Models\Company::where('cnpj', $cnpjUserLimpo)->first();
 
-            if ($empresaCliente && !empty($empresaCliente->cnpj_representante)) {
-                $cnpjRevenda = preg_replace('/\D/', '', $empresaCliente->cnpj_representante);
+                if ($empresaCliente) {
+                    // Tenta ver se a empresa tem revenda_id mesmo que user->empresa não tenha sido carregado
+                    if ($empresaCliente->revenda) {
+                        $cnpjRevenda = preg_replace('/\D/', '', $empresaCliente->revenda->cnpj);
+                    } elseif (!empty($empresaCliente->cnpj_representante)) {
+                        $cnpjRevenda = preg_replace('/\D/', '', $empresaCliente->cnpj_representante);
+                    }
+                }
             }
         }
 
