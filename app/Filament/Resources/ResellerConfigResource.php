@@ -191,6 +191,18 @@ class ResellerConfigResource extends Resource
                             Forms\Components\TextInput::make('youtube_url')->label('YouTube (URL)')->url()->prefix('https://'),
                         ])->columnSpanFull()->columns(2),
                     ])->columns(2)->collapsible(),
+
+                Forms\Components\Section::make('Marketing e Rastreamento')
+                    ->schema([
+                        Forms\Components\TextInput::make('google_analytics_id')
+                            ->label('Google Analytics 4 (GA4)')
+                            ->placeholder('G-XXXXXXXXXX')
+                            ->helperText('Insira o ID de medição.'),
+                        Forms\Components\TextInput::make('facebook_pixel_id')
+                            ->label('Facebook Pixel ID')
+                            ->placeholder('123456789012345')
+                            ->numeric(),
+                    ])->columns(2)->collapsible(),
             ]);
     }
 

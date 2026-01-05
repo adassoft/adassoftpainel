@@ -117,6 +117,8 @@ class ResellerBranding
             'cor_end' => $config->cor_primaria_gradient_end ?? '#224abe',
             'cor_accent' => $config->cor_acento ?? ($config->cor_primaria_gradient_start ?? '#4e73df'),
             'cor_secondary' => $config->cor_secundaria ?? '#858796',
+            'google_analytics_id' => $config->google_analytics_id,
+            'facebook_pixel_id' => $config->facebook_pixel_id,
         ];
     }
 

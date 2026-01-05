@@ -63,6 +63,8 @@ class WhiteLabelPage extends Page implements HasForms
         $dadosIniciais['dominios'] = $dadosIniciais['dominios'] ?? '';
         $dadosIniciais['cor_acento'] = $dadosIniciais['cor_acento'] ?? '#4e73df';
         $dadosIniciais['cor_secundaria'] = $dadosIniciais['cor_secundaria'] ?? '#858796';
+        $dadosIniciais['google_analytics_id'] = $dadosIniciais['google_analytics_id'] ?? '';
+        $dadosIniciais['facebook_pixel_id'] = $dadosIniciais['facebook_pixel_id'] ?? '';
 
         $this->form->fill($dadosIniciais);
     }
@@ -74,6 +76,7 @@ class WhiteLabelPage extends Page implements HasForms
                 Section::make('Identidade Visual')
                     ->description('Defina como seus clientes verão o sistema.')
                     ->schema([
+                        // ... (identidade visual) ...
                         TextInput::make('nome_sistema')
                             ->label('Nome do Sistema')
                             ->required()
@@ -108,8 +111,6 @@ class WhiteLabelPage extends Page implements HasForms
                             ->live()
                             ->columnSpanFull(),
 
-                        // Cores
-                        // Cores (Usando TextInput type color nativo para garantir compatibilidade)
                         // Cores
                         \Filament\Forms\Components\Actions::make([
                             \Filament\Forms\Components\Actions\Action::make('suggestColors')
@@ -160,6 +161,18 @@ class WhiteLabelPage extends Page implements HasForms
                                 ->live(),
                         ]),
                     ]),
+
+                Section::make('Marketing & Analytics')
+                    ->schema([
+                        TextInput::make('google_analytics_id')
+                            ->label('Google Analytics 4 (GA4)')
+                            ->placeholder('G-XXXXXXXXXX')
+                            ->helperText('Opcional. Insira seu ID de fluxo.'),
+                        TextInput::make('facebook_pixel_id')
+                            ->label('Facebook Pixel ID')
+                            ->placeholder('Somente números')
+                            ->numeric(),
+                    ])->columns(2)->collapsible(),
 
                 Section::make('Configuração de Domínio')
                     ->schema([
