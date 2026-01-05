@@ -80,29 +80,6 @@ class ResellerResource extends Resource
                             ->default('Ativo')
                             ->required(),
                     ])->columns(2),
-
-                Section::make('Dados da Empresa e Pagamento')
-                    ->description('Configurações da empresa vinculada a esta revenda.')
-                    ->relationship('empresa') // Edita a tabela empresa via relacionamento
-                    ->schema([
-                        TextInput::make('razao')
-                            ->label('Razão Social')
-                            ->required()
-                            ->maxLength(255),
-
-                        TextInput::make('asaas_access_token')
-                            ->label('Token de Acesso Asaas (API Key)')
-                            ->helperText('Chave (começada com $aact_...) obtida no painel do Asaas. Obrigatório para receber pagamentos via Pix.')
-                            ->password()
-                            ->revealable()
-                            ->columnSpanFull(),
-
-                        Forms\Components\Toggle::make('revenda_padrao')
-                            ->label('Revenda Padrão do Sistema')
-                            ->helperText('Se marcado, essa revenda será usada como fallback para clientes sem vínculo definido.')
-                            ->dehydrated(true)
-                            ->columnSpanFull(),
-                    ])->collapsible(),
             ]);
     }
 
