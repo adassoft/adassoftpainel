@@ -58,7 +58,8 @@ class EditReseller extends EditRecord
                         ->revealable(),
 
                     Forms\Components\Toggle::make('revenda_padrao')
-                        ->label('Revenda Padrão'),
+                        ->label('Revenda Padrão')
+                        ->default(false), // Garante valor inicial
                 ])
                 ->action(function (array $data, EditReseller $livewire) {
                     $user = $livewire->record;
@@ -91,7 +92,7 @@ class EditReseller extends EditRecord
                         $empresa->update([
                             'razao' => $data['razao'],
                             'asaas_access_token' => $data['asaas_access_token'],
-                            'revenda_padrao' => $data['revenda_padrao'],
+                            'revenda_padrao' => (bool) ($data['revenda_padrao'] ?? false), // Força booleano
                         ]);
 
                         \Filament\Notifications\Notification::make()
