@@ -412,11 +412,39 @@ class ValidationController extends Controller
             $query->where('software_id', $softwareId);
         }
 
-        $planos = $query->orderBy('valor')->get()->map(function ($p) {
+        // Recupera o Usuário para identificar a Revenda
+        $user = $request->user();
+        $cnpjRevenda = null;
+
+        if ($user && $user->cnpj) {
+            // Busca empresa do cliente para ver quem é o representante (revenda)
+            // Normaliza CNPJ removendo pontuação para garantir o match
+            $cnpjUserLimpo = preg_replace('/\D/', '', $user->cnpj);
+            $empresaCliente = \App\Models\Company::where('cnpj', $cnpjUserLimpo)->first();
+
+            if ($empresaCliente && !empty($empresaCliente->cnpj_representante)) {
+                $cnpjRevenda = preg_replace('/\D/', '', $empresaCliente->cnpj_representante);
+            }
+        }
+
+        $planos = $query->orderBy('valor')->get()->map(function ($p) use ($cnpjRevenda) {
+            $valorFinal = $p->valor;
+
+            // Se identificamos uma revenda, busca preço diferenciado
+            if ($cnpjRevenda) {
+                $planoRevenda = \App\Models\PlanoRevenda::where('cnpj_revenda', $cnpjRevenda)
+                    ->where('plano_id', $p->id)
+                    ->first();
+                // Se existir registro e tiver valor definido
+                if ($planoRevenda && isset($planoRevenda->valor_venda)) {
+                    $valorFinal = $planoRevenda->valor_venda;
+                }
+            }
+
             return [
                 'id' => $p->id,
                 'nome_plano' => $p->nome_plano,
-                'valor' => $p->valor,
+                'valor' => $valorFinal, // Valor ajustado
                 'recorrencia' => $p->recorrencia,
                 'status' => $p->status
             ];
