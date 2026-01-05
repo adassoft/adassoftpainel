@@ -144,12 +144,17 @@
             --primary-gradient-end:
                 {{ $branding['cor_end'] ?? '#224abe' }}
             ;
-            --primary-btn-bg:
-                {{ $branding['cor_start'] ?? '#4e73df' }}
+            --color-accent:
+                {{ $branding['cor_accent'] ?? ($branding['cor_start'] ?? '#4e73df') }}
             ;
-            --primary-btn-hover:
-                {{ $branding['cor_end'] ?? '#224abe' }}
+            --color-secondary:
+                {{ $branding['cor_secondary'] ?? '#858796' }}
             ;
+
+            /* Derivados */
+            --primary-btn-bg: var(--color-accent);
+            /* Agora o botão principal segue o acento. */
+            --primary-btn-hover: var(--primary-gradient-end);
         }
 
         /* Aplicações Globais que usam a cor da marca */
@@ -184,23 +189,50 @@
             background-color: var(--primary-gradient-start) !important;
             border-color: var(--primary-gradient-start) !important;
         }
+
         .btn-primary:hover {
             background-color: var(--primary-gradient-end) !important;
             border-color: var(--primary-gradient-end) !important;
         }
+
         .btn-outline-primary {
             color: var(--primary-gradient-start) !important;
             border-color: var(--primary-gradient-start) !important;
         }
+
         .btn-outline-primary:hover {
             background-color: var(--primary-gradient-start) !important;
             color: #fff !important;
         }
+
         .text-primary {
             color: var(--primary-gradient-start) !important;
         }
+
         .border-primary {
             border-color: var(--primary-gradient-start) !important;
+        }
+
+        /* Novas Classes Utilitárias */
+        .text-accent {
+            color: var(--color-accent) !important;
+        }
+
+        .bg-accent {
+            background-color: var(--color-accent) !important;
+            color: white;
+        }
+
+        .border-accent {
+            border-color: var(--color-accent) !important;
+        }
+
+        .text-secondary-custom {
+            color: var(--color-secondary) !important;
+        }
+
+        .bg-secondary-custom {
+            background-color: var(--color-secondary) !important;
         }
     </style>
     @yield('extra-css')

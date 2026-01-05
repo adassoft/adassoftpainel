@@ -20,6 +20,8 @@ class ResellerConfig extends Model
         'icone_path',
         'cor_primaria_gradient_start',
         'cor_primaria_gradient_end',
+        'cor_acento',
+        'cor_secundaria',
         'dominios',
         'ativo',
         'dados_pendentes',

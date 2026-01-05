@@ -61,6 +61,8 @@ class WhiteLabelPage extends Page implements HasForms
         $dadosIniciais['logo_path'] = $dadosIniciais['logo_path'] ?? '';
         $dadosIniciais['icone_path'] = $dadosIniciais['icone_path'] ?? ''; // Novo
         $dadosIniciais['dominios'] = $dadosIniciais['dominios'] ?? '';
+        $dadosIniciais['cor_acento'] = $dadosIniciais['cor_acento'] ?? '#4e73df';
+        $dadosIniciais['cor_secundaria'] = $dadosIniciais['cor_secundaria'] ?? '#858796';
 
         $this->form->fill($dadosIniciais);
     }
@@ -111,9 +113,9 @@ class WhiteLabelPage extends Page implements HasForms
                         // Cores
                         \Filament\Forms\Components\Actions::make([
                             \Filament\Forms\Components\Actions\Action::make('suggestColors')
-                                ->label('🎨 Sugerir Cores com Inteligência Artificial')
+                                ->label('🎨 Sugerir Paleta Completa com IA')
                                 ->action('analyzeLogoColor')
-                                ->tooltip('A IA analisará sua logo e sugerirá um gradiente perfeito para sua marca.')
+                                ->tooltip('A IA analisará sua logo e sugerirá gradientes, cores de destaque e tons secundários.')
                                 ->color('violet')
                                 ->icon('heroicon-m-sparkles'),
                         ])->fullWidth(),
@@ -126,6 +128,18 @@ class WhiteLabelPage extends Page implements HasForms
                                 ->live(),
                             TextInput::make('cor_primaria_gradient_end')
                                 ->label('Cor Degradê Fim')
+                                ->type('color')
+                                ->required()
+                                ->live(),
+                            TextInput::make('cor_acento')
+                                ->label('Cor de Destaque (Botões)')
+                                ->helperText('Usada nos botões de compra e chamadas para ação.')
+                                ->type('color')
+                                ->required()
+                                ->live(),
+                            TextInput::make('cor_secundaria')
+                                ->label('Cor Secundária (Detalhes)')
+                                ->helperText('Usada em ícones e textos de apoio.')
                                 ->type('color')
                                 ->required()
                                 ->live(),
@@ -235,7 +249,11 @@ class WhiteLabelPage extends Page implements HasForms
 
             // 4. Chamar IA
             $service = new GeminiService();
-            $prompt = "Atue como um Designer de UI Sênior. Analise esta logo. Identifique a cor dominante principal e uma cor secundária harmônica para criar um degradê (gradiente) moderno e profissional. Retorne APENAS um JSON estrito (sem markdown) no formato: {\"start\": \"#colorHex\", \"end\": \"#colorHex\"}. Exemplo: {\"start\": \"#1a2980\", \"end\": \"#26d0ce\"}.";
+            $prompt = "Atue como um Designer de UI Sênior. Analise esta logo. Extraia uma paleta de cores profissional:
+            1. 'start' e 'end': Duas cores para um gradiente de fundo moderno.
+            2. 'accent': Uma cor de destaque vibrante (contraste alto) para botões de Compra/CTA.
+            3. 'secondary': Uma cor sóbria para detalhes secundários.
+            Retorne APENAS JSON estrito: {\"start\": \"#hex\", \"end\": \"#hex\", \"accent\": \"#hex\", \"secondary\": \"#hex\"}.";
 
             $response = $service->generateContent($prompt, $base64, $mimeType);
 
@@ -252,14 +270,20 @@ class WhiteLabelPage extends Page implements HasForms
 
             if (json_last_error() === JSON_ERROR_NONE && isset($colors['start']) && isset($colors['end'])) {
 
+                // Garante fallbacks se a IA alucinar e não mandar todas
+                $colors['accent'] = $colors['accent'] ?? $colors['start'];
+                $colors['secondary'] = $colors['secondary'] ?? '#858796';
+
                 // Aplica colors
                 $this->form->fill([
                     ...$data,
                     'cor_primaria_gradient_start' => $colors['start'],
                     'cor_primaria_gradient_end' => $colors['end'],
+                    'cor_acento' => $colors['accent'],
+                    'cor_secundaria' => $colors['secondary'],
                 ]);
 
-                Notification::make()->success()->title('Sucesso!')->body("Cores sugeridas aplicadas: {$colors['start']} -> {$colors['end']}")->send();
+                Notification::make()->success()->title('Paleta Aplicada!')->body("Cores sugeridas com sucesso.")->send();
 
             } else {
                 throw new \Exception("A IA não retornou um formato válido. Resposta: " . substr($reply, 0, 100));

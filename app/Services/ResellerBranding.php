@@ -113,8 +113,10 @@ class ResellerBranding
             'slogan' => $config->slogan,
             'logo_url' => $config->logo_path ? Storage::url($config->logo_path) : null,
             'icone_url' => $config->icone_path ? Storage::url($config->icone_path) : asset('favicon.svg'),
-            'cor_start' => $config->cor_primaria_gradient_start ?? '#1e293b', // Default Slate 800 or similar
-            'cor_end' => $config->cor_primaria_gradient_end ?? '#06b6d4', // Default Cyan 500
+            'cor_start' => $config->cor_primaria_gradient_start ?? '#4e73df',
+            'cor_end' => $config->cor_primaria_gradient_end ?? '#224abe',
+            'cor_accent' => $config->cor_acento ?? ($config->cor_primaria_gradient_start ?? '#4e73df'),
+            'cor_secondary' => $config->cor_secundaria ?? '#858796',
         ];
     }
 
