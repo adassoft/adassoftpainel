@@ -21,7 +21,8 @@
         connect-src 'self' https://www.google-analytics.com https://stats.g.doubleclick.net https://www.clarity.ms https://c.bing.com https://www.facebook.com https://app.chatwoot.com;
     ">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="@yield('meta_description', 'Softwares de Gestão simples e eficientes. Emita carnês, controle vendas e automatize processos com a AdasSoft.')">
+    <meta name="description"
+        content="@yield('meta_description', 'Softwares de Gestão simples e eficientes. Emita carnês, controle vendas e automatize processos com a AdasSoft.')">
 
     {{-- SEO Canonical: Evita conteúdo duplicado em revendas --}}
     @php
@@ -47,13 +48,22 @@
     <!-- Fonts (Optimized) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
+
     <!-- FontAwesome (Async Load) -->
-    <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" media="print" onload="this.media='all'">
-    <noscript><link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"></noscript>
+    <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" media="print"
+        onload="this.media='all'">
+    <noscript>
+        <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    </noscript>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
+    <link rel="preload"
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&display=swap"
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i&display=swap">
+    </noscript>
 
     <!-- Styles (Preload Critical) -->
     <link rel="preload" href="/css/sb-admin-2.min.css" as="style">
@@ -269,7 +279,7 @@
             !function (f, b, e, v, n, t, s) {
                 if (f.fbq) return; n = f.fbq = function () {
                     n.callMethod ?
-                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+                        n.callMethod.apply(n, arguments) : n.queue.push(arguments)
                 };
                 if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
                 n.queue = []; t = b.createElement(e); t.async = !0;
@@ -288,10 +298,10 @@
     @if(!empty($branding['microsoft_clarity_id']))
         <!-- Microsoft Clarity -->
         <script type="text/javascript">
-            (function(c,l,a,r,i,t,y){
-                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            (function (c, l, a, r, i, t, y) {
+                c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+                t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+                y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
             })(window, document, "clarity", "script", "{{ $branding['microsoft_clarity_id'] }}");
         </script>
     @endif
