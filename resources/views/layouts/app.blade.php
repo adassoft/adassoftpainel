@@ -11,6 +11,15 @@
 
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self'; 
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.facebook.com https://www.clarity.ms https://c.bing.com https://app.chatwoot.com; 
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+        img-src 'self' data: https://www.facebook.com https://googleads.g.doubleclick.net https://stats.g.doubleclick.net https://www.google-analytics.com; 
+        font-src 'self' https://fonts.gstatic.com data:; 
+        frame-src 'self' https://www.youtube.com https://www.facebook.com https://app.chatwoot.com; 
+        connect-src 'self' https://www.google-analytics.com https://stats.g.doubleclick.net https://www.clarity.ms https://c.bing.com https://www.facebook.com https://app.chatwoot.com;
+    ">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="@yield('meta_description', 'Softwares de Gestão simples e eficientes. Emita carnês, controle vendas e automatize processos com a AdasSoft.')">
 
