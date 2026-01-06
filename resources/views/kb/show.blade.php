@@ -130,7 +130,7 @@
                         @if($article->category && $article->category->articles->count() > 1)
                             <h6 class="font-weight-bold text-uppercase text-gray-500 mb-3 pl-3">Nesta Categoria</h6>
                             <div class="bg-white rounded-lg shadow-sm p-3">
-                                @foreach($article->category->articles()->where('is_public', true)->orderBy('sort_order')->take(10)->get() as $related)
+                                @foreach($article->category->articles()->where('is_public', true)->orderBy('updated_at', 'desc')->take(10)->get() as $related)
                                     <a href="{{ route('kb.show', $related->slug ?? 'artigo-' . $related->id) }}"
                                         class="sidebar-link {{ $related->id == $article->id ? 'active' : '' }}">
                                         {{ $related->title }}
