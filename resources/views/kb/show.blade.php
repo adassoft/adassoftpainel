@@ -140,6 +140,10 @@
                                 @endif
                             </div>
 
+                            <div class="kb-content mb-5">
+                                {!! $article->content !!}
+                            </div>
+
                             @if($article->video_url)
                                 @php
                                     preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/\s]{11})%i', $article->video_url, $match);
@@ -147,17 +151,17 @@
                                 @endphp
 
                                 @if($videoId)
-                                    <div class="embed-responsive embed-responsive-16by9 mb-5 rounded shadow-sm"
-                                        style="border-radius: 12px; overflow: hidden;">
-                                        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/{{ $videoId }}"
-                                            allowfullscreen></iframe>
+                                    <div class="mb-4">
+                                        <h5 class="font-weight-bold mb-3"><i class="fab fa-youtube text-danger mr-2"></i> Vídeo
+                                            Tutorial</h5>
+                                        <div class="embed-responsive embed-responsive-16by9 rounded shadow-sm"
+                                            style="border-radius: 12px; overflow: hidden;">
+                                            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/{{ $videoId }}"
+                                                allowfullscreen></iframe>
+                                        </div>
                                     </div>
                                 @endif
                             @endif
-
-                            <div class="kb-content">
-                                {!! $article->content !!}
-                            </div>
 
                             <!-- Feedback Section (Simples) -->
                             <div class="mt-5 pt-4 border-top text-center">
