@@ -405,7 +405,7 @@
             <div class="row text-white text-md-left text-center">
                 <!-- Coluna 1: Empresa -->
                 <div class="col-md-4 mb-4 text-center text-md-left">
-                    <img src="{{ $iconeUrl }}" width="48" height="48"
+                    <img src="{{ $iconeUrl }}" width="48" height="48" alt="{{ $appName ?? 'Logo' }}"
                         class="mb-3 rounded bg-white p-1 mx-auto mx-md-0 d-block" style="object-fit: contain;"
                         onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                     <h5 class="font-weight-bold mb-2">{{ $appName }}</h5>

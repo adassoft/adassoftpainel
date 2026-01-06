@@ -190,7 +190,7 @@
                                 $displayPath = $imgPath ? (filter_var($imgPath, FILTER_VALIDATE_URL) ? $imgPath : asset($imgPath)) : asset('img/placeholder_card.svg');
                             @endphp
 
-                            <img src="{{ $displayPath }}"
+                            <img src="{{ $displayPath }}" alt="{{ $prod->nome_software }}"
                                 class="card-img-top {{ !$prod->imagem_destaque && $prod->imagem ? 'p-4' : '' }}"
                                 style="width: 100%; height: 220px; object-fit: {{ !$prod->imagem_destaque && $prod->imagem ? 'contain' : 'cover' }};">
 
