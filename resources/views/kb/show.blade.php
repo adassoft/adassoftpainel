@@ -108,6 +108,21 @@
                                 @endif
                             </div>
 
+                            @if($article->video_url)
+                                @php
+                                    preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/\s]{11})%i', $article->video_url, $match);
+                                    $videoId = $match[1] ?? null;
+                                @endphp
+
+                                @if($videoId)
+                                    <div class="embed-responsive embed-responsive-16by9 mb-5 rounded shadow-sm"
+                                        style="border-radius: 12px; overflow: hidden;">
+                                        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/{{ $videoId }}"
+                                            allowfullscreen></iframe>
+                                    </div>
+                                @endif
+                            @endif
+
                             <div class="kb-content">
                                 {!! $article->content !!}
                             </div>

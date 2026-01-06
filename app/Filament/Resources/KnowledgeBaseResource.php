@@ -52,6 +52,15 @@ class KnowledgeBaseResource extends Resource
                     ->required()
                     ->columnSpanFull(),
 
+                Forms\Components\TextInput::make('video_url')
+                    ->label('Vídeo do YouTube (URL)')
+                    ->prefixIcon('heroicon-o-video-camera')
+                    ->prefix('URL')
+                    ->placeholder('https://youtube.com/watch?v=...')
+                    ->helperText('Cole o link do vídeo para exibir no topo do artigo.')
+                    ->url()
+                    ->columnSpanFull(),
+
                 Forms\Components\RichEditor::make('content')
                     ->label('Conteúdo')
                     ->required()
