@@ -98,7 +98,7 @@
         }
 
         .nav-link.btn-partner {
-            color: #1cc88a !important;
+            color: #158c61 !important;
             font-weight: 700;
         }
 

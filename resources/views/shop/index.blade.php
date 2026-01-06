@@ -113,7 +113,7 @@
         .price-tag {
             font-size: 1.5rem;
             font-weight: 800;
-            color: #1cc88a;
+            color: #158c61;
         }
 
         .hero-shape {
@@ -142,6 +142,10 @@
             bottom: 20%;
             left: 30%;
         }
+
+        /* Acessibilidade: Contraste de Textos */
+        .text-gray-500 { color: #6e707e !important; }
+        .text-gray-600 { color: #5a5c69 !important; }
     </style>
 @endsection
 
