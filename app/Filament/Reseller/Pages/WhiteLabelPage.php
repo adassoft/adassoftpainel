@@ -165,22 +165,35 @@ class WhiteLabelPage extends Page implements HasForms
                     ]),
 
                 Section::make('Marketing & Analytics')
+                    ->icon('heroicon-o-presentation-chart-line')
                     ->schema([
                         TextInput::make('google_analytics_id')
                             ->label('Google Analytics 4 (GA4)')
                             ->placeholder('G-XXXXXXXXXX')
-                            ->helperText('Opcional. Insira seu ID de fluxo.'),
+                            ->helperText(new \Illuminate\Support\HtmlString('
+                                ID da Métrica (G-...) do <a href="https://analytics.google.com/" target="_blank" class="text-primary-600 hover:underline">Google Analytics</a>.
+                                <br><span class="text-xs text-gray-500">Admin > Fluxo de Dados > Detalhes do Fluxo.</span>
+                            ')),
                         TextInput::make('facebook_pixel_id')
                             ->label('Facebook Pixel ID')
                             ->placeholder('Somente números')
-                            ->numeric(),
+                            ->numeric()
+                            ->helperText(new \Illuminate\Support\HtmlString('
+                                ID numérico do <a href="https://business.facebook.com/events_manager2" target="_blank" class="text-primary-600 hover:underline">Gerenciador de Eventos</a>.
+                                <br><span class="text-xs text-gray-500">Fontes de Dados > Configurações.</span>
+                            ')),
                         TextInput::make('microsoft_clarity_id')
                             ->label('Microsoft Clarity Project ID')
                             ->placeholder('Ex: k8l293j2')
+                            ->helperText(new \Illuminate\Support\HtmlString('
+                                ID do Projeto no <a href="https://clarity.microsoft.com/projects" target="_blank" class="text-primary-600 hover:underline">Microsoft Clarity</a>.
+                                <br><span class="text-xs text-gray-500">Configurações > Visão Geral (Project ID).</span>
+                            '))
                             ->columnSpanFull(),
                     ])->columns(2)->collapsible(),
 
                 Section::make('Configuração de Domínio')
+                    ->icon('heroicon-o-globe-alt')
                     ->schema([
                         TextInput::make('dominios')
                             ->label('Domínios Permitidos')

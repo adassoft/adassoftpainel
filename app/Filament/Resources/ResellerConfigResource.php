@@ -168,7 +168,7 @@ class ResellerConfigResource extends Resource
                             ->default(false)
                             ->inline(false)
                             ->onColor('success'),
-                    ])->columns(2),
+                    ])->columns(2), // Fim schema Visual
 
                 Forms\Components\Section::make('Contato e Redes Sociais')
                     ->description('Informações públicas exibidas no rodapé do site.')
@@ -197,15 +197,16 @@ class ResellerConfigResource extends Resource
                         Forms\Components\TextInput::make('google_analytics_id')
                             ->label('Google Analytics 4 (GA4)')
                             ->placeholder('G-XXXXXXXXXX')
-                            ->helperText('Insira o ID de medição.'),
+                            ->helperText(new \Illuminate\Support\HtmlString('ID da Métrica (G-...) do <a href="https://analytics.google.com/" target="_blank">Google Analytics</a>.')),
                         Forms\Components\TextInput::make('facebook_pixel_id')
                             ->label('Facebook Pixel ID')
                             ->placeholder('123456789012345')
-                            ->numeric(),
+                            ->numeric()
+                            ->helperText(new \Illuminate\Support\HtmlString('ID do Dataset no <a href="https://business.facebook.com/events_manager2" target="_blank">Events Manager</a>.')),
                         Forms\Components\TextInput::make('microsoft_clarity_id')
                             ->label('Microsoft Clarity ID')
                             ->placeholder('Ex: j4l920ls9')
-                            ->helperText('O ID do projeto (aparece na URL ou settings).'),
+                            ->helperText(new \Illuminate\Support\HtmlString('Project ID nas <a href="https://clarity.microsoft.com/projects" target="_blank">Configurações</a> do Clarity.')),
                     ])->columns(2)->collapsible(),
             ]);
     }
