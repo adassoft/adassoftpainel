@@ -308,6 +308,10 @@
                         <a class="nav-link {{ Request::routeIs('downloads') ? 'active-link' : '' }}"
                             href="{{ route('downloads') }}">Downloads</a>
                     </li>
+                    <li class="nav-item mx-3">
+                        <a class="nav-link {{ Request::routeIs('kb.*') ? 'active-link' : '' }}"
+                            href="{{ route('kb.index') }}">Ajuda</a>
+                    </li>
                     @if(\App\Services\ResellerBranding::isDefault())
                         <li class="nav-item mx-3">
                             <a class="nav-link btn-partner" href="{{ route('partners.index') }}">
@@ -415,6 +419,8 @@
                                 class="text-reset text-decoration-none hover-white">Início</a></li>
                         <li class="mb-2"><a href="{{ route('downloads') }}"
                                 class="text-reset text-decoration-none hover-white">Downloads</a></li>
+                        <li class="mb-2"><a href="{{ route('kb.index') }}"
+                                class="text-reset text-decoration-none hover-white">Central de Ajuda</a></li>
                         <li class="mb-2"><a href="{{ route('partners.index') }}"
                                 class="text-reset text-decoration-none hover-white">Seja Parceiro</a></li>
                         <li class="mb-2"><a href="{{ url('/login') }}"
