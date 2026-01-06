@@ -17,9 +17,9 @@ class KbCategoryResource extends Resource
 {
     protected static ?string $model = KbCategory::class;
 
-    protected static ?string $navigationGroup = 'Suporte & Ajuda';
+    protected static ?string $navigationGroup = 'Suporte e Ajuda';
     protected static ?string $modelLabel = 'Categoria da Base';
-    protected static ?string $navigationIcon = 'heroicon-o-folder-open';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
