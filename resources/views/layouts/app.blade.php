@@ -295,7 +295,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top navbar-landing">
         <div class="container">
             <a class="navbar-brand font-weight-bold" href="{{ url('/') }}">
-                <img src="{{ $logoUrl }}" class="mr-2" alt="Logo"
+                <img src="{{ $logoUrl }}" class="mr-2" alt="Logo" width="150" height="40"
                     onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                 <span>{{ $appName }}</span>
             </a>
