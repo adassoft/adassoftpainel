@@ -146,14 +146,19 @@
                                 <!-- Header do Card -->
                                 <div class="kb-card-header">
                                     <div class="d-flex align-items-center">
-                                        <div class="cat-icon">
-                                            {{-- Renderiza Icone do Filament/Heroicon (Simplificado: usa folder se não for svg) --}}
-                                            @if(str_contains($category->icon, '<svg'))
-                                                {!! $category->icon !!}
-                                            @else
-                                                <i class="fas fa-folder fa-lg"></i> {{-- Fallback FontAwesome --}}
-                                            @endif
-                                        </div>
+                                    <div class="cat-icon text-{{ in_array($category->color ?? 'primary', ['primary', 'success', 'danger', 'warning', 'info', 'secondary']) ? $category->color : 'primary' }}">
+                                        @if(str_contains($category->icon ?? '', '<svg'))
+                                            {!! $category->icon !!}
+                                        @else
+                                            @php
+                                                try {
+                                                    echo svg($category->icon ?? 'heroicon-o-folder', 'w-8 h-8')->toHtml();
+                                                } catch (\Exception $e) {
+                                                    echo '<i class="fas fa-folder fa-lg"></i>';
+                                                }
+                                            @endphp
+                                        @endif
+                                    </div>
                                         <div class="cat-title">{{ $category->name }}</div>
                                     </div>
                                     <span class="badge badge-light badge-pill text-muted">{{ $category->articles->count() }}</span>

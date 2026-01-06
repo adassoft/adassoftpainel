@@ -40,10 +40,25 @@ class KbCategoryResource extends Resource
                     ->columnSpanFull(),
 
                 Forms\Components\Grid::make(3)->schema([
-                    Forms\Components\TextInput::make('icon')
-                        ->label('Ícone (Heroicon)')
-                        ->placeholder('heroicon-o-cube')
-                        ->default('heroicon-o-document-text'),
+                    Forms\Components\Select::make('icon')
+                        ->label('Ícone')
+                        ->searchable()
+                        ->options([
+                            'heroicon-o-book-open' => 'Livro / Manual',
+                            'heroicon-o-rocket-launch' => 'Primeiros Passos / Start',
+                            'heroicon-o-chat-bubble-left-right' => 'Dúvidas / Chat',
+                            'heroicon-o-currency-dollar' => 'Financeiro / Pagamentos',
+                            'heroicon-o-cog-6-tooth' => 'Configurações Técnicas',
+                            'heroicon-o-user-group' => 'Gestão de Usuários',
+                            'heroicon-o-shield-check' => 'Segurança e Acesso',
+                            'heroicon-o-exclamation-triangle' => 'Solução de Problemas',
+                            'heroicon-o-question-mark-circle' => 'Perguntas Frequentes (FAQ)',
+                            'heroicon-o-shopping-cart' => 'Vendas e Comercial',
+                            'heroicon-o-document-text' => 'Documentação Geral',
+                            'heroicon-o-computer-desktop' => 'Instalação / Sistema',
+                            'heroicon-o-cloud-arrow-down' => 'Downloads e Atualizações',
+                        ])
+                        ->default('heroicon-o-book-open'),
 
                     Forms\Components\Select::make('color')
                         ->label('Cor de Destaque')
