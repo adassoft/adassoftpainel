@@ -144,8 +144,13 @@
         }
 
         /* Acessibilidade: Contraste de Textos */
-        .text-gray-500 { color: #6e707e !important; }
-        .text-gray-600 { color: #5a5c69 !important; }
+        .text-gray-500 {
+            color: #6e707e !important;
+        }
+
+        .text-gray-600 {
+            color: #5a5c69 !important;
+        }
     </style>
 @endsection
 
@@ -207,7 +212,7 @@
                             </div>
                         </div>
                         <div class="card-body d-flex flex-column p-4">
-                            <h5 class="card-title font-weight-bold text-gray-900 mb-2">{{ $prod->nome_software }}</h5>
+                            <h2 class="h5 card-title font-weight-bold text-gray-900 mb-2">{{ $prod->nome_software }}</h2>
                             <p class="card-text text-gray-600 small mb-4 flex-grow-1">
                                 {{ Str::limit($prod->descricao, 100) }}
                             </p>
