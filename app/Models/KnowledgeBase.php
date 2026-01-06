@@ -13,7 +13,8 @@ class KnowledgeBase extends Model
         'content',
         'tags',
         'is_public',
-        'is_active'
+        'is_active',
+        'video_url',
     ];
 
     protected $casts = [
