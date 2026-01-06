@@ -317,10 +317,21 @@ class DownloadController extends Controller
                 return redirect()->away($download->arquivo_path);
             }
 
-            $path = storage_path('app/public/' . $download->arquivo_path);
+            // 1. Tenta no disco Seguro (Novo Padrão)
+            $path = storage_path('app/products/' . $download->arquivo_path);
+
+            // 2. Tenta no disco Público (Legado)
             if (!file_exists($path)) {
-                // Tenta sem o public/ se salvou na raiz storage
+                $path = storage_path('app/public/' . $download->arquivo_path);
+            }
+
+            // 3. Tenta na Raiz Storage (Legado)
+            if (!file_exists($path)) {
                 $path = storage_path('app/' . $download->arquivo_path);
+            }
+
+            if (!file_exists($path)) {
+                abort(404, 'Arquivo físico não encontrado no servidor.');
             }
 
             return response()->download($path);
@@ -405,9 +416,21 @@ class DownloadController extends Controller
             $version->download->increment('contador');
         }
 
-        $path = storage_path('app/public/' . $version->arquivo_path);
+        // 1. Tenta no disco Seguro (Novo Padrão)
+        $path = storage_path('app/products/' . $version->arquivo_path);
+
+        // 2. Tenta no disco Público (Legado)
+        if (!file_exists($path)) {
+            $path = storage_path('app/public/' . $version->arquivo_path);
+        }
+
+        // 3. Tenta na Raiz Storage (Legado)
         if (!file_exists($path)) {
             $path = storage_path('app/' . $version->arquivo_path);
+        }
+
+        if (!file_exists($path)) {
+            abort(404, 'Arquivo físico da versão não encontrado.');
         }
 
         return response()->download($path);

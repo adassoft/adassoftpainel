@@ -82,11 +82,11 @@ class DownloadResource extends Resource
                                 ]),
                                 Forms\Components\FileUpload::make('arquivo_path')
                                     ->label('Arquivo')
-                                    ->disk('public')
-                                    ->directory('downloads/versions')
+                                    ->disk('products')
+                                    ->directory('versions')
                                     ->required()
                                     // ->maxSize(102400) // Removido para evitar crash se o arquivo falhar no upload
-                                    ->visibility('public')
+                                    ->visibility('private')
                                     ->preserveFilenames()
                                     ->live()
                                     ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
