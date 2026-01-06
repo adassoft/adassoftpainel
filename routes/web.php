@@ -94,6 +94,10 @@ Route::get('/login', function () {
 
 Route::get('/legal/{slug}', [\App\Http\Controllers\LegalPageController::class, 'show'])->name('legal.show');
 
+// KB Pública
+Route::get('/ajuda', [\App\Http\Controllers\KbController::class, 'index'])->name('kb.index');
+Route::get('/ajuda/{slug}', [\App\Http\Controllers\KbController::class, 'show'])->name('kb.show');
+
 // === Gerenciador de Redirecionamentos (SEO) ===
 Route::fallback(function () {
     $path = request()->path();

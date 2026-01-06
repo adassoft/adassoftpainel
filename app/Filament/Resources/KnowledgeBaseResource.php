@@ -25,10 +25,30 @@ class KnowledgeBaseResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('title')
-                    ->label('Título do Artigo')
+                Forms\Components\Grid::make(3)->schema([
+                    Forms\Components\Select::make('category_id')
+                        ->relationship('category', 'name')
+                        ->label('Categoria')
+                        ->createOptionForm([
+                            Forms\Components\TextInput::make('name')->required()->afterStateUpdated(fn($set, $state) => $set('slug', \Illuminate\Support\Str::slug($state)))->live(onBlur: true),
+                            Forms\Components\TextInput::make('slug')->required(),
+                        ])
+                        ->searchable()
+                        ->preload(),
+
+                    Forms\Components\TextInput::make('title')
+                        ->label('Título do Artigo')
+                        ->required()
+                        ->maxLength(255)
+                        ->live(onBlur: true)
+                        ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
+                        ->columnSpan(2),
+                ]),
+
+                Forms\Components\TextInput::make('slug')
+                    ->label('URL Amigável (Slug)')
+                    ->unique(ignoreRecord: true)
                     ->required()
-                    ->maxLength(255)
                     ->columnSpanFull(),
 
                 Forms\Components\RichEditor::make('content')
@@ -41,9 +61,16 @@ class KnowledgeBaseResource extends Resource
                     ->separator(',')
                     ->columnSpanFull(),
 
-                Forms\Components\Toggle::make('is_active')
-                    ->label('Ativo/Visível')
-                    ->default(true),
+                Forms\Components\Grid::make(2)->schema([
+                    Forms\Components\Toggle::make('is_public')
+                        ->label('Público (Sem Login)')
+                        ->helperText('Se ativo, qualquer visitante pode ler.')
+                        ->default(true),
+
+                    Forms\Components\Toggle::make('is_active')
+                        ->label('Publicado')
+                        ->default(true),
+                ]),
             ]);
     }
 
@@ -52,15 +79,28 @@ class KnowledgeBaseResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->searchable(),
+                    ->searchable()
+                    ->weight('bold')
+                    ->description(fn($record) => \Illuminate\Support\Str::limit(strip_tags($record->content), 50)),
+
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label('Categoria')
+                    ->badge()
+                    ->color(fn($record) => $record->category?->color ?? 'gray')
+                    ->sortable(),
+
+                Tables\Columns\IconColumn::make('is_public')
+                    ->label('Público')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-globe-alt')
+                    ->falseIcon('heroicon-o-lock-closed'),
+
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label('Ativo')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
