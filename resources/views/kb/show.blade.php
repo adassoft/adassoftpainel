@@ -73,6 +73,38 @@
             border-left-color: var(--color-accent, #4e73df);
             font-weight: 600;
         }
+
+        /* Fallback para Embed Responsive (Bootstrap 4 style) */
+        .embed-responsive {
+            position: relative;
+            display: block;
+            width: 100%;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .embed-responsive::before {
+            display: block;
+            content: "";
+        }
+
+        .embed-responsive-16by9::before {
+            padding-top: 56.25%;
+        }
+
+        .embed-responsive .embed-responsive-item,
+        .embed-responsive iframe,
+        .embed-responsive embed,
+        .embed-responsive object,
+        .embed-responsive video {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
     </style>
 @endsection
 
