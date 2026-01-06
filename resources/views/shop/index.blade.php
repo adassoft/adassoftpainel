@@ -151,6 +151,21 @@
         .text-gray-600 {
             color: #5a5c69 !important;
         }
+
+        /* Botões de Filtro - Acessibilidade */
+        .btn-filter {
+            color: #2e59d9;
+            border: 2px solid #2e59d9;
+            font-weight: 700;
+            background: transparent;
+        }
+
+        .btn-filter:hover,
+        .btn-filter.active {
+            color: #fff !important;
+            background-color: #224abe !important;
+            border-color: #224abe !important;
+        }
     </style>
 @endsection
 
@@ -178,9 +193,9 @@
         <div class="row mb-5" data-aos="fade-up">
             <div class="col-12">
                 <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <button class="btn btn-outline-primary rounded-pill px-4 active">Todos</button>
+                    <button class="btn btn-filter rounded-pill px-4 active">Todos</button>
                     @foreach($categorias as $cat)
-                        <button class="btn btn-outline-primary rounded-pill px-4">{{ $cat }}</button>
+                        <button class="btn btn-filter rounded-pill px-4">{{ $cat }}</button>
                     @endforeach
                 </div>
             </div>

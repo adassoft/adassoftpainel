@@ -319,7 +319,8 @@
                     onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
                 <span>{{ $appName }}</span>
             </a>
-            <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-label="Alternar navegação">
                 <i class="fas fa-bars text-primary"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -428,7 +429,7 @@
                     <img src="{{ $iconeUrl }}" width="48" height="48" alt="{{ $appName ?? 'Logo' }}"
                         class="mb-3 rounded bg-white p-1 mx-auto mx-md-0 d-block" style="object-fit: contain;"
                         onerror="this.onerror=null; this.src='{{ asset('favicon.svg') }}';">
-                    <h5 class="font-weight-bold mb-2">{{ $appName }}</h5>
+                    <p class="h5 font-weight-bold mb-2">{{ $appName }}</p>
                     <p class="text-white-50 small mt-3">
                         @if($exibirDoc) <strong>CNPJ:</strong> {{ $cnpj }}<br> @endif
                         {{ $endereco }}<br>
