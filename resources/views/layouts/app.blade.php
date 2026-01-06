@@ -513,7 +513,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="/vendor/jquery/jquery.min.js"></script>
+    <script src="/vendor/jquery/jquery.min.js" defer></script>
     <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
