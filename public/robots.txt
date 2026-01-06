@@ -1,2 +1,18 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /app
+Disallow: /nova-api
+Disallow: /checkout
+Disallow: /storage/*.zip
+Disallow: /storage/*.rar
+Disallow: /storage/*.exe
+
+# Bloqueio de Bots de Treinamento de IA (Opcional, mas recomendado se quiser privacidade)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+Sitemap: https://express.adassoft.com/sitemap.xml
