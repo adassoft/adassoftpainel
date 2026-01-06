@@ -50,8 +50,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- FontAwesome (Async Load) -->
-    <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css" media="print"
-        onload="this.media='all'">
+    <link href="/vendor/fontawesome-free/css/all.min.css" rel="preload" as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
         <link href="/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     </noscript>
