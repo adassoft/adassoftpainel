@@ -100,6 +100,10 @@ Route::get('/ajuda/categoria/{slug}', [\App\Http\Controllers\KbController::class
 Route::get('/ajuda/{slug}', [\App\Http\Controllers\KbController::class, 'show'])->name('kb.show');
 Route::post('/ajuda/{id}/vote', [\App\Http\Controllers\KbController::class, 'vote'])->name('kb.vote');
 
+// === Mercado Livre Integration ===
+Route::get('/ml/auth', [\App\Http\Controllers\MercadoLibreController::class, 'auth'])->name('ml.auth');
+Route::get('/ml/callback', [\App\Http\Controllers\MercadoLibreController::class, 'callback'])->name('ml.callback');
+
 // === Gerenciador de Redirecionamentos (SEO) ===
 Route::fallback(function () {
     $path = request()->path();
