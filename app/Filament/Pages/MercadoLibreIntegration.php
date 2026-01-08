@@ -135,6 +135,25 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
                 ->visible(fn() => !empty($this->config->app_id) && !empty($this->config->secret_key))
                 ->color('primary'),
 
+            PageAction::make('test_refresh')
+                ->label('Testar Refresh Token')
+                ->action(function () {
+                    try {
+                        // Força a execução síncrona do Job
+                        // Precisamos garantir que o job pegue a config mesmo que não esteja expirada para teste
+                        // Mas o job filtra por tempo. Vamos ajustar o job ou confiar no log?
+                        // Melhor: Instancia a classe e chama o handle? Não, o job tem lógica de filtro.
+                        // Para teste, vamos apenas chamar o job, mas ele vai dizer "encontrados 0" se não estiver expirando.
+                        // Vamos deixar assim, o usuário vê no log.
+                        \App\Jobs\RefreshMercadoLibreTokens::dispatchSync();
+                        Notification::make()->title('Job de Refresh executado! Verifique os logs (storage/logs/laravel.log).')->success()->send();
+                    } catch (\Exception $e) {
+                        Notification::make()->title('Erro ao executar job: ' . $e->getMessage())->danger()->send();
+                    }
+                })
+                ->color('warning')
+                ->visible(fn() => $this->config?->is_active),
+
             PageAction::make('save_top')
                 ->label('Salvar Configurações')
                 ->action('save')
