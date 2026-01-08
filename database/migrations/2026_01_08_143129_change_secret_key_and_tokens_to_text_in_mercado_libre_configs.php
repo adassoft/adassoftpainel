@@ -11,10 +11,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('mercado_libre_configs', function (Blueprint $table) {
-            $table->text('secret_key')->change();
-            $table->text('access_token')->change();
-            $table->text('refresh_token')->change();
-            $table->text('redirect_uri')->change();
+            $table->text('secret_key')->nullable()->change();
+            $table->text('access_token')->nullable()->change();
+            $table->text('refresh_token')->nullable()->change();
+            $table->text('redirect_uri')->nullable()->change();
         });
     }
 
