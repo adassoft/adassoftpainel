@@ -36,7 +36,8 @@ class ManageCredits extends Page implements HasTable
             ->query(
                 Company::query()
                     ->where('status', 'Ativo')
-                    ->whereHas('users', fn($q) => $q->where('acesso', 2))
+                    ->where(fn($q) => $q->whereHas('users', fn($u) => $u->where('acesso', 2))
+                        ->orWhere('revenda_padrao', true))
             )
             ->columns([
                 Tables\Columns\TextColumn::make('razao')
@@ -137,7 +138,8 @@ class ManageCredits extends Page implements HasTable
                         ->label('Revenda')
                         ->options(
                             Company::where('status', 'Ativo')
-                                ->whereHas('users', fn($q) => $q->where('acesso', 2))
+                                ->where(fn($q) => $q->whereHas('users', fn($u) => $u->where('acesso', 2))
+                                    ->orWhere('revenda_padrao', true))
                                 ->pluck('razao', 'cnpj')
                         )
                         ->searchable()
