@@ -16,4 +16,11 @@ class ListLicenses extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\App\Resources\LicenseResource\Widgets\LicenseCssWidget::class,
+        ];
+    }
 }

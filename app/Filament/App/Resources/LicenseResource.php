@@ -166,7 +166,7 @@ class LicenseResource extends Resource
                 'xl' => 3,
             ])
             ->actions([
-                // 1. Renovar
+                // 1. Renovar (Botão em destaque)
                 Tables\Actions\Action::make('renovar')
                     ->label('Renovar Agora')
                     ->icon('heroicon-o-sparkles')
@@ -179,20 +179,17 @@ class LicenseResource extends Resource
                     ->action(function ($record) {
                         $plano = \App\Models\Plano::where('software_id', $record->software_id)->first();
                         if (!$plano) {
-                            \Filament\Notifications\Notification::make()->title('Erro')->body('Nenhum plano disponível...')->danger()->send();
+                            \Filament\Notifications\Notification::make()->title('Erro')->body('Nenhum plano disponível para renovação deste software.')->danger()->send();
                             return;
                         }
                         return redirect()->route('checkout.start', ['planId' => $plano->id, 'license_id' => $record->id]);
                     }),
 
-                // 2. Histórico
+                // 2. Histórico (Link simples)
                 Tables\Actions\Action::make('historico')
                     ->label('Histórico de Pagamentos')
                     ->icon('heroicon-o-clock')
-                    ->color('warning')
-                    ->button()
-                    ->outlined()
-                    ->extraAttributes(['class' => 'w-full justify-center mb-2'])
+                    ->color('gray')
                     ->modalContent(function ($record) {
                         $company = $record->company;
 
@@ -208,14 +205,11 @@ class LicenseResource extends Resource
                         return view('filament.app.resources.license-resource.pages.history-modal', ['orders' => $orders]);
                     })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
 
-                // 3. Terminais
+                // 3. Terminais (Link simples)
                 Tables\Actions\Action::make('terminais')
                     ->label('Ver Terminais Vinculados')
                     ->icon('heroicon-o-computer-desktop')
-                    ->color('info')
-                    ->button()
-                    ->outlined()
-                    ->extraAttributes(['class' => 'w-full justify-center mb-2'])
+                    ->color('gray')
                     ->modalContent(function ($record) {
                         $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
                             ->where('terminais_software.licenca_id', $record->id)
@@ -223,27 +217,21 @@ class LicenseResource extends Resource
                         return view('filament.app.resources.license-resource.pages.terminals-modal', ['terminais' => $terminais]);
                     })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
 
-                // 4. Copiar Token
+                // 4. Copiar Token (Link simples)
                 Tables\Actions\Action::make('copiar')
                     ->label('Copiar Token de Ativação')
                     ->icon('heroicon-o-clipboard-document')
                     ->color('gray')
-                    ->button()
-                    ->outlined()
                     ->action(function () {})
                     ->extraAttributes(fn($record) => [
                         'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
-                        'class' => 'w-full justify-center mb-2',
                     ]),
 
-                // 5. Download
+                // 5. Download (Link simples)
                 Tables\Actions\Action::make('download')
                     ->label('Baixar Instalador')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->color('primary')
-                    ->button()
-                    ->outlined()
-                    ->extraAttributes(['class' => 'w-full justify-center mb-2'])
+                    ->color('gray')
                     ->url(function ($record) {
                         $sw = $record->software;
                         if (!$sw)
