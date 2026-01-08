@@ -192,113 +192,100 @@ class LicenseResource extends Resource
                         return redirect()->route('checkout.start', ['planId' => $plano->id, 'license_id' => $record->id]);
                     }),
 
-                // Menu de Opções (Agrupado para não quebrar layout)
-                Tables\Actions\ActionGroup::make([
-                    // Ação Terminais
-                    Tables\Actions\Action::make('terminais')
-                        ->label('Ver Terminais')
-                        ->icon('heroicon-o-computer-desktop')
-                        ->color('info')
-                        ->modalContent(function ($record) {
-                            $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
-                                ->where('terminais_software.licenca_id', $record->id)
-                                ->select('terminais.*', 'terminais_software.ultima_atividade', 'terminais_software.ativo as status_vinculo')
+                // Ação Histórico
+                Tables\Actions\Action::make('historico')
+                    ->label('Histórico')
+                    ->icon('heroicon-o-clock')
+                    ->color('warning')
+                    ->modalContent(function ($record) {
+                        $company = $record->company;
+
+                        if (!$company) {
+                            $orders = collect([]);
+                        } else {
+                            $userIds = \App\Models\User::where('cnpj', $company->cnpj)->pluck('id');
+
+                            $orders = \App\Models\Order::query()
+                                ->whereIn('user_id', $userIds)
+                                ->whereHas('plan', function ($q) use ($record) {
+                                    $q->where('software_id', $record->software_id);
+                                })
+                                ->where(function ($q) {
+                                    $q->whereIn(DB::raw('UPPER(status)'), ['PAGO', 'APROVADO', 'PAID', 'APPROVED']);
+                                })
+                                ->orderBy('created_at', 'desc')
                                 ->get();
+                        }
 
-                            return view('filament.app.resources.license-resource.pages.terminals-modal', [
-                                'terminais' => $terminais
-                            ]);
-                        })
-                        ->modalSubmitAction(false)
-                        ->modalCancelActionLabel('Fechar'),
+                        return view('filament.app.resources.license-resource.pages.history-modal', [
+                            'orders' => $orders
+                        ]);
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Fechar'),
 
-                    // Ação Copiar Token
-                    Tables\Actions\Action::make('copiar')
-                        ->label('Copiar Token')
-                        ->tooltip('Copiar Token de Ativação')
-                        ->icon('heroicon-o-clipboard-document')
-                        ->color('gray')
-                        ->action(function () {})
-                        ->extraAttributes(fn($record) => [
-                            'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
-                            'style' => 'cursor: pointer;',
-                        ]),
+                // Ação Terminais
+                Tables\Actions\Action::make('terminais')
+                    ->label('Terminais')
+                    ->icon('heroicon-o-computer-desktop')
+                    ->color('info')
+                    ->modalContent(function ($record) {
+                        $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
+                            ->where('terminais_software.licenca_id', $record->id)
+                            ->select('terminais.*', 'terminais_software.ultima_atividade', 'terminais_software.ativo as status_vinculo')
+                            ->get();
 
-                    // Ação Download
-                    Tables\Actions\Action::make('download')
-                        ->label('Baixar Instalador')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->color('primary')
-                        ->url(function ($record) {
-                            $sw = $record->software;
-                            if (!$sw)
-                                return null;
+                        return view('filament.app.resources.license-resource.pages.terminals-modal', [
+                            'terminais' => $terminais
+                        ]);
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Fechar'),
 
-                            // 1. Repositório Vinculado
-                            if ($sw->id_download_repo) {
-                                $dl = \App\Models\Download::find($sw->id_download_repo);
-                                if ($dl && $dl->arquivo_path) {
-                                    return '/storage/' . $dl->arquivo_path;
-                                }
-                            }
-
-                            // 2. Upload Direto
-                            if ($sw->arquivo_software) {
-                                return '/storage/' . $sw->arquivo_software;
-                            }
-
-                            // 3. Link Externo
-                            if ($sw->url_download) {
-                                return $sw->url_download;
-                            }
-
-                            return null;
-                        })
-                        ->visible(
-                            fn($record) =>
-                            $record->software?->id_download_repo
-                            || $record->software?->arquivo_software
-                            || $record->software?->url_download
-                        )
-                        ->openUrlInNewTab(),
-
-                    // Histórico de Renovação
-                    Tables\Actions\Action::make('historico')
-                        ->label('Histórico de Pagamentos')
-                        ->icon('heroicon-o-clock')
-                        // ->color('warning') // Cores dentro de ActionGroup geralmente seguem o padrão do item, Gray é ok
-                        ->modalContent(function ($record) {
-                            $company = $record->company;
-
-                            if (!$company) {
-                                $orders = collect([]);
-                            } else {
-                                $userIds = \App\Models\User::where('cnpj', $company->cnpj)->pluck('id');
-
-                                $orders = \App\Models\Order::query()
-                                    ->whereIn('user_id', $userIds)
-                                    ->whereHas('plan', function ($q) use ($record) {
-                                        $q->where('software_id', $record->software_id);
-                                    })
-                                    ->where(function ($q) {
-                                        $q->whereIn(DB::raw('UPPER(status)'), ['PAGO', 'APROVADO', 'PAID', 'APPROVED']);
-                                    })
-                                    ->orderBy('created_at', 'desc')
-                                    ->get();
-                            }
-
-                            return view('filament.app.resources.license-resource.pages.history-modal', [
-                                'orders' => $orders
-                            ]);
-                        })
-                        ->modalSubmitAction(false) // Apenas visualização
-                        ->modalCancelActionLabel('Fechar'),
-
-                ])
-                    ->label('Gerenciar')
-                    ->icon('heroicon-m-ellipsis-horizontal')
+                // Ação Copiar Token
+                Tables\Actions\Action::make('copiar')
+                    ->label('Token')
+                    ->tooltip('Copiar Token de Ativação')
+                    ->icon('heroicon-o-clipboard-document')
                     ->color('gray')
-                    ->button(), // Estilo botão também para ficar alinhado visualmente com o Renovar
+                    ->action(function () {})
+                    ->extraAttributes(fn($record) => [
+                        'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
+                        'style' => 'cursor: pointer;',
+                    ]),
+
+                // Ação Download
+                Tables\Actions\Action::make('download')
+                    ->label('Baixar')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('primary')
+                    ->url(function ($record) {
+                        $sw = $record->software;
+                        if (!$sw)
+                            return null;
+
+                        // 1. Repositório Vinculado
+                        if ($sw->id_download_repo) {
+                            $dl = \App\Models\Download::find($sw->id_download_repo);
+                            if ($dl && $dl->arquivo_path) {
+                                return '/storage/' . $dl->arquivo_path;
+                            }
+                        }
+
+                        // 2. Upload Direto
+                        if ($sw->arquivo_software) {
+                            return '/storage/' . $sw->arquivo_software;
+                        }
+
+                        return $sw->url_download;
+                    })
+                    ->visible(
+                        fn($record) =>
+                        $record->software?->id_download_repo
+                        || $record->software?->arquivo_software
+                        || $record->software?->url_download
+                    )
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
             ]);
