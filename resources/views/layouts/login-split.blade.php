@@ -9,7 +9,7 @@
 @endphp
 
 <x-filament-panels::layout.base :livewire="$livewire">
-    <div class="min-h-screen w-full flex bg-gray-50">
+    <div class="min-h-screen w-full flex bg-gray-50 overflow-x-hidden">
 
         <!-- Lado Esquerdo: Branding (Desktop Only) -->
         <div class="hidden lg:flex w-1/2 relative flex-col items-center p-12 text-center text-white overflow-hidden"
@@ -35,7 +35,8 @@
         </div>
 
         <!-- Lado Direito: Formulário (Agora largo e confortável) -->
-        <div class="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 lg:p-24 bg-white">
+        <div
+            class="w-full lg:w-1/2 flex flex-col justify-center items-center px-4 py-8 sm:p-12 lg:p-24 bg-white relative">
             <div class="w-full max-w-2xl space-y-8">
 
                 <!-- Logo Mobile -->
