@@ -3,7 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\MercadoLibreConfig;
-use Filament\Actions\Action;
+use Filament\Forms\Components\Actions\Action; // Correto para Forms
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -13,6 +13,7 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Pages\Page;
+use Filament\Actions\Action as PageAction; // Alias para Header Actions
 
 class MercadoLibreIntegration extends Page implements HasForms, HasActions
 {
@@ -65,12 +66,14 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
                             ->placeholder(route('ml.callback'))
                             ->default(route('ml.callback'))
                             ->readOnly()
-                            ->suffixIcon('heroicon-m-clipboard-document-check')
-                            ->suffixIconColor('success')
-                            ->extraAttributes([
-                                'onclick' => 'navigator.clipboard.writeText(this.value); new FilamentNotification().title("Copiado!").success().send()',
-                                'style' => 'cursor: pointer;',
-                            ])
+                            ->suffixAction(
+                                Action::make('copy')
+                                    ->icon('heroicon-m-clipboard-document-check')
+                                    ->action(function () {}) // No server action needed
+                                    ->extraAttributes([
+                                        'x-on:click' => 'window.navigator.clipboard.writeText("' . route('ml.callback') . '"); $tooltip("Copiado!", { timeout: 1500 });',
+                                    ])
+                            )
                             ->helperText('Copie esta URL e cole nas configurações do seu aplicativo no Mercado Livre.'),
                     ])
                     ->columns(2),
@@ -109,14 +112,14 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('connect')
+            PageAction::make('connect')
                 ->label('Conectar com Mercado Livre')
                 ->url(route('ml.auth'))
                 ->openUrlInNewTab(false) // Redireciona mesmo
                 ->visible(fn() => !empty($this->config->app_id) && !empty($this->config->secret_key))
                 ->color('primary'),
 
-            Action::make('save_top')
+            PageAction::make('save_top')
                 ->label('Salvar Configurações')
                 ->action('save')
                 ->color('gray'),
