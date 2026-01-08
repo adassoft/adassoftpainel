@@ -402,6 +402,10 @@ class SoftwareResource extends Resource
                             ->schema([
                                 Section::make('Informações do Software')
                                     ->schema([
+                                        Placeholder::make('nome_label')
+                                            ->label('Software')
+                                            ->content(fn($record) => new HtmlString('<span class="font-bold text-lg">' . e($record?->nome_software) . '</span>')),
+
                                         Placeholder::make('created_at')
                                             ->label('Data de Cadastro')
                                             ->content(fn($record) => $record?->data_cadastro ? \Carbon\Carbon::parse($record->data_cadastro)->format('d/m/Y H:i:s') : '-'),
