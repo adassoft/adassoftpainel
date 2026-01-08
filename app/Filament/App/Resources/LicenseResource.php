@@ -169,7 +169,7 @@ class LicenseResource extends Resource
                     ->requiresConfirmation()
                     ->modalHeading('Renovar Licença')
                     ->modalDescription('Você será redirecionado para a tela de pagamento. Deseja continuar?')
-                    ->action(function (License $record) {
+                    ->action(function ($record) {
                         $plano = \App\Models\Plano::where('software_id', $record->software_id)->first();
 
                         if (!$plano) {
@@ -189,7 +189,7 @@ class LicenseResource extends Resource
                     ->label('Histórico')
                     ->icon('heroicon-o-clock')
                     ->color('warning')
-                    ->modalContent(function (License $record) {
+                    ->modalContent(function ($record) {
                         // Busca pedidos PAGOS ou APROVADOS deste cliente para este software
                         // Correção: Orders usa user_id e plano_id, não cnpj e software_id direto.
             
@@ -227,7 +227,7 @@ class LicenseResource extends Resource
                     ->label('Terminais')
                     ->icon('heroicon-o-computer-desktop')
                     ->color('info')
-                    ->modalContent(function (License $record) {
+                    ->modalContent(function ($record) {
                         $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
                             ->where('terminais_software.licenca_id', $record->id)
                             ->select('terminais.*', 'terminais_software.ultima_atividade', 'terminais_software.ativo as status_vinculo')
@@ -247,7 +247,7 @@ class LicenseResource extends Resource
                     ->icon('heroicon-o-clipboard-document')
                     ->color('gray')
                     ->action(function () {})
-                    ->extraAttributes(fn(License $record) => [
+                    ->extraAttributes(fn($record) => [
                         'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
                         'style' => 'cursor: pointer;',
                     ]),
@@ -257,7 +257,7 @@ class LicenseResource extends Resource
                     ->label('Baixar')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('primary')
-                    ->url(function (License $record) {
+                    ->url(function ($record) {
                         $sw = $record->software;
                         if (!$sw)
                             return null;
@@ -284,7 +284,7 @@ class LicenseResource extends Resource
                         return null;
                     })
                     ->visible(
-                        fn(License $record) =>
+                        fn($record) =>
                         $record->software?->id_download_repo
                         || $record->software?->arquivo_software
                         || $record->software?->url_download
