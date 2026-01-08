@@ -21,6 +21,12 @@ class KbController extends Controller
                         ->take(5); // Limita 5 por card na home
                 }
             ])
+            ->withCount([
+                'articles' => function ($query) {
+                    $query->where('is_active', true)
+                        ->where('is_public', true);
+                }
+            ])
             ->get();
 
         return view('kb.index', compact('categories'));

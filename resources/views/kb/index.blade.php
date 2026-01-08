@@ -146,22 +146,23 @@
                                 <!-- Header do Card -->
                                 <div class="kb-card-header">
                                     <div class="d-flex align-items-center">
-                                    <div class="cat-icon text-{{ in_array($category->color ?? 'primary', ['primary', 'success', 'danger', 'warning', 'info', 'secondary']) ? $category->color : 'primary' }}">
-                                        @if(str_contains($category->icon ?? '', '<svg'))
-                                            {!! $category->icon !!}
-                                        @else
-                                            @php
-                                                try {
-                                                    echo svg($category->icon ?? 'heroicon-o-folder', 'w-8 h-8')->toHtml();
-                                                } catch (\Exception $e) {
-                                                    echo '<i class="fas fa-folder fa-lg"></i>';
-                                                }
-                                            @endphp
-                                        @endif
-                                    </div>
+                                        <div
+                                            class="cat-icon text-{{ in_array($category->color ?? 'primary', ['primary', 'success', 'danger', 'warning', 'info', 'secondary']) ? $category->color : 'primary' }}">
+                                            @if(str_contains($category->icon ?? '', '<svg'))
+                                                {!! $category->icon !!}
+                                            @else
+                                                @php
+                                                    try {
+                                                        echo svg($category->icon ?? 'heroicon-o-folder', 'w-8 h-8')->toHtml();
+                                                    } catch (\Exception $e) {
+                                                        echo '<i class="fas fa-folder fa-lg"></i>';
+                                                    }
+                                                @endphp
+                                            @endif
+                                        </div>
                                         <div class="cat-title">{{ $category->name }}</div>
                                     </div>
-                                    <span class="badge badge-light badge-pill text-muted">{{ $category->articles->count() }}</span>
+                                    <span class="badge badge-light badge-pill text-muted">{{ $category->articles_count }}</span>
                                 </div>
 
                                 <!-- Lista de Artigos -->
@@ -177,7 +178,7 @@
                                             </li>
                                         @endforeach
                                     </ul>
-                                    @if($category->articles->count() >= 5)
+                                    @if($category->articles_count > 5)
                                         <div class="mt-3 text-right">
                                             <a href="#" class="small font-weight-bold text-primary">Ver todos &rarr;</a>
                                         </div>
