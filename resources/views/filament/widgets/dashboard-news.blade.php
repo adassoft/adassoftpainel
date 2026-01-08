@@ -57,7 +57,7 @@
             </div>
         @else
             <div class="text-center py-6 text-gray-500 dark:text-gray-400">
-                <x-heroicon-o-chat-bubble-left-ellipsis class="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <x-heroicon-o-chat-bubble-left-ellipsis class="w-6 h-6 mx-auto mb-2 opacity-50" />
                 <p>Nenhuma notícia recente.</p>
             </div>
         @endif
