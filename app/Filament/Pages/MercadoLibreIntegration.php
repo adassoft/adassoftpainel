@@ -42,7 +42,7 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
         $this->form->fill([
             'app_id' => $this->config->app_id,
             'secret_key' => $this->config->secret_key,
-            // 'redirect_uri' => route('ml.callback'), // Apenas exibição
+            'redirect_uri_display' => route('ml.callback'),
         ]);
     }
 
