@@ -180,7 +180,8 @@
                                     </ul>
                                     @if($category->articles_count > 5)
                                         <div class="mt-3 text-right">
-                                            <a href="#" class="small font-weight-bold text-primary">Ver todos &rarr;</a>
+                                            <a href="{{ route('kb.category', $category->slug) }}"
+                                                class="small font-weight-bold text-primary">Ver todos &rarr;</a>
                                         </div>
                                     @endif
                                 @else

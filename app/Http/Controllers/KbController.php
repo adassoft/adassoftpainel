@@ -32,6 +32,22 @@ class KbController extends Controller
         return view('kb.index', compact('categories'));
     }
 
+    public function category($slug)
+    {
+        $category = KbCategory::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $articles = $category->articles()
+            ->where('is_active', true)
+            ->where('is_public', true)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('updated_at', 'desc')
+            ->paginate(12);
+
+        return view('kb.category', compact('category', 'articles'));
+    }
+
     public function show($slug)
     {
         $article = KnowledgeBase::where('slug', $slug)
