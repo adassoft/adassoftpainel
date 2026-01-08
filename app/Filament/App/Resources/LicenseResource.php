@@ -159,127 +159,106 @@ class LicenseResource extends Resource
                                 'class' => 'bg-gray-50 rounded-lg border border-gray-100 p-3 mt-3 mb-1',
                             ]),
 
-                    // SECTION 3: Ações (Renderizadas automaticamente pelo Actions abaixo, mas podemos adicionar infos extras aqui se quiser)
-                ])->space(3),
-                    // SECTION 3: Ações (Empilhadas verticalmente como colunas individuais dentro do Stack)
-                    Tables\Columns\Layout\Stack::make([
-                        
-                        // 1. Renovar
-                        Tables\Columns\ActionsColumn::make('act_renovar')
-                            ->actions([
-                                Tables\Actions\Action::make('renovar')
-                                    ->label('Renovar Agora')
-                                    ->icon('heroicon-o-sparkles')
-                                    ->color('success')
-                                    ->button()
-                                    ->extraAttributes(['class' => 'w-full justify-center'])
-                                    ->requiresConfirmation()
-                                    ->modalHeading('Renovar Licença')
-                                    ->modalDescription('Você será redirecionado para a tela de pagamento. Deseja continuar?')
-                                    ->action(function ($record) {
-                                        $plano = \App\Models\Plano::where('software_id', $record->software_id)->first();
-                                        if (!$plano) {
-                                            \Filament\Notifications\Notification::make()->title('Erro')->body('Nenhum plano disponível para renovação deste software.')->danger()->send();
-                                            return;
-                                        }
-                                        return redirect()->route('checkout.start', ['planId' => $plano->id, 'license_id' => $record->id]);
-                                    }),
-                            ])->alignCenter(),
-
-                        // 2. Histórico
-                        Tables\Columns\ActionsColumn::make('act_historico')
-                            ->actions([
-                                Tables\Actions\Action::make('historico')
-                                    ->label('Histórico de Pagamentos')
-                                    ->icon('heroicon-o-clock')
-                                    ->color('warning')
-                                    ->button()
-                                    ->outlined()
-                                    ->extraAttributes(['class' => 'w-full justify-center'])
-                                    ->modalContent(function ($record) {
-                                        $company = $record->company;
-                                        if (!$company) {
-                                            $orders = collect([]);
-                                        } else {
-                                            $userIds = \App\Models\User::where('cnpj', $company->cnpj)->pluck('id');
-                                            $orders = \App\Models\Order::query()
-                                                ->whereIn('user_id', $userIds)
-                                                ->whereHas('plan', fn($q) => $q->where('software_id', $record->software_id))
-                                                ->where(fn($q) => $q->whereIn(DB::raw('UPPER(status)'), ['PAGO', 'APROVADO', 'PAID', 'APPROVED']))
-                                                ->orderBy('created_at', 'desc')->get();
-                                        }
-                                        return view('filament.app.resources.license-resource.pages.history-modal', ['orders' => $orders]);
-                                    })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
-                            ])->alignCenter(),
-
-                        // 3. Terminais
-                        Tables\Columns\ActionsColumn::make('act_terminais')
-                            ->actions([
-                                Tables\Actions\Action::make('terminais')
-                                    ->label('Ver Terminais Vinculados')
-                                    ->icon('heroicon-o-computer-desktop')
-                                    ->color('info')
-                                    ->button()
-                                    ->outlined()
-                                    ->extraAttributes(['class' => 'w-full justify-center'])
-                                    ->modalContent(function ($record) {
-                                        $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
-                                            ->where('terminais_software.licenca_id', $record->id)
-                                            ->select('terminais.*', 'terminais_software.ultima_atividade', 'terminais_software.ativo as status_vinculo')->get();
-                                        return view('filament.app.resources.license-resource.pages.terminals-modal', ['terminais' => $terminais]);
-                                    })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
-                            ])->alignCenter(),
-
-                        // 4. Copiar Token
-                        Tables\Columns\ActionsColumn::make('act_copiar')
-                            ->actions([
-                                Tables\Actions\Action::make('copiar')
-                                    ->label('Copiar Token de Ativação')
-                                    ->tooltip('Copiar para área de transferência')
-                                    ->icon('heroicon-o-clipboard-document')
-                                    ->color('gray')
-                                    ->button()
-                                    ->outlined()
-                                    ->action(function () {})
-                                    ->extraAttributes(fn($record) => [
-                                        'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
-                                        'class' => 'w-full justify-center', 
-                                    ]),
-                            ])->alignCenter(),
-
-                        // 5. Download
-                        Tables\Columns\ActionsColumn::make('act_download')
-                            ->actions([
-                                Tables\Actions\Action::make('download')
-                                    ->label('Baixar Instalador')
-                                    ->icon('heroicon-o-arrow-down-tray')
-                                    ->color('primary')
-                                    ->button()
-                                    ->outlined()
-                                    ->extraAttributes(['class' => 'w-full justify-center'])
-                                    ->url(function ($record) {
-                                        $sw = $record->software;
-                                        if (!$sw) return null;
-                                        if ($sw->id_download_repo) {
-                                            $dl = \App\Models\Download::find($sw->id_download_repo);
-                                            if ($dl && $dl->arquivo_path) return '/storage/' . $dl->arquivo_path;
-                                        }
-                                        if ($sw->arquivo_software) return '/storage/' . $sw->arquivo_software;
-                                        return $sw->url_download;
-                                    })
-                                    ->visible(fn($record) => $record->software?->id_download_repo || $record->software?->arquivo_software || $record->software?->url_download)
-                                    ->openUrlInNewTab(),
-                            ])->alignCenter(),
-                            
-                    ])->space(2),
-
                 ])->space(3),
             ])
-            ->filters([
-                //
+            ->contentGrid([
+                'md' => 2,
+                'xl' => 3,
             ])
             ->actions([
-                //
+                // 1. Renovar
+                Tables\Actions\Action::make('renovar')
+                    ->label('Renovar Agora')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('success')
+                    ->button()
+                    ->extraAttributes(['class' => 'w-full justify-center mb-2'])
+                    ->requiresConfirmation()
+                    ->modalHeading('Renovar Licença')
+                    ->modalDescription('Você será redirecionado para a tela de pagamento. Deseja continuar?')
+                    ->action(function ($record) {
+                        $plano = \App\Models\Plano::where('software_id', $record->software_id)->first();
+                        if (!$plano) {
+                            \Filament\Notifications\Notification::make()->title('Erro')->body('Nenhum plano disponível...')->danger()->send();
+                            return;
+                        }
+                        return redirect()->route('checkout.start', ['planId' => $plano->id, 'license_id' => $record->id]);
+                    }),
+
+                // 2. Histórico
+                Tables\Actions\Action::make('historico')
+                    ->label('Histórico de Pagamentos')
+                    ->icon('heroicon-o-clock')
+                    ->color('warning')
+                    ->button()
+                    ->outlined()
+                    ->extraAttributes(['class' => 'w-full justify-center mb-2'])
+                    ->modalContent(function ($record) {
+                        $company = $record->company;
+
+                        $orders = collect([]);
+                        if ($company) {
+                            $userIds = \App\Models\User::where('cnpj', $company->cnpj)->pluck('id');
+                            $orders = \App\Models\Order::query()
+                                ->whereIn('user_id', $userIds)
+                                ->whereHas('plan', fn($q) => $q->where('software_id', $record->software_id))
+                                ->where(fn($q) => $q->whereIn(DB::raw('UPPER(status)'), ['PAGO', 'APROVADO', 'PAID', 'APPROVED']))
+                                ->orderBy('created_at', 'desc')->get();
+                        }
+                        return view('filament.app.resources.license-resource.pages.history-modal', ['orders' => $orders]);
+                    })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
+
+                // 3. Terminais
+                Tables\Actions\Action::make('terminais')
+                    ->label('Ver Terminais Vinculados')
+                    ->icon('heroicon-o-computer-desktop')
+                    ->color('info')
+                    ->button()
+                    ->outlined()
+                    ->extraAttributes(['class' => 'w-full justify-center mb-2'])
+                    ->modalContent(function ($record) {
+                        $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
+                            ->where('terminais_software.licenca_id', $record->id)
+                            ->select('terminais.*', 'terminais_software.ultima_atividade', 'terminais_software.ativo as status_vinculo')->get();
+                        return view('filament.app.resources.license-resource.pages.terminals-modal', ['terminais' => $terminais]);
+                    })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
+
+                // 4. Copiar Token
+                Tables\Actions\Action::make('copiar')
+                    ->label('Copiar Token de Ativação')
+                    ->icon('heroicon-o-clipboard-document')
+                    ->color('gray')
+                    ->button()
+                    ->outlined()
+                    ->action(function () {})
+                    ->extraAttributes(fn($record) => [
+                        'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
+                        'class' => 'w-full justify-center mb-2',
+                    ]),
+
+                // 5. Download
+                Tables\Actions\Action::make('download')
+                    ->label('Baixar Instalador')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('primary')
+                    ->button()
+                    ->outlined()
+                    ->extraAttributes(['class' => 'w-full justify-center mb-2'])
+                    ->url(function ($record) {
+                        $sw = $record->software;
+                        if (!$sw)
+                            return null;
+                        if ($sw->id_download_repo) {
+                            $dl = \App\Models\Download::find($sw->id_download_repo);
+                            if ($dl && $dl->arquivo_path)
+                                return '/storage/' . $dl->arquivo_path;
+                        }
+                        if ($sw->arquivo_software)
+                            return '/storage/' . $sw->arquivo_software;
+                        return $sw->url_download;
+                    })
+                    ->visible(fn($record) => $record->software?->id_download_repo || $record->software?->arquivo_software || $record->software?->url_download)
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
             ]);
