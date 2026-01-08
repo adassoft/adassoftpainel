@@ -151,7 +151,7 @@ class LicenseResource extends Resource
                                 ->prefix('Renovado: ')
                                 ->color('gray')
                                 ->size(Tables\Columns\TextColumn\TextColumnSize::Small)
-                                ->visible(fn($state) => !empty($state)),
+                                ->visible(fn($record) => $record && !empty($record->data_ultima_renovacao)),
                         ])->alignment('end')->space(2),
                     ])->extraAttributes(['class' => 'bg-gray-50 rounded-lg p-3 mt-2', 'style' => 'background-color: #f9fafb; padding: 0.75rem; border-radius: 0.5rem; margin-top: 0.5rem;']),
                 ])->space(3),
