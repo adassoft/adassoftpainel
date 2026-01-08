@@ -55,7 +55,7 @@
                                             @if(($terminal['ativo'] ?? 0) == 1)
                                                 <span class="items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">Ativo</span>
                                             @else
-                                                <span class="items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20">Liberado</span>
+                                                <span class="items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10 dark:bg-red-400/10 dark:text-red-400 dark:ring-red-400/20">Desvinculado</span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
