@@ -27,151 +27,154 @@ class DownloadResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('titulo')
-                    ->label('Título')
-                    ->required()
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
-                    ->placeholder('Ex: Manual de Instalação')
+                Forms\Components\Tabs::make('TabsDownload')
                     ->columnSpanFull()
-                    ->prefixIcon('heroicon-m-document-text'),
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make('Informações')
+                            ->icon('heroicon-o-information-circle')
+                            ->schema([
+                                Forms\Components\TextInput::make('titulo')
+                                    ->label('Título')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
+                                    ->placeholder('Ex: Manual de Instalação')
+                                    ->columnSpanFull()
+                                    ->prefixIcon('heroicon-m-document-text'),
 
-                Forms\Components\TextInput::make('slug')
-                    ->label('URL Amigável')
-                    ->unique(ignoreRecord: true)
-                    ->required()
-                    ->columnSpanFull()
-                    ->prefixIcon('heroicon-m-link'),
+                                Forms\Components\TextInput::make('slug')
+                                    ->label('URL Amigável')
+                                    ->unique(ignoreRecord: true)
+                                    ->required()
+                                    ->columnSpanFull()
+                                    ->prefixIcon('heroicon-m-link'),
 
-                Forms\Components\Grid::make(3)
-                    ->schema([
-                        Forms\Components\TextInput::make('categoria')
-                            ->label('Categoria')
-                            ->datalist([
-                                'Drivers',
-                                'Manuais',
-                                'Utilitários',
-                                'Instaladores',
-                            ])
-                            ->placeholder('Ex: Drivers')
-                            ->prefixIcon('heroicon-m-tag'),
-                    ]),
+                                Forms\Components\Grid::make(3)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('categoria')
+                                            ->label('Categoria')
+                                            ->datalist([
+                                                'Drivers',
+                                                'Manuais',
+                                                'Utilitários',
+                                                'Instaladores',
+                                            ])
+                                            ->placeholder('Ex: Drivers')
+                                            ->prefixIcon('heroicon-m-tag'),
 
-                Forms\Components\Section::make('Gerenciador de Versões e Arquivos')
-                    ->description('Adicione aqui os arquivos. O sistema identificará automaticamente a versão mais recente para download principal.')
-                    ->schema([
-                        Forms\Components\Repeater::make('versions')
-                            ->relationship()
+                                        Forms\Components\Toggle::make('publico')
+                                            ->label('Público (Visível na lista)')
+                                            ->default(true)
+                                            ->onColor('success')
+                                            ->offColor('danger'),
+
+                                        Forms\Components\TextInput::make('contador')
+                                            ->label('Contador')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->disabled(),
+                                    ]),
+
+                                Forms\Components\Textarea::make('descricao')
+                                    ->label('Descrição')
+                                    ->rows(3)
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Forms\Components\Tabs\Tab::make('Arquivos & Versões')
+                            ->icon('heroicon-o-folder-open')
+                            ->schema([
+                                Forms\Components\Repeater::make('versions')
+                                    ->label('Gerenciar Versões')
+                                    ->relationship()
+                                    ->schema([
+                                        Forms\Components\Grid::make(2)->schema([
+                                            Forms\Components\TextInput::make('versao')
+                                                ->label('Versão (ex: v1.0)')
+                                                ->required(),
+                                            Forms\Components\Select::make('sistema_operacional')
+                                                ->label('Sistema Operacional')
+                                                ->options([
+                                                    'windows' => 'Windows',
+                                                    'linux' => 'Linux',
+                                                    'mac' => 'macOS',
+                                                    'android' => 'Android',
+                                                    'ios' => 'iOS',
+                                                    'any' => 'Qualquer',
+                                                ])
+                                                ->default('windows')
+                                                ->required(),
+                                        ]),
+                                        Forms\Components\FileUpload::make('arquivo_path')
+                                            ->label('Arquivo')
+                                            ->disk('products')
+                                            ->directory('versions')
+                                            ->required()
+                                            ->visibility('private')
+                                            ->preserveFilenames()
+                                            ->live()
+                                            ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
+                                                if (empty($state))
+                                                    return;
+                                                try {
+                                                    $file = is_array($state) ? reset($state) : $state;
+                                                    if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile && $file->exists()) {
+                                                        $bytes = $file->getSize();
+                                                        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                                                        for ($i = 0; $bytes > 1024; $i++)
+                                                            $bytes /= 1024;
+                                                        $set('tamanho', round($bytes, 2) . ' ' . ($units[$i] ?? 'B'));
+                                                    }
+                                                } catch (\Exception $e) {
+                                                }
+                                            }),
+                                        Forms\Components\Grid::make(2)->schema([
+                                            Forms\Components\TextInput::make('tamanho')->readOnly(),
+                                            Forms\Components\DateTimePicker::make('data_lancamento')->default(now()),
+                                        ]),
+                                        Forms\Components\Textarea::make('changelog')->label('Notas da Versão')->rows(2)->columnSpanFull(),
+                                    ])
+                                    ->reorderable(false)
+                                    ->defaultItems(1)
+                                    ->columnSpanFull(),
+                            ]),
+
+                        Forms\Components\Tabs\Tab::make('Venda & Acesso')
+                            ->icon('heroicon-o-currency-dollar')
                             ->schema([
                                 Forms\Components\Grid::make(2)->schema([
-                                    Forms\Components\TextInput::make('versao')
-                                        ->label('Versão (ex: v1.0)')
-                                        ->required(),
-                                    Forms\Components\Select::make('sistema_operacional')
-                                        ->label('Sistema Operacional')
-                                        ->options([
-                                            'windows' => 'Windows',
-                                            'linux' => 'Linux',
-                                            'mac' => 'macOS',
-                                            'android' => 'Android',
-                                            'ios' => 'iOS',
-                                            'any' => 'Qualquer',
-                                        ])
-                                        ->default('windows')
-                                        ->required(),
+                                    Forms\Components\Toggle::make('requires_login')
+                                        ->label('Exigir Login')
+                                        ->helperText('Usuário deve estar logado para baixar.')
+                                        ->default(false),
+
+                                    Forms\Components\Toggle::make('is_paid')
+                                        ->label('Produto Pago')
+                                        ->live()
+                                        ->helperText('Exige pagamento para liberar download.')
+                                        ->default(false),
+
+                                    Forms\Components\TextInput::make('preco')
+                                        ->label('Preço (R$)')
+                                        ->prefix('R$')
+                                        ->numeric()
+                                        ->default(0.00)
+                                        ->visible(fn(Forms\Get $get) => $get('is_paid'))
+                                        ->required(fn(Forms\Get $get) => $get('is_paid')),
+
+                                    Forms\Components\Toggle::make('disponivel_revenda')
+                                        ->label('Disponível para Revenda')
+                                        ->helperText('Permite que revendedores exibam este produto.')
+                                        ->default(false),
                                 ]),
-                                Forms\Components\FileUpload::make('arquivo_path')
-                                    ->label('Arquivo')
-                                    ->disk('products')
-                                    ->directory('versions')
-                                    ->required()
-                                    // ->maxSize(102400) // Removido para evitar crash se o arquivo falhar no upload
-                                    ->visibility('private')
-                                    ->preserveFilenames()
-                                    ->live()
-                                    ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
-                                        if (empty($state))
-                                            return;
+                            ]),
 
-                                        try {
-                                            $file = is_array($state) ? reset($state) : $state;
-                                            // Verifica se é temporário e se existe fisicamente
-                                            if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile && $file->exists()) {
-                                                $bytes = $file->getSize();
-                                                $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-                                                for ($i = 0; $bytes > 1024; $i++) {
-                                                    $bytes /= 1024;
-                                                }
-                                                $set('tamanho', round($bytes, 2) . ' ' . ($units[$i] ?? 'B'));
-                                            }
-                                        } catch (\Exception $e) {
-                                            // Silencia erro de metadados ausentes para não quebrar o fluxo
-                                            \Illuminate\Support\Facades\Log::warning('Erro ao calcular tamanho do arquivo DL: ' . $e->getMessage());
-                                        }
-                                    }),
-                                Forms\Components\Grid::make(3)->schema([
-                                    Forms\Components\TextInput::make('tamanho')->readOnly(),
-                                    Forms\Components\DateTimePicker::make('data_lancamento')->default(now()),
-                                    Forms\Components\TextInput::make('contador')->disabled()->default(0),
-                                ]),
-                                Forms\Components\Textarea::make('changelog')->label('Notas da Versão')->rows(2)->columnSpanFull(),
-                            ])
-                            ->reorderable(false) // Desativa reordenação para não sobrescrever data_lancamento com índices
-                            ->defaultItems(1)
-                            ->columnSpanFull(),
+                        Forms\Components\Tabs\Tab::make('SEO')
+                            ->icon('heroicon-o-magnifying-glass')
+                            ->schema([
+                                \App\Filament\Components\SeoForm::make(),
+                            ]),
                     ]),
-                Forms\Components\Textarea::make('descricao')
-                    ->label('Descrição')
-                    ->rows(2)
-                    ->columnSpanFull(),
-
-                Forms\Components\Grid::make(2)
-                    ->schema([
-                        Forms\Components\Toggle::make('publico')
-                            ->label('Público (Visível na lista)')
-                            ->default(true)
-                            ->onColor('success')
-                            ->offColor('danger'),
-
-                        Forms\Components\TextInput::make('contador')
-                            ->label('Contador de Downloads')
-                            ->numeric()
-                            ->default(0)
-                            ->prefixIcon('heroicon-m-arrow-down-tray'),
-                    ]),
-
-                Forms\Components\Section::make('Configurações de Venda e Acesso')
-                    ->schema([
-                        Forms\Components\Grid::make(3)->schema([
-                            Forms\Components\Toggle::make('requires_login')
-                                ->label('Exigir Login')
-                                ->helperText('Usuário deve estar logado para baixar.')
-                                ->default(false),
-
-                            Forms\Components\Toggle::make('is_paid')
-                                ->label('Produto Pago')
-                                ->live()
-                                ->helperText('Exige pagamento para liberar download.')
-                                ->default(false),
-
-                            Forms\Components\TextInput::make('preco')
-                                ->label('Preço (R$)')
-                                ->prefix('R$')
-                                ->numeric()
-                                ->default(0.00)
-                                ->visible(fn(Forms\Get $get) => $get('is_paid'))
-                                ->required(fn(Forms\Get $get) => $get('is_paid')),
-                        ]),
-
-                        Forms\Components\Toggle::make('disponivel_revenda')
-                            ->label('Disponível para Revenda')
-                            ->helperText('Permite que revendedores exibam este produto em suas lojas.')
-                            ->default(false)
-                            ->onColor('primary')
-                            ->offColor('gray'),
-                    ])
-                    ->collapsible()
-                    ->collapsed(),
             ]);
     }
 
@@ -232,9 +235,7 @@ class DownloadResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->slideOver()
-                    ->modalWidth('2xl'),
+                Tables\Actions\EditAction::make(), // Slideover removido para suportar tabs complexas
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\Action::make('download')
                     ->label('')

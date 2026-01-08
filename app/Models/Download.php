@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Download extends Model
 {
+    use Concerns\HasSeo;
+
     protected $table = 'downloads_extras';
 
     public $timestamps = false;
