@@ -8,9 +8,10 @@ use App\Models\MercadoLibreConfig;
 use App\Models\Company;
 use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Str;
+
 class MercadoLibreController extends Controller
 {
-    // Redireciona para o ML
     // Redireciona para o ML
     public function auth(Request $request)
     {
@@ -36,7 +37,13 @@ class MercadoLibreController extends Controller
             return redirect()->back()->with('error', 'App ID não configurado.');
         }
 
-        $url = "https://auth.{$siteDomain}/authorization?response_type=code&client_id={$appId}&redirect_uri={$redirectUri}";
+        // PKCE
+        $codeVerifier = Str::random(128);
+        session(['ml_code_verifier' => $codeVerifier]);
+
+        $codeChallenge = strtr(rtrim(base64_encode(hash('sha256', $codeVerifier, true)), '='), '+/', '-_');
+
+        $url = "https://auth.{$siteDomain}/authorization?response_type=code&client_id={$appId}&redirect_uri={$redirectUri}&code_challenge={$codeChallenge}&code_challenge_method=S256";
 
         return redirect($url);
     }
@@ -57,12 +64,16 @@ class MercadoLibreController extends Controller
             return redirect('/admin')->with('error', 'Configuração não encontrada.');
         }
 
+        $codeVerifier = session('ml_code_verifier');
+        session()->forget('ml_code_verifier');
+
         $response = Http::post('https://api.mercadolibre.com/oauth/token', [
             'grant_type' => 'authorization_code',
             'client_id' => $config->app_id,
             'client_secret' => $config->secret_key,
             'code' => $code,
             'redirect_uri' => route('ml.callback'),
+            'code_verifier' => $codeVerifier,
         ]);
 
         if ($response->failed()) {
