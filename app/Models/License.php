@@ -34,6 +34,8 @@ class License extends Model
         'data_ultima_renovacao' => 'datetime',
     ];
 
+    protected $appends = ['software_imagem', 'nome_software', 'resumo_terminais'];
+
     public function company()
     {
         return $this->belongsTo(Company::class, 'empresa_codigo', 'codigo');
@@ -48,6 +50,21 @@ class License extends Model
     {
         return $this->belongsToMany(Terminal::class, 'terminais_software', 'licenca_id', 'terminal_codigo')
             ->withPivot(['ativo', 'ultima_atividade', 'data_vinculo']);
+    }
+
+    public function getSoftwareImagemAttribute()
+    {
+        return $this->software ? $this->software->imagem : '/img/placeholder_card.svg';
+    }
+
+    public function getNomeSoftwareAttribute()
+    {
+        return $this->software ? $this->software->nome_software : 'Software Desconhecido';
+    }
+
+    public function getResumoTerminaisAttribute()
+    {
+        return "{$this->terminais_utilizados} / {$this->terminais_permitidos} Terminais";
     }
 
     /**

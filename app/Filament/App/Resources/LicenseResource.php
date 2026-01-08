@@ -90,20 +90,16 @@ class LicenseResource extends Resource
                 Tables\Columns\Layout\Stack::make([
                     // Topo: Imagem + Nome + Status
                     Tables\Columns\Layout\Split::make([
-                        Tables\Columns\ImageColumn::make('custom_software_imagem') // Nome arbitrário para evitar auto-resolution
-                            ->state(fn($record) => $record?->software?->imagem)
+                        Tables\Columns\ImageColumn::make('software_imagem')
                             ->circular()
                             ->defaultImageUrl('/img/placeholder_card.svg')
                             ->grow(false)
-                            ->size(40)
-                            ->toggleable(false),
+                            ->size(40),
 
                         Tables\Columns\Layout\Stack::make([
-                            Tables\Columns\TextColumn::make('custom_software_nome') // Nome arbitrário
-                                ->state(fn($record) => $record?->software?->nome_software)
+                            Tables\Columns\TextColumn::make('nome_software')
                                 ->weight(\Filament\Support\Enums\FontWeight::Bold)
-                                ->size(Tables\Columns\TextColumn\TextColumnSize::Large)
-                                ->toggleable(false),
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Large),
 
                             Tables\Columns\TextColumn::make('serial_atual')
                                 ->formatStateUsing(fn($state) => \Illuminate\Support\Str::limit($state, 20))
@@ -142,12 +138,10 @@ class LicenseResource extends Resource
                         ])->space(2),
 
                         Tables\Columns\Layout\Stack::make([
-                            Tables\Columns\TextColumn::make('terminais_uso')
-                                ->getStateUsing(fn($record): string => $record ? "{$record->terminais_utilizados} / {$record->terminais_permitidos} Terminais" : '')
+                            Tables\Columns\TextColumn::make('resumo_terminais')
                                 ->icon('heroicon-m-computer-desktop')
                                 ->color('info')
-                                ->badge()
-                                ->toggleable(false),
+                                ->badge(),
 
                             Tables\Columns\TextColumn::make('data_ultima_renovacao')
                                 ->date('d/m/Y')
