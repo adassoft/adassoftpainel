@@ -95,13 +95,15 @@ class LicenseResource extends Resource
                             ->circular()
                             ->defaultImageUrl('/img/placeholder_card.svg')
                             ->grow(false)
-                            ->size(40),
+                            ->size(40)
+                            ->toggleable(false),
 
                         Tables\Columns\Layout\Stack::make([
                             Tables\Columns\TextColumn::make('custom_software_nome') // Nome arbitrário
                                 ->state(fn($record) => $record?->software?->nome_software)
                                 ->weight(\Filament\Support\Enums\FontWeight::Bold)
-                                ->size(Tables\Columns\TextColumn\TextColumnSize::Large),
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Large)
+                                ->toggleable(false),
 
                             Tables\Columns\TextColumn::make('serial_atual')
                                 ->formatStateUsing(fn($state) => \Illuminate\Support\Str::limit($state, 20))
@@ -144,14 +146,14 @@ class LicenseResource extends Resource
                                 ->getStateUsing(fn($record): string => $record ? "{$record->terminais_utilizados} / {$record->terminais_permitidos} Terminais" : '')
                                 ->icon('heroicon-m-computer-desktop')
                                 ->color('info')
-                                ->badge(),
+                                ->badge()
+                                ->toggleable(false),
 
                             Tables\Columns\TextColumn::make('data_ultima_renovacao')
                                 ->date('d/m/Y')
                                 ->prefix('Renovado: ')
                                 ->color('gray')
-                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small)
-                                ->visible(fn($record) => $record && !empty($record->data_ultima_renovacao)),
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
                         ])->alignment('end')->space(2),
                     ])->extraAttributes(['class' => 'bg-gray-50 rounded-lg p-3 mt-2', 'style' => 'background-color: #f9fafb; padding: 0.75rem; border-radius: 0.5rem; margin-top: 0.5rem;']),
                 ])->space(3),
