@@ -15,12 +15,16 @@ class KnowledgeBase extends Model
         'is_public',
         'is_active',
         'video_url',
+        'helpful_count',
+        'not_helpful_count',
     ];
 
     protected $casts = [
         'tags' => 'array',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
+        'helpful_count' => 'integer',
+        'not_helpful_count' => 'integer',
     ];
 
     public function category()

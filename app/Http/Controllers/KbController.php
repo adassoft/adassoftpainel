@@ -60,4 +60,32 @@ class KbController extends Controller
 
         return view('kb.show', compact('article'));
     }
+
+    public function vote(Request $request, $id)
+    {
+        $article = KnowledgeBase::findOrFail($id);
+
+        $type = $request->input('type'); // 'helpful' or 'not_helpful'
+
+        // Bloqueio simples por sessão para evitar spam refrescando a página
+        if (session()->has("voted_article_{$id}")) {
+            return response()->json(['status' => 'already_voted']);
+        }
+
+        if ($type === 'helpful') {
+            $article->increment('helpful_count');
+            $count = $article->helpful_count + 1; // +1 pq o modelo ainda não recarregou
+        } else {
+            $article->increment('not_helpful_count');
+            $count = $article->not_helpful_count + 1;
+        }
+
+        session()->put("voted_article_{$id}", true);
+
+        return response()->json([
+            'status' => 'success',
+            'helpful_count' => $article->helpful_count, // increment já persiste, mas ideal é reload ou somar manual
+            'not_helpful_count' => $article->not_helpful_count
+        ]);
+    }
 }

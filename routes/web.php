@@ -98,6 +98,7 @@ Route::get('/legal/{slug}', [\App\Http\Controllers\LegalPageController::class, '
 Route::get('/ajuda', [\App\Http\Controllers\KbController::class, 'index'])->name('kb.index');
 Route::get('/ajuda/categoria/{slug}', [\App\Http\Controllers\KbController::class, 'category'])->name('kb.category');
 Route::get('/ajuda/{slug}', [\App\Http\Controllers\KbController::class, 'show'])->name('kb.show');
+Route::post('/ajuda/{id}/vote', [\App\Http\Controllers\KbController::class, 'vote'])->name('kb.vote');
 
 // === Gerenciador de Redirecionamentos (SEO) ===
 Route::fallback(function () {

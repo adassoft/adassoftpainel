@@ -164,13 +164,60 @@
                             @endif
 
                             <!-- Feedback Section (Simples) -->
-                            <div class="mt-5 pt-4 border-top text-center">
+                            <!-- Feedback Section -->
+                            <div class="mt-5 pt-4 border-top text-center" id="feedback-section">
                                 <p class="text-muted mb-3">Isso foi útil?</p>
-                                <button class="btn btn-outline-success btn-sm px-4 mr-2 rounded-pill"><i
-                                        class="far fa-thumbs-up"></i> Sim</button>
-                                <button class="btn btn-outline-secondary btn-sm px-4 rounded-pill"><i
-                                        class="far fa-thumbs-down"></i> Não</button>
+
+                                <div id="feedback-buttons">
+                                    <button class="btn btn-outline-success btn-sm px-4 mr-2 rounded-pill"
+                                        onclick="vote('helpful')">
+                                        <i class="far fa-thumbs-up"></i> Sim <span class="ml-1"
+                                            id="count-helpful">({{ $article->helpful_count }})</span>
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm px-4 rounded-pill"
+                                        onclick="vote('not_helpful')">
+                                        <i class="far fa-thumbs-down"></i> Não
+                                    </button>
+                                </div>
+
+                                <div id="feedback-thankyou" style="display: none;"
+                                    class="text-success font-weight-bold mt-3">
+                                    <i class="fas fa-check-circle"></i> Obrigado pelo seu feedback!
+                                </div>
                             </div>
+
+                            <script>
+                                function vote(type) {
+                                    const buttons = document.getElementById('feedback-buttons');
+                                    const thanks = document.getElementById('feedback-thankyou');
+
+                                    // Disable buttons immediately
+                                    const btns = buttons.getElementsByTagName('button');
+                                    for (let btn of btns) btn.disabled = true;
+
+                                    fetch('{{ route('kb.vote', $article->id) }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        },
+                                        body: JSON.stringify({ type: type })
+                                    })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.status === 'success' || data.status === 'already_voted') {
+                                                buttons.style.display = 'none';
+                                                thanks.style.display = 'block';
+                                                // Optional: Update count visual if we wanted to keep buttons visible
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                            // Re-enable on error
+                                            for (let btn of btns) btn.disabled = false;
+                                        });
+                                }
+                            </script>
                         </div>
                     </div>
                 </div>
