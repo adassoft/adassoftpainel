@@ -18,7 +18,7 @@ cat <<EOF > .env
 APP_NAME=AdasSoft
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://express.adassoft.com
+APP_URL=https://adassoft.com
 APP_KEY=base64:66+M2DXXAmZeBeS7GVurXIUa1dBgx2bNtizt0gqBClA=
 
 DB_CONNECTION=mysql
@@ -28,7 +28,7 @@ DB_DATABASE=evolu
 DB_USERNAME=mariadb
 DB_PASSWORD=b4a01a2c826aa2a9078e
 
-ASSET_URL=https://express.adassoft.com
+ASSET_URL=https://adassoft.com
 
 # Drivers
 BROADCAST_DRIVER=log
