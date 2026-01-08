@@ -91,7 +91,7 @@ class LicenseResource extends Resource
                     // Topo: Imagem + Nome + Status
                     Tables\Columns\Layout\Split::make([
                         Tables\Columns\ImageColumn::make('custom_software_imagem') // Nome arbitrário para evitar auto-resolution
-                            ->state(fn(License $record) => $record->software?->imagem)
+                            ->state(fn($record) => $record?->software?->imagem)
                             ->circular()
                             ->defaultImageUrl('/img/placeholder_card.svg')
                             ->grow(false)
@@ -99,7 +99,7 @@ class LicenseResource extends Resource
 
                         Tables\Columns\Layout\Stack::make([
                             Tables\Columns\TextColumn::make('custom_software_nome') // Nome arbitrário
-                                ->state(fn(License $record) => $record->software?->nome_software)
+                                ->state(fn($record) => $record?->software?->nome_software)
                                 ->weight(\Filament\Support\Enums\FontWeight::Bold)
                                 ->size(Tables\Columns\TextColumn\TextColumnSize::Large),
 
@@ -141,7 +141,7 @@ class LicenseResource extends Resource
 
                         Tables\Columns\Layout\Stack::make([
                             Tables\Columns\TextColumn::make('terminais_uso')
-                                ->getStateUsing(fn(License $record): string => "{$record->terminais_utilizados} / {$record->terminais_permitidos} Terminais")
+                                ->getStateUsing(fn($record): string => $record ? "{$record->terminais_utilizados} / {$record->terminais_permitidos} Terminais" : '')
                                 ->icon('heroicon-m-computer-desktop')
                                 ->color('info')
                                 ->badge(),
