@@ -2,92 +2,170 @@
 
 @section('title', $category->name . ' - Central de Ajuda')
 
+@section('extra-css')
+    <style>
+        .kb-category-header {
+            background: linear-gradient(135deg, var(--primary-gradient-start, #4e73df) 0%, var(--primary-gradient-end, #224abe) 100%);
+            padding: 4rem 0;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .kb-article-card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none !important;
+            /* Force no default link style */
+        }
+
+        .kb-article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Garantir que o texto dentro do card tenha cores normais e não de link */
+        .kb-article-card * {
+            color: #5a5c69;
+            /* text-gray-600 */
+        }
+
+        .kb-article-card h5 {
+            color: #2e384d;
+            /* Heading color */
+            font-weight: 700;
+        }
+
+        .kb-article-card:hover h5,
+        .kb-article-card:hover .read-more {
+            color: #4e73df;
+            /* primary color */
+        }
+
+        .article-icon-wrapper {
+            background-color: #f8f9fa;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: #4e73df;
+        }
+
+        .article-meta {
+            font-size: 0.85rem;
+            color: #858796;
+        }
+
+        .cat-icon-lg {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            color: white;
+        }
+
+        .cat-icon-lg svg {
+            width: 48px;
+            height: 48px;
+        }
+    </style>
+@endsection
+
 @section('content')
     <!-- Header da Categoria -->
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 py-16 dark:from-gray-800 dark:to-gray-900">
-        <div class="container mx-auto px-4 text-center">
-            <div class="mb-4 flex justify-center text-white opacity-90">
-                @if (str_contains($category->icon ?? '', '<svg'))
-                    <div class="w-16 h-16 [&>svg]:w-full [&>svg]:h-full">
+    <div class="kb-category-header text-center">
+        <div class="container">
+            <!-- Icone da Categoria -->
+            <div class="mb-4">
+                <div class="cat-icon-lg">
+                    @if (str_contains($category->icon ?? '', '<svg'))
                         {!! $category->icon !!}
-                    </div>
-                @else
-                    @php
-                        try {
-                            echo svg($category->icon ?? 'heroicon-o-folder', 'w-16 h-16')->toHtml();
-                        } catch (\Exception $e) {
-                            echo '<i class="fas fa-folder fa-4x"></i>';
-                        }
-                    @endphp
-                @endif
+                    @else
+                        @php
+                            try {
+                                echo svg($category->icon ?? 'heroicon-o-folder', 'w-12 h-12')->toHtml();
+                            } catch (\Exception $e) {
+                                echo '<i class="fas fa-folder fa-3x"></i>';
+                            }
+                        @endphp
+                    @endif
+                </div>
             </div>
-            <h1 class="text-3xl md:text-4xl font-bold text-white mb-4">{{ $category->name }}</h1>
-            <p class="text-lg text-blue-100 max-w-2xl mx-auto">{{ $category->description }}</p>
 
-            <div class="mt-8">
+            <h1 class="font-weight-bold mb-3">{{ $category->name }}</h1>
+            <p class="lead mb-4 opacity-80" style="opacity: 0.9;">{{ $category->description }}</p>
+
+            <div class="mt-4">
                 <a href="{{ route('kb.index') }}"
-                    class="inline-flex items-center text-white/80 hover:text-white transition-colors">
-                    <x-heroicon-m-arrow-left class="w-5 h-5 mr-2" />
-                    Voltar para a Central de Ajuda
+                    class="btn btn-outline-light btn-sm font-weight-bold rounded-pill px-4 py-2">
+                    <i class="fas fa-arrow-left mr-2"></i> Voltar para a Central de Ajuda
                 </a>
             </div>
         </div>
     </div>
 
     <!-- Lista de Artigos (Cards) -->
-    <div class="container mx-auto px-4 py-12">
+    <div class="container pb-5">
         @if ($articles->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="row">
                 @foreach ($articles as $article)
-                    <a href="{{ route('kb.show', $article->slug ?? 'artigo-' . $article->id) }}"
-                        class="group block bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 overflow-hidden h-full flex flex-col">
-                        <div class="p-6 flex-1">
-                            <div class="flex items-start justify-between mb-4">
-                                <div
-                                    class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                                    <x-heroicon-o-document-text class="w-6 h-6" />
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <a href="{{ route('kb.show', $article->slug ?? 'artigo-' . $article->id) }}"
+                            class="card kb-article-card h-100">
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="article-icon-wrapper text-primary">
+                                        <x-heroicon-o-document-text class="w-6 h-6" style="width: 24px; height: 24px;" />
+                                    </div>
+                                    <span class="article-meta">
+                                        {{ $article->updated_at->format('d/m/Y') }}
+                                    </span>
                                 </div>
-                                <span class="text-xs text-gray-400 dark:text-gray-500">
-                                    {{ $article->updated_at->format('d/m/Y') }}
-                                </span>
+
+                                <h5 class="mb-2">{{ $article->title }}</h5>
+
+                                <p class="small mb-4 flex-grow-1"
+                                    style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+                                    {{ Str::limit(strip_tags($article->content), 120) }}
+                                </p>
+
+                                <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                                    <span class="font-weight-bold small read-more">Ler artigo</span>
+                                    <i class="fas fa-arrow-right small read-more"></i>
+                                </div>
                             </div>
-
-                            <h3
-                                class="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                {{ $article->title }}
-                            </h3>
-
-                            <p class="text-gray-600 dark:text-gray-300 text-sm line-clamp-3 mb-4">
-                                {{ Str::limit(strip_tags($article->content), 120) }}
-                            </p>
-                        </div>
-                        <div
-                            class="px-6 py-4 border-t border-gray-50 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between mt-auto">
-                            <span class="text-sm font-medium text-blue-600 dark:text-blue-400">Ler artigo</span>
-                            <x-heroicon-m-arrow-right
-                                class="w-4 h-4 text-blue-600 dark:text-blue-400 transform group-hover:translate-x-1 transition-transform" />
-                        </div>
-                    </a>
+                        </a>
+                    </div>
                 @endforeach
             </div>
 
-            <div class="mt-12">
+            <div class="mt-5 d-flex justify-content-center">
                 {{ $articles->links() }}
+                {{-- Nota: Se a paginação padrão do Laravel usar Tailwind, pode precisar customizar para Bootstrap.
+                Geralmente $articles->links('pagination::bootstrap-4') resolve. --}}
             </div>
         @else
-            <div class="text-center py-12">
-                <div class="bg-gray-50 dark:bg-gray-800 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                    <x-heroicon-o-document-magnifying-glass class="w-10 h-10 text-gray-400" />
+            <div class="text-center py-5">
+                <div class="mb-3 text-muted">
+                    <x-heroicon-o-document-magnifying-glass class="w-12 h-12 mx-auto"
+                        style="width: 48px; height: 48px; opacity: 0.5;" />
                 </div>
-                <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-2">Nenhum artigo encontrado</h3>
-                <p class="text-gray-500 dark:text-gray-400">Não há artigos públicos disponíveis nesta categoria no momento.
-                </p>
-                <div class="mt-6">
-                    <a href="{{ route('kb.index') }}"
-                        class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
-                        Voltar ao Início
-                    </a>
-                </div>
+                <h3 class="text-gray-500 mb-2">Nenhum artigo encontrado</h3>
+                <p class="text-muted mb-4">Não há artigos públicos disponíveis nesta categoria no momento.</p>
+                <a href="{{ route('kb.index') }}" class="btn btn-primary">
+                    Voltar ao Início
+                </a>
             </div>
         @endif
     </div>
