@@ -90,14 +90,16 @@ class LicenseResource extends Resource
                 Tables\Columns\Layout\Stack::make([
                     // Topo: Imagem + Nome + Status
                     Tables\Columns\Layout\Split::make([
-                        Tables\Columns\ImageColumn::make('software.imagem')
+                        Tables\Columns\ImageColumn::make('custom_software_imagem') // Nome arbitrário para evitar auto-resolution
+                            ->state(fn(License $record) => $record->software?->imagem)
                             ->circular()
                             ->defaultImageUrl('/img/placeholder_card.svg')
                             ->grow(false)
                             ->size(40),
 
                         Tables\Columns\Layout\Stack::make([
-                            Tables\Columns\TextColumn::make('software.nome_software')
+                            Tables\Columns\TextColumn::make('custom_software_nome') // Nome arbitrário
+                                ->state(fn(License $record) => $record->software?->nome_software)
                                 ->weight(\Filament\Support\Enums\FontWeight::Bold)
                                 ->size(Tables\Columns\TextColumn\TextColumnSize::Large),
 
