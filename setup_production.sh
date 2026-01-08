@@ -39,15 +39,15 @@ SESSION_DRIVER=file
 SESSION_LIFETIME=120
 EOF
 
-# --- 2. CORRIGIR LIMITES DE UPLOAD (128MB) ---
-echo "📦 Ajustando limites de upload (128MB)..."
+# --- 2. CORRIGIR LIMITES DE UPLOAD (1GB) ---
+echo "📦 Ajustando limites de upload (1GB)..."
 
-# Ajustar Nginx (Limite de 128M)
+# Ajustar Nginx (Limite de 1024M)
 if [ -d "/etc/nginx/conf.d" ]; then
-    echo "client_max_body_size 128M;" > /etc/nginx/conf.d/upload_final.conf
+    echo "client_max_body_size 1024M;" > /etc/nginx/conf.d/upload_final.conf
     # Try multiple reload methods
     nginx -s reload 2>/dev/null || /etc/init.d/nginx reload 2>/dev/null || true
-    echo "  ✅ Nginx atualizado para 128M."
+    echo "  ✅ Nginx atualizado para 1024M."
 fi
 
 # Ajustar PHP (Criar arquivo ini direto que o PHP lê automaticamente)
@@ -57,15 +57,15 @@ DIR_CONF="/usr/local/etc/php/conf.d"
 [ ! -d "$DIR_CONF" ] && DIR_CONF="/etc/php/8.3/cli/conf.d"
 
 if [ -d "$DIR_CONF" ]; then
-    echo "upload_max_filesize = 128M" > "$DIR_CONF/99-custom-limits.ini"
-    echo "post_max_size = 128M" >> "$DIR_CONF/99-custom-limits.ini"
+    echo "upload_max_filesize = 1024M" > "$DIR_CONF/99-custom-limits.ini"
+    echo "post_max_size = 1024M" >> "$DIR_CONF/99-custom-limits.ini"
     echo "memory_limit = 512M" >> "$DIR_CONF/99-custom-limits.ini"
     echo "max_execution_time = 300" >> "$DIR_CONF/99-custom-limits.ini"
     echo "  ✅ PHP config injetada em $DIR_CONF"
 else
     # Fallback: Tenta escrever onde der
-    echo "upload_max_filesize = 128M" > /app/.user.ini
-    echo "post_max_size = 128M" >> /app/.user.ini
+    echo "upload_max_filesize = 1024M" > /app/.user.ini
+    echo "post_max_size = 1024M" >> /app/.user.ini
 fi
 
 # Reload PHP Process
