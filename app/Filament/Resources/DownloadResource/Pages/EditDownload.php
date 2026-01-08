@@ -4,16 +4,16 @@ namespace App\Filament\Resources\DownloadResource\Pages;
 
 use App\Filament\Resources\DownloadResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\EditRecord;
 
-class ListDownloads extends ListRecords
+class EditDownload extends EditRecord
 {
     protected static string $resource = DownloadResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 }

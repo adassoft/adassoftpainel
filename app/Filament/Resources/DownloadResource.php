@@ -261,6 +261,8 @@ class DownloadResource extends Resource
     {
         return [
             'index' => Pages\ListDownloads::route('/'),
+            'create' => Pages\CreateDownload::route('/create'),
+            'edit' => Pages\EditDownload::route('/{record}/edit'),
         ];
     }
 }
