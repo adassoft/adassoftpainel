@@ -170,10 +170,11 @@ class LicenseResource extends Resource
                 // Ação Renovar (Checkout Otimizado)
                 // Ação Principal: Renovar (Destaque)
                 Tables\Actions\Action::make('renovar')
-                    ->label('Renovar')
+                    ->label('Renovar Agora')
                     ->icon('heroicon-o-sparkles') // Ícone mais chamativo
                     ->color('success')
                     ->button() // Estilo botão preenchido para destaque
+                    ->extraAttributes(['class' => 'w-full justify-center mb-1']) // Força largura total
                     ->requiresConfirmation()
                     ->modalHeading('Renovar Licença')
                     ->modalDescription('Você será redirecionado para a tela de pagamento. Deseja continuar?')
@@ -194,9 +195,12 @@ class LicenseResource extends Resource
 
                 // Ação Histórico
                 Tables\Actions\Action::make('historico')
-                    ->label('Histórico')
+                    ->label('Histórico de Pagamentos')
                     ->icon('heroicon-o-clock')
                     ->color('warning')
+                    ->button() // Transforma em botão visível
+                    ->outlined() // Estilo outline para diferenciar do principal
+                    ->extraAttributes(['class' => 'w-full justify-center mb-1'])
                     ->modalContent(function ($record) {
                         $company = $record->company;
 
@@ -226,9 +230,12 @@ class LicenseResource extends Resource
 
                 // Ação Terminais
                 Tables\Actions\Action::make('terminais')
-                    ->label('Terminais')
+                    ->label('Ver Terminais Vinculados')
                     ->icon('heroicon-o-computer-desktop')
                     ->color('info')
+                    ->button()
+                    ->outlined()
+                    ->extraAttributes(['class' => 'w-full justify-center mb-1'])
                     ->modalContent(function ($record) {
                         $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
                             ->where('terminais_software.licenca_id', $record->id)
@@ -244,21 +251,27 @@ class LicenseResource extends Resource
 
                 // Ação Copiar Token
                 Tables\Actions\Action::make('copiar')
-                    ->label('Token')
-                    ->tooltip('Copiar Token de Ativação')
+                    ->label('Copiar Token de Ativação')
+                    ->tooltip('Copiar para área de transferência')
                     ->icon('heroicon-o-clipboard-document')
                     ->color('gray')
+                    ->button()
+                    ->outlined()
                     ->action(function () {})
                     ->extraAttributes(fn($record) => [
                         'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
                         'style' => 'cursor: pointer;',
+                        'class' => 'w-full justify-center mb-1',
                     ]),
 
                 // Ação Download
                 Tables\Actions\Action::make('download')
-                    ->label('Baixar')
+                    ->label('Baixar Instalador')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('primary')
+                    ->button()
+                    ->outlined()
+                    ->extraAttributes(['class' => 'w-full justify-center mb-1'])
                     ->url(function ($record) {
                         $sw = $record->software;
                         if (!$sw)
