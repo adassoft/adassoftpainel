@@ -133,4 +133,21 @@ class License extends Model
 
         return array_merge($terminais, $instalacoesExtras);
     }
+
+    public function recalculateUsage()
+    {
+        $utilizados = \Illuminate\Support\Facades\DB::table('terminais_software')
+            ->where('licenca_id', $this->id)
+            ->where('ativo', 1)
+            ->count();
+
+        // Considera também licenca_instalacoes se necessário (lógica legado do Admin)
+        $instalacoes = \Illuminate\Support\Facades\DB::table('licenca_instalacoes')
+            ->where('licenca_id', $this->id)
+            ->count();
+
+        $final = max($utilizados, $instalacoes);
+
+        $this->update(['terminais_utilizados' => $final]);
+    }
 }

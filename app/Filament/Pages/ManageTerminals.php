@@ -168,18 +168,9 @@ class ManageTerminals extends Page implements HasForms
 
     protected function recalcLicenseUsage($licencaId)
     {
-        // UPDATE licencas_ativas SET terminais_utilizados = ...
-        $utilizados = DB::table('terminais_software')
-            ->where('licenca_id', $licencaId)
-            ->where('ativo', 1)
-            ->count();
-
-        $instalacoes = DB::table('licenca_instalacoes')
-            ->where('licenca_id', $licencaId)
-            ->count();
-
-        $final = max($utilizados, $instalacoes);
-
-        License::where('id', $licencaId)->update(['terminais_utilizados' => $final]);
+        $license = License::find($licencaId);
+        if ($license) {
+            $license->recalculateUsage();
+        }
     }
 }

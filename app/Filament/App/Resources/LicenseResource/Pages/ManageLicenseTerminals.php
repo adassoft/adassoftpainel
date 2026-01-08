@@ -75,6 +75,8 @@ class ManageLicenseTerminals extends Page implements HasTable
                             ->where('licenca_id', $this->record->id)
                             ->update(['ativo' => 0]);
 
+                        $this->record->recalculateUsage();
+
                         \Filament\Notifications\Notification::make()
                             ->title('Terminal desvinculado')
                             ->success()
