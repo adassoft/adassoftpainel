@@ -85,5 +85,8 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+# Forçar limpeza final para evitar quebra de layout (Filament Assets)
+php artisan optimize:clear
+
 echo "✅ CONFIGURAÇÃO CONCLUÍDA!"
 echo "Se o erro de upload persistir, certifique-se de adicionar 'bash setup_production.sh' no Build Command do Easypanel."
