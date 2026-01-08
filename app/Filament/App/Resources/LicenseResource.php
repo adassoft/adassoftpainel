@@ -120,39 +120,38 @@ class LicenseResource extends Resource
                     ])->from('md'),
 
                     // Separador e Detalhes
-                    Tables\Columns\Layout\Panel::make([
-                        Tables\Columns\Layout\Split::make([
-                            Tables\Columns\Layout\Stack::make([
-                                Tables\Columns\TextColumn::make('data_ativacao')
-                                    ->date('d/m/Y')
-                                    ->description('Ativação')
-                                    ->color('gray')
-                                    ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
 
-                                Tables\Columns\TextColumn::make('data_expiracao')
-                                    ->date('d/m/Y')
-                                    ->description('Vencimento')
-                                    ->weight(\Filament\Support\Enums\FontWeight::Bold)
-                                    ->color(fn($state) => $state < now()->addDays(7) ? 'danger' : 'success')
-                                    ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
-                            ])->space(2),
+                    Tables\Columns\Layout\Split::make([
+                        Tables\Columns\Layout\Stack::make([
+                            Tables\Columns\TextColumn::make('data_ativacao')
+                                ->date('d/m/Y')
+                                ->description('Ativação')
+                                ->color('gray')
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
 
-                            Tables\Columns\Layout\Stack::make([
-                                Tables\Columns\TextColumn::make('terminais_uso')
-                                    ->getStateUsing(fn(License $record): string => "{$record->terminais_utilizados} / {$record->terminais_permitidos} Terminais")
-                                    ->icon('heroicon-m-computer-desktop')
-                                    ->color('info')
-                                    ->badge(),
+                            Tables\Columns\TextColumn::make('data_expiracao')
+                                ->date('d/m/Y')
+                                ->description('Vencimento')
+                                ->weight(\Filament\Support\Enums\FontWeight::Bold)
+                                ->color(fn($state) => $state < now()->addDays(7) ? 'danger' : 'success')
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
+                        ])->space(2),
 
-                                Tables\Columns\TextColumn::make('data_ultima_renovacao')
-                                    ->date('d/m/Y')
-                                    ->prefix('Renovado: ')
-                                    ->color('gray')
-                                    ->size(Tables\Columns\TextColumn\TextColumnSize::Small)
-                                    ->visible(fn($state) => !empty($state)),
-                            ])->alignment('end')->space(2),
-                        ])
-                    ])->class('bg-gray-50 rounded-lg p-3 mt-2'),
+                        Tables\Columns\Layout\Stack::make([
+                            Tables\Columns\TextColumn::make('terminais_uso')
+                                ->getStateUsing(fn(License $record): string => "{$record->terminais_utilizados} / {$record->terminais_permitidos} Terminais")
+                                ->icon('heroicon-m-computer-desktop')
+                                ->color('info')
+                                ->badge(),
+
+                            Tables\Columns\TextColumn::make('data_ultima_renovacao')
+                                ->date('d/m/Y')
+                                ->prefix('Renovado: ')
+                                ->color('gray')
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small)
+                                ->visible(fn($state) => !empty($state)),
+                        ])->alignment('end')->space(2),
+                    ])->extraAttributes(['class' => 'bg-gray-50 rounded-lg p-3 mt-2', 'style' => 'background-color: #f9fafb; padding: 0.75rem; border-radius: 0.5rem; margin-top: 0.5rem;']),
                 ])->space(3),
             ])
             ->filters([
