@@ -66,7 +66,7 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   // Configuracao (Pegue a API Key no painel Shield)
   Config := TShieldConfig.Create(
-    'https://express.adassoft.com/api/v1/adassoft', // URL Base (Novo Padrão REST)
+    'https://adassoft.com/api/v1/adassoft', // URL Base (Novo Padrão REST)
     'd8ae56db' + '7cabcc42' + '9d6f418e' + 'f8ed47d4' + '8e06e1a9' + '3b75062e' + '4f79dd37' + '0d60d2e0',  // API Key Ofuscada
     3,                                                  // ID do Software (Teste Dev)
     '3.10.14',                                          // Versao

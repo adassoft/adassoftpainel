@@ -21,26 +21,39 @@
         connect-src 'self' https://www.google-analytics.com https://stats.g.doubleclick.net https://*.clarity.ms https://c.bing.com https://www.facebook.com https://app.chatwoot.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net;
     ">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description"
-        content="@yield('meta_description', 'Softwares de Gestão simples e eficientes. Emita carnês, controle vendas e automatize processos com a AdasSoft.')">
-
-    {{-- SEO Canonical: Evita conteúdo duplicado em revendas --}}
     @php
-        $currentUrl = url()->current();
-        // Pega a URL base do sistema principal (ex: https://adassoft.com.br)
-        $baseUrl = config('app.url');
-
-        // Verifica se é o domínio principal
-        $isMainDomain = \App\Services\ResellerBranding::isDefault();
-
-        // Se estiver numa revenda, forçamos o canonical para o domínio principal (para produtos/paginas padrão)
-        // A menos que a view defina um canonical específico (ex: conteudo exclusivo da revenda)
-        $canonical = $isMainDomain ? $currentUrl : str_replace(request()->root(), $baseUrl, $currentUrl);
+        $seo = \App\Services\SeoService::getMeta();
+        // Override via View se necessário
+        $pageTitle = $__env->yieldContent('title', $seo->title);
+        $pageDesc = $__env->yieldContent('meta_description', $seo->description);
+        $pageImage = $__env->yieldContent('og_image', $seo->image);
     @endphp
 
-    <link rel="canonical" href="@yield('canonical', $canonical)" />
+    <title>{{ $pageTitle }} | {{ $seo->site_name }}</title>
+    <meta name="description" content="{{ $pageDesc }}">
+    <meta name="keywords" content="{{ $seo->keywords }}">
+    <meta name="robots" content="{{ $seo->robots }}">
+    <link rel="canonical" href="@yield('canonical', $seo->canonical)" />
 
-    <title>@yield('title', $appName . ' | Store')</title>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="{{ $pageTitle }}">
+    <meta property="og:description" content="{{ $pageDesc }}">
+    <meta property="og:image" content="{{ $pageImage }}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title" content="{{ $pageTitle }}">
+    <meta property="twitter:description" content="{{ $pageDesc }}">
+    <meta property="twitter:image" content="{{ $pageImage }}">
+
+    @if(!empty($seo->json_ld))
+    <script type="application/ld+json">
+        {!! json_encode($seo->json_ld) !!}
+    </script>
+    @endif
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ $iconeUrl }}">

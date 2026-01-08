@@ -46,189 +46,292 @@ class SoftwareResource extends Resource
                         Group::make()
                             ->columnSpan(2)
                             ->schema([
-                                Section::make('Dados do Software')
-                                    ->schema([
-                                        TextInput::make('codigo')
-                                            ->label('Código')
-                                            ->default(fn() => 'SW-' . strtoupper(\Illuminate\Support\Str::random(8)))
-                                            ->unique(ignoreRecord: true)
-                                            ->required()
-                                            ->maxLength(50)
-                                            ->helperText('Código único para identificação do software (máximo 50 caracteres).'),
-
-                                        TextInput::make('nome_software')
-                                            ->label('Nome do Software')
-                                            ->required()
-                                            ->live(onBlur: true)
-                                            ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
-                                            ->placeholder('Ex: Dev PDV Delphi')
-                                            ->maxLength(255)
-                                            ->helperText('Nome completo do software (máximo 255 caracteres).'),
-
-                                        TextInput::make('slug')
-                                            ->label('URL Amigável (Slug)')
-                                            ->unique(ignoreRecord: true)
-                                            ->required()
-                                            ->placeholder('ex: dev-pdv-delphi')
-                                            ->maxLength(255)
-                                            ->helperText('Identificador na URL: adassoft.com/produto/SEU-SLUG'),
-
-                                        TextInput::make('versao')
-                                            ->label('Versão')
-                                            ->required()
-                                            ->placeholder('Ex: 2.0.1, 1.5.0')
-                                            ->maxLength(50)
-                                            ->helperText('Versão atual do software (máximo 50 caracteres).'),
-
-                                        Grid::make(2)
+                                Tabs::make('TabsPrincipal')
+                                    ->tabs([
+                                        Tabs\Tab::make('Geral')
+                                            ->icon('heroicon-o-information-circle')
                                             ->schema([
-                                                TextInput::make('linguagem')
-                                                    ->label('Linguagem de Programação')
-                                                    ->placeholder('Ex: Delphi, PHP')
-                                                    ->maxLength(50),
-                                                Select::make('plataforma')
-                                                    ->label('Plataforma')
-                                                    ->options([
-                                                        'desktop' => 'Desktop (Windows)',
-                                                        'web' => 'Web App (Nuvem)',
-                                                        'mobile' => 'Mobile (Android/iOS)',
-                                                        'api' => 'API / Backend'
-                                                    ]),
-                                            ]),
-
-                                        Tabs::make('Origem do Arquivo')
-                                            ->tabs([
-                                                Tabs\Tab::make('Upload Direto')
+                                                Section::make('Dados do Software')
                                                     ->schema([
-                                                        FileUpload::make('arquivo_software')
-                                                            ->label('Selecione o Instalador (.exe, .zip, .rar)')
-                                                            ->disk('public')
-                                                            ->directory('softwares')
-                                                            ->helperText("O arquivo será salvo em 'uploads/softwares/'. O tamanho é calculado automaticamente."),
-                                                    ]),
-                                                Tabs\Tab::make('Repositório Interno')
-                                                    ->schema([
-                                                        Select::make('id_download_repo')
-                                                            ->label('Selecione um Arquivo do Gerenciador de Downloads')
-                                                            ->options(\App\Models\Download::all()->pluck('titulo', 'id'))
-                                                            ->searchable()
-                                                            ->helperText('Vincule um arquivo já cadastrado em "Gerenciador de Downloads".'),
-                                                    ]),
-                                                Tabs\Tab::make('Link Externo')
-                                                    ->schema([
-                                                        TextInput::make('url_download')
-                                                            ->label('URL Direta')
-                                                            ->placeholder('Ex: http://meusite.com/setup.exe'),
-                                                    ]),
-                                            ])
-                                            ->columnSpanFull(),
+                                                        TextInput::make('codigo')
+                                                            ->label('Código')
+                                                            ->default(fn() => 'SW-' . strtoupper(\Illuminate\Support\Str::random(8)))
+                                                            ->unique(ignoreRecord: true)
+                                                            ->required()
+                                                            ->maxLength(50)
+                                                            ->helperText('Código único para identificação do software (máximo 50 caracteres).'),
 
-                                        TextInput::make('tamanho_arquivo')
-                                            ->label('Tamanho (Opcional/Calculado)')
-                                            ->placeholder('Ex: 50MB')
-                                            ->helperText('Será preenchido automaticamente no Upload ou Repositório.'),
-                                    ]),
+                                                        TextInput::make('nome_software')
+                                                            ->label('Nome do Software')
+                                                            ->required()
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
+                                                            ->placeholder('Ex: Dev PDV Delphi')
+                                                            ->maxLength(255)
+                                                            ->helperText('Nome completo do software (máximo 255 caracteres).'),
 
-                                Section::make('Informações da Loja')
-                                    ->icon('heroicon-o-building-storefront')
-                                    ->schema([
-                                        TextInput::make('categoria')
-                                            ->label('Categoria')
-                                            ->default('Software')
-                                            ->placeholder('Ex: ERP, PDV'),
+                                                        TextInput::make('slug')
+                                                            ->label('URL Amigável (Slug)')
+                                                            ->unique(ignoreRecord: true)
+                                                            ->required()
+                                                            ->placeholder('ex: dev-pdv-delphi')
+                                                            ->maxLength(255)
+                                                            ->helperText('Identificador na URL: adassoft.com/produto/SEU-SLUG'),
 
-                                        Grid::make(1)
-                                            ->schema([
-                                                // Icon Row
-                                                Group::make()
-                                                    ->schema([
-                                                        TextInput::make('imagem')
-                                                            ->label('Ícone / Logo (Quadrado)')
-                                                            ->placeholder('https://... ou Caminho gerado')
-                                                            ->suffixAction(
-                                                                Action::make('gerar_icon_ia')
-                                                                    ->icon('heroicon-o-sparkles')
-                                                                    ->label('Ícone IA')
-                                                                    ->color('primary')
-                                                                    ->form([
-                                                                        Textarea::make('prompt_imagem')
-                                                                            ->label('Descreva o ícone')
-                                                                            ->placeholder('Ex: Ícone moderno flat de um carrinho de compras azul...')
-                                                                            ->required(),
-                                                                    ])
-                                                                    ->action(function (array $data, Forms\Set $set, \App\Services\GeminiService $gemini) {
-                                                                        try {
-                                                                            $basePrompt = "Você é um designer de UI/UX especialista em Ícones e Logotipos (SVG). Crie um ÍCONE DE APP quadrado.";
-                                                                            $techSpecs = "\nREGRAS TÉCNICAS (OBRIGATÓRIO):\n1. Retorne APENAS o código SVG bruto.\n2. SVG deve ter viewBox='0 0 512 512' (Quadrado perfeito).\n3. Estilo: Flat, Minimalista, Identidade Visual Clara. Fundo transparente ou shape circular/arredondado.";
+                                                        TextInput::make('versao')
+                                                            ->label('Versão')
+                                                            ->required()
+                                                            ->placeholder('Ex: 2.0.1, 1.5.0')
+                                                            ->maxLength(50)
+                                                            ->helperText('Versão atual do software (máximo 50 caracteres).'),
 
-                                                                            $userInstruction = "Instrução do Usuário: " . $data['prompt_imagem'];
-                                                                            $finalPrompt = $basePrompt . "\n" . $userInstruction . $techSpecs;
+                                                        Grid::make(2)
+                                                            ->schema([
+                                                                TextInput::make('linguagem')
+                                                                    ->label('Linguagem de Programação')
+                                                                    ->placeholder('Ex: Delphi, PHP')
+                                                                    ->maxLength(50),
+                                                                Select::make('plataforma')
+                                                                    ->label('Plataforma')
+                                                                    ->options([
+                                                                        'desktop' => 'Desktop (Windows)',
+                                                                        'web' => 'Web App (Nuvem)',
+                                                                        'mobile' => 'Mobile (Android/iOS)',
+                                                                        'api' => 'API / Backend'
+                                                                    ]),
+                                                            ]),
 
-                                                                            $response = $gemini->generateContent($finalPrompt);
+                                                        Tabs::make('Origem do Arquivo')
+                                                            ->tabs([
+                                                                Tabs\Tab::make('Upload Direto')
+                                                                    ->schema([
+                                                                        FileUpload::make('arquivo_software')
+                                                                            ->label('Selecione o Instalador (.exe, .zip, .rar)')
+                                                                            ->disk('public')
+                                                                            ->directory('softwares')
+                                                                            ->helperText("O arquivo será salvo em 'uploads/softwares/'. O tamanho é calculado automaticamente."),
+                                                                    ]),
+                                                                Tabs\Tab::make('Repositório Interno')
+                                                                    ->schema([
+                                                                        Select::make('id_download_repo')
+                                                                            ->label('Selecione um Arquivo do Gerenciador de Downloads')
+                                                                            ->options(\App\Models\Download::all()->pluck('titulo', 'id'))
+                                                                            ->searchable()
+                                                                            ->helperText('Vincule um arquivo já cadastrado em "Gerenciador de Downloads".'),
+                                                                    ]),
+                                                                Tabs\Tab::make('Link Externo')
+                                                                    ->schema([
+                                                                        TextInput::make('url_download')
+                                                                            ->label('URL Direta')
+                                                                            ->placeholder('Ex: http://meusite.com/setup.exe'),
+                                                                    ]),
+                                                            ])
+                                                            ->columnSpanFull(),
 
-                                                                            if (!$response['success']) {
-                                                                                throw new \Exception($response['error']);
-                                                                            }
-
-                                                                            $textoCandidato = $response['reply'];
-                                                                            $textoCandidato = str_replace(['```svg', '```xml', '```'], '', $textoCandidato);
-
-                                                                            if (preg_match('/<svg[\s\S]*?<\/svg>/i', $textoCandidato, $matches)) {
-                                                                                $svgCode = $matches[0];
-                                                                            } else {
-                                                                                throw new \Exception("A IA não retornou um SVG válido.");
-                                                                            }
-
-                                                                            $fileName = 'ia_icon_' . uniqid() . '.svg';
-                                                                            $path = public_path('img/produtos');
-                                                                            if (!file_exists($path)) {
-                                                                                mkdir($path, 0755, true);
-                                                                            }
-                                                                            file_put_contents($path . '/' . $fileName, $svgCode);
-
-                                                                            $publicUrl = 'img/produtos/' . $fileName;
-                                                                            $set('imagem', $publicUrl);
-
-                                                                            \Filament\Notifications\Notification::make()
-                                                                                ->title('Ícone Gerado!')
-                                                                                ->success()
-                                                                                ->send();
-
-                                                                        } catch (\Exception $e) {
-                                                                            \Filament\Notifications\Notification::make()
-                                                                                ->title('Erro ao Gerar Ícone')
-                                                                                ->body($e->getMessage())
-                                                                                ->danger()
-                                                                                ->send();
-                                                                        }
-                                                                    })
-                                                            ),
+                                                        TextInput::make('tamanho_arquivo')
+                                                            ->label('Tamanho (Opcional/Calculado)')
+                                                            ->placeholder('Ex: 50MB')
+                                                            ->helperText('Será preenchido automaticamente no Upload ou Repositório.'),
                                                     ]),
 
-                                                // Banner Row
-                                                Group::make()
+                                                Section::make('Informações da Loja')
+                                                    ->icon('heroicon-o-building-storefront')
                                                     ->schema([
-                                                        TextInput::make('imagem_destaque')
-                                                            ->label('Imagem Destaque (Banner)')
-                                                            ->placeholder('https://... ou Caminho gerado')
-                                                            ->suffixAction(
-                                                                Action::make('gerar_banner_ia')
-                                                                    ->icon('heroicon-o-photo')
-                                                                    ->label('Banner IA')
+                                                        TextInput::make('categoria')
+                                                            ->label('Categoria')
+                                                            ->default('Software')
+                                                            ->placeholder('Ex: ERP, PDV'),
+
+                                                        Grid::make(1)
+                                                            ->schema([
+                                                                // Icon Row
+                                                                Group::make()
+                                                                    ->schema([
+                                                                        TextInput::make('imagem')
+                                                                            ->label('Ícone / Logo (Quadrado)')
+                                                                            ->placeholder('https://... ou Caminho gerado')
+                                                                            ->suffixAction(
+                                                                                Action::make('gerar_icon_ia')
+                                                                                    ->icon('heroicon-o-sparkles')
+                                                                                    ->label('Ícone IA')
+                                                                                    ->color('primary')
+                                                                                    ->form([
+                                                                                        Textarea::make('prompt_imagem')
+                                                                                            ->label('Descreva o ícone')
+                                                                                            ->placeholder('Ex: Ícone moderno flat de um carrinho de compras azul...')
+                                                                                            ->required(),
+                                                                                    ])
+                                                                                    ->action(function (array $data, Forms\Set $set, \App\Services\GeminiService $gemini) {
+                                                                                        try {
+                                                                                            $basePrompt = "Você é um designer de UI/UX especialista em Ícones e Logotipos (SVG). Crie um ÍCONE DE APP quadrado.";
+                                                                                            $techSpecs = "\nREGRAS TÉCNICAS (OBRIGATÓRIO):\n1. Retorne APENAS o código SVG bruto.\n2. SVG deve ter viewBox='0 0 512 512' (Quadrado perfeito).\n3. Estilo: Flat, Minimalista, Identidade Visual Clara. Fundo transparente ou shape circular/arredondado.";
+
+                                                                                            $userInstruction = "Instrução do Usuário: " . $data['prompt_imagem'];
+                                                                                            $finalPrompt = $basePrompt . "\n" . $userInstruction . $techSpecs;
+
+                                                                                            $response = $gemini->generateContent($finalPrompt);
+
+                                                                                            if (!$response['success']) {
+                                                                                                throw new \Exception($response['error']);
+                                                                                            }
+
+                                                                                            $textoCandidato = $response['reply'];
+                                                                                            $textoCandidato = str_replace(['```svg', '```xml', '```'], '', $textoCandidato);
+
+                                                                                            if (preg_match('/<svg[\s\S]*?<\/svg>/i', $textoCandidato, $matches)) {
+                                                                                                $svgCode = $matches[0];
+                                                                                            } else {
+                                                                                                throw new \Exception("A IA não retornou um SVG válido.");
+                                                                                            }
+
+                                                                                            $fileName = 'ia_icon_' . uniqid() . '.svg';
+                                                                                            $path = public_path('img/produtos');
+                                                                                            if (!file_exists($path)) {
+                                                                                                mkdir($path, 0755, true);
+                                                                                            }
+                                                                                            file_put_contents($path . '/' . $fileName, $svgCode);
+
+                                                                                            $publicUrl = 'img/produtos/' . $fileName;
+                                                                                            $set('imagem', $publicUrl);
+
+                                                                                            \Filament\Notifications\Notification::make()
+                                                                                                ->title('Ícone Gerado!')
+                                                                                                ->success()
+                                                                                                ->send();
+
+                                                                                        } catch (\Exception $e) {
+                                                                                            \Filament\Notifications\Notification::make()
+                                                                                                ->title('Erro ao Gerar Ícone')
+                                                                                                ->body($e->getMessage())
+                                                                                                ->danger()
+                                                                                                ->send();
+                                                                                        }
+                                                                                    })
+                                                                            ),
+                                                                    ]),
+
+                                                                // Banner Row
+                                                                Group::make()
+                                                                    ->schema([
+                                                                        TextInput::make('imagem_destaque')
+                                                                            ->label('Imagem Destaque (Banner)')
+                                                                            ->placeholder('https://... ou Caminho gerado')
+                                                                            ->suffixAction(
+                                                                                Action::make('gerar_banner_ia')
+                                                                                    ->icon('heroicon-o-photo')
+                                                                                    ->label('Banner IA')
+                                                                                    ->color('info')
+                                                                                    ->form([
+                                                                                        Textarea::make('prompt_banner')
+                                                                                            ->label('Descreva o banner')
+                                                                                            ->placeholder('Ex: Banner tecnológico com gráficos e nuvens, tons de azul...')
+                                                                                            ->required(),
+                                                                                    ])
+                                                                                    ->action(function (array $data, Forms\Set $set, \App\Services\GeminiService $gemini) {
+                                                                                        try {
+                                                                                            $basePrompt = "Você é um ilustrador digital especialista em Cenários Vetoriais (SVG) para Web. Crie um BANNER HERO IMAGE moderno e sofisticado para software SaaS.";
+                                                                                            $techSpecs = "\nREGRAS TÉCNICAS (OBRIGATÓRIO):\n1. Retorne APENAS o código SVG bruto.\n2. SVG deve ter viewBox='0 0 1200 630' (Proporção aprox. 2:1, padrão social).\n3. Fundo: DEVE ter um fundo preenchido (retângulo com gradiente suave ou cor sólida moderna).\n4. Estilo: Isometric, Tech, Startup, Clean. Evite textos complexos.\n5. Elementos: Use representações abstratas de dashboards, gráficos, nuvens, conectividade.";
+
+                                                                                            $userInstruction = "Instrução do Usuário: " . $data['prompt_banner'];
+                                                                                            $finalPrompt = $basePrompt . "\n" . $userInstruction . $techSpecs;
+
+                                                                                            $response = $gemini->generateContent($finalPrompt);
+
+                                                                                            if (!$response['success']) {
+                                                                                                throw new \Exception($response['error']);
+                                                                                            }
+
+                                                                                            $textoCandidato = $response['reply'];
+                                                                                            $textoCandidato = str_replace(['```svg', '```xml', '```'], '', $textoCandidato);
+
+                                                                                            if (preg_match('/<svg[\s\S]*?<\/svg>/i', $textoCandidato, $matches)) {
+                                                                                                $svgCode = $matches[0];
+                                                                                            } else {
+                                                                                                throw new \Exception("A IA não retornou um SVG válido.");
+                                                                                            }
+
+                                                                                            $fileName = 'ia_banner_' . uniqid() . '.svg';
+                                                                                            $path = public_path('img/produtos');
+                                                                                            if (!file_exists($path)) {
+                                                                                                mkdir($path, 0755, true);
+                                                                                            }
+                                                                                            file_put_contents($path . '/' . $fileName, $svgCode);
+
+                                                                                            $publicUrl = 'img/produtos/' . $fileName;
+                                                                                            $set('imagem_destaque', $publicUrl);
+
+                                                                                            \Filament\Notifications\Notification::make()
+                                                                                                ->title('Banner Gerado!')
+                                                                                                ->success()
+                                                                                                ->send();
+
+                                                                                        } catch (\Exception $e) {
+                                                                                            \Filament\Notifications\Notification::make()
+                                                                                                ->title('Erro ao Gerar Banner')
+                                                                                                ->body($e->getMessage())
+                                                                                                ->danger()
+                                                                                                ->send();
+                                                                                        }
+                                                                                    })
+                                                                            ),
+                                                                    ]),
+                                                            ]),
+
+                                                        Textarea::make('descricao')
+                                                            ->label('Descrição Curta (Vitrine)')
+                                                            ->rows(3)
+                                                            ->columnSpanFull(),
+
+                                                        Textarea::make('pagina_vendas_html')
+                                                            ->label('Landing Page Personalizada (HTML Puro)')
+                                                            ->helperText('Cole o HTML bruto aqui. O sistema renderizará exatamente como estiver.')
+                                                            ->rows(15)
+                                                            ->columnSpanFull()
+                                                            ->hintAction(
+                                                                Action::make('gerar_html_ia')
+                                                                    ->label('Gerar com IA')
+                                                                    ->icon('heroicon-o-bolt')
                                                                     ->color('info')
-                                                                    ->form([
-                                                                        Textarea::make('prompt_banner')
-                                                                            ->label('Descreva o banner')
-                                                                            ->placeholder('Ex: Banner tecnológico com gráficos e nuvens, tons de azul...')
-                                                                            ->required(),
-                                                                    ])
+                                                                    ->form(function (Forms\Get $get) {
+                                                                        // 1. Obter Cores da Marca (Branding)
+                                                                        $branding = \App\Services\ResellerBranding::getCurrent();
+                                                                        $corStart = $branding['cor_start'] ?? '#3b82f6'; // Fallback Blue
+                                                                        $corEnd = $branding['cor_end'] ?? '#1d4ed8';
+
+                                                                        // 2. Obter Dados do Formulário Atual
+                                                                        $nomeSoftware = $get('nome_software') ?? 'NOME DO SOFTWARE';
+                                                                        $descricao = $get('descricao') ?? 'Software inovador de gestão.';
+
+                                                                        // 3. Montar Prompt Rico
+                                                                        $prePrompt = "Crie uma Landing Page moderna para o software: '{$nomeSoftware}'.\n";
+                                                                        $prePrompt .= "Contexto: {$descricao}\n\n";
+                                                                        $prePrompt .= "IDENTIDADE VISUAL (Siga estritamente):\n";
+                                                                        $prePrompt .= "- Cor Primária/Gradiente: De {$corStart} para {$corEnd}.\n";
+                                                                        $prePrompt .= "- Estilo: Clean, Profissional, use sombras suaves e bordas arredondadas (Border Radius 12px).\n";
+                                                                        $prePrompt .= "- CTA (Botões): Use gradiente 'background: linear-gradient(to right, {$corStart}, {$corEnd})'.\n\n";
+                                                                        $prePrompt .= "DETALHES DO CONTEÚDO:\n";
+                                                                        $prePrompt .= "Inclua uma seção 'Hero' impactante, uma seção de 'Funcionalidades' (Grid 3 colunas) e um 'Rodapé' simples.";
+
+                                                                        return [
+                                                                            Textarea::make('prompt_html')
+                                                                                ->label('Prompt da IA (Personalize se necessário)')
+                                                                                ->default($prePrompt)
+                                                                                ->rows(10)
+                                                                                ->required(),
+                                                                        ];
+                                                                    })
                                                                     ->action(function (array $data, Forms\Set $set, \App\Services\GeminiService $gemini) {
                                                                         try {
-                                                                            $basePrompt = "Você é um ilustrador digital especialista em Cenários Vetoriais (SVG) para Web. Crie um BANNER HERO IMAGE moderno e sofisticado para software SaaS.";
-                                                                            $techSpecs = "\nREGRAS TÉCNICAS (OBRIGATÓRIO):\n1. Retorne APENAS o código SVG bruto.\n2. SVG deve ter viewBox='0 0 1200 630' (Proporção aprox. 2:1, padrão social).\n3. Fundo: DEVE ter um fundo preenchido (retângulo com gradiente suave ou cor sólida moderna).\n4. Estilo: Isometric, Tech, Startup, Clean. Evite textos complexos.\n5. Elementos: Use representações abstratas de dashboards, gráficos, nuvens, conectividade.";
+                                                                            $userPrompt = $data['prompt_html'];
 
-                                                                            $userInstruction = "Instrução do Usuário: " . $data['prompt_banner'];
-                                                                            $finalPrompt = $basePrompt . "\n" . $userInstruction . $techSpecs;
+                                                                            $baseSystemPrompt = "Atue como um Especialista em Front-end Sênior (Bootstrap 5 + CSS Moderno). " .
+                                                                                "Sua tarefa é escrever o CÓDIGO HTML PURO para o CORPO de uma Landing Page. " .
+                                                                                "NÃO use tags <html>, <head> ou <body>. Comece direto nas <section> ou <header>.\n" .
+                                                                                "Use classes do Bootstrap 5 para layout (container, row, col, d-flex, etc). " .
+                                                                                "Para estilização específica (cores, gradientes, sombras), use tags <style> no início ou style='' inline, garantindo que o design fique incrível e fiel às cores solicitadas.\n" .
+                                                                                "IMPORTANTE: Retorne APENAS o código HTML bruto. Não use blocos de código markdown (```).";
+
+                                                                            $finalPrompt = $baseSystemPrompt . "\n\nINSTRUÇÃO DO USUÁRIO:\n" . $userPrompt;
 
                                                                             $response = $gemini->generateContent($finalPrompt);
 
@@ -236,33 +339,19 @@ class SoftwareResource extends Resource
                                                                                 throw new \Exception($response['error']);
                                                                             }
 
-                                                                            $textoCandidato = $response['reply'];
-                                                                            $textoCandidato = str_replace(['```svg', '```xml', '```'], '', $textoCandidato);
+                                                                            $html = $response['reply'];
+                                                                            $cleanHtml = str_replace(['```html', '```'], '', $html);
 
-                                                                            if (preg_match('/<svg[\s\S]*?<\/svg>/i', $textoCandidato, $matches)) {
-                                                                                $svgCode = $matches[0];
-                                                                            } else {
-                                                                                throw new \Exception("A IA não retornou um SVG válido.");
-                                                                            }
-
-                                                                            $fileName = 'ia_banner_' . uniqid() . '.svg';
-                                                                            $path = public_path('img/produtos');
-                                                                            if (!file_exists($path)) {
-                                                                                mkdir($path, 0755, true);
-                                                                            }
-                                                                            file_put_contents($path . '/' . $fileName, $svgCode);
-
-                                                                            $publicUrl = 'img/produtos/' . $fileName;
-                                                                            $set('imagem_destaque', $publicUrl);
+                                                                            $set('pagina_vendas_html', $cleanHtml);
 
                                                                             \Filament\Notifications\Notification::make()
-                                                                                ->title('Banner Gerado!')
+                                                                                ->title('Landing Page Gerada!')
+                                                                                ->body('O HTML foi inserido no campo. Verifique e ajuste se necessário.')
                                                                                 ->success()
                                                                                 ->send();
-
                                                                         } catch (\Exception $e) {
                                                                             \Filament\Notifications\Notification::make()
-                                                                                ->title('Erro ao Gerar Banner')
+                                                                                ->title('Erro na IA')
                                                                                 ->body($e->getMessage())
                                                                                 ->danger()
                                                                                 ->send();
@@ -270,116 +359,40 @@ class SoftwareResource extends Resource
                                                                     })
                                                             ),
                                                     ]),
+
+                                                Section::make('Integrações (Google Shopping / Meta)')
+                                                    ->collapsible()
+                                                    ->collapsed()
+                                                    ->icon('heroicon-o-globe-alt')
+                                                    ->schema([
+                                                        TextInput::make('gtin')
+                                                            ->label('GTIN / EAN')
+                                                            ->placeholder('EAN-13 ou deixe vazio')
+                                                            ->helperText('Se vazio, enviará "identifier_exists=no".'),
+                                                        Select::make('google_product_category')
+                                                            ->label('Categoria Google')
+                                                            ->options(\App\Services\GoogleTaxonomy::getSoftwareCategories())
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->placeholder('Busque por: Software, ERP, CRM...'),
+                                                        TextInput::make('brand')
+                                                            ->label('Marca')
+                                                            ->default('AdasSoft'),
+
+                                                        Forms\Components\Toggle::make('disponivel_revenda')
+                                                            ->label('Disponível para Revenda')
+                                                            ->helperText('Permite que revendedores comercializem este software.')
+                                                            ->default(false)
+                                                            ->columnSpanFull(),
+                                                    ])->columns(3),
                                             ]),
 
-                                        Textarea::make('descricao')
-                                            ->label('Descrição Curta (Vitrine)')
-                                            ->rows(3)
-                                            ->columnSpanFull(),
-
-                                        Textarea::make('pagina_vendas_html')
-                                            ->label('Landing Page Personalizada (HTML Puro)')
-                                            ->helperText('Cole o HTML bruto aqui. O sistema renderizará exatamente como estiver.')
-                                            ->rows(15)
-                                            ->columnSpanFull()
-                                            ->hintAction(
-                                                Action::make('gerar_html_ia')
-                                                    ->label('Gerar com IA')
-                                                    ->icon('heroicon-o-bolt')
-                                                    ->color('info')
-                                                    ->form(function (Forms\Get $get) {
-                                                        // 1. Obter Cores da Marca (Branding)
-                                                        $branding = \App\Services\ResellerBranding::getCurrent();
-                                                        $corStart = $branding['cor_start'] ?? '#3b82f6'; // Fallback Blue
-                                                        $corEnd = $branding['cor_end'] ?? '#1d4ed8';
-
-                                                        // 2. Obter Dados do Formulário Atual
-                                                        $nomeSoftware = $get('nome_software') ?? 'NOME DO SOFTWARE';
-                                                        $descricao = $get('descricao') ?? 'Software inovador de gestão.';
-
-                                                        // 3. Montar Prompt Rico
-                                                        $prePrompt = "Crie uma Landing Page moderna para o software: '{$nomeSoftware}'.\n";
-                                                        $prePrompt .= "Contexto: {$descricao}\n\n";
-                                                        $prePrompt .= "IDENTIDADE VISUAL (Siga estritamente):\n";
-                                                        $prePrompt .= "- Cor Primária/Gradiente: De {$corStart} para {$corEnd}.\n";
-                                                        $prePrompt .= "- Estilo: Clean, Profissional, use sombras suaves e bordas arredondadas (Border Radius 12px).\n";
-                                                        $prePrompt .= "- CTA (Botões): Use gradiente 'background: linear-gradient(to right, {$corStart}, {$corEnd})'.\n\n";
-                                                        $prePrompt .= "DETALHES DO CONTEÚDO:\n";
-                                                        $prePrompt .= "Inclua uma seção 'Hero' impactante, uma seção de 'Funcionalidades' (Grid 3 colunas) e um 'Rodapé' simples.";
-
-                                                        return [
-                                                            Textarea::make('prompt_html')
-                                                                ->label('Prompt da IA (Personalize se necessário)')
-                                                                ->default($prePrompt)
-                                                                ->rows(10)
-                                                                ->required(),
-                                                        ];
-                                                    })
-                                                    ->action(function (array $data, Forms\Set $set, \App\Services\GeminiService $gemini) {
-                                                        try {
-                                                            $userPrompt = $data['prompt_html'];
-
-                                                            $baseSystemPrompt = "Atue como um Especialista em Front-end Sênior (Bootstrap 5 + CSS Moderno). " .
-                                                                "Sua tarefa é escrever o CÓDIGO HTML PURO para o CORPO de uma Landing Page. " .
-                                                                "NÃO use tags <html>, <head> ou <body>. Comece direto nas <section> ou <header>.\n" .
-                                                                "Use classes do Bootstrap 5 para layout (container, row, col, d-flex, etc). " .
-                                                                "Para estilização específica (cores, gradientes, sombras), use tags <style> no início ou style='' inline, garantindo que o design fique incrível e fiel às cores solicitadas.\n" .
-                                                                "IMPORTANTE: Retorne APENAS o código HTML bruto. Não use blocos de código markdown (```).";
-
-                                                            $finalPrompt = $baseSystemPrompt . "\n\nINSTRUÇÃO DO USUÁRIO:\n" . $userPrompt;
-
-                                                            $response = $gemini->generateContent($finalPrompt);
-
-                                                            if (!$response['success']) {
-                                                                throw new \Exception($response['error']);
-                                                            }
-
-                                                            $html = $response['reply'];
-                                                            $cleanHtml = str_replace(['```html', '```'], '', $html);
-
-                                                            $set('pagina_vendas_html', $cleanHtml);
-
-                                                            \Filament\Notifications\Notification::make()
-                                                                ->title('Landing Page Gerada!')
-                                                                ->body('O HTML foi inserido no campo. Verifique e ajuste se necessário.')
-                                                                ->success()
-                                                                ->send();
-                                                        } catch (\Exception $e) {
-                                                            \Filament\Notifications\Notification::make()
-                                                                ->title('Erro na IA')
-                                                                ->body($e->getMessage())
-                                                                ->danger()
-                                                                ->send();
-                                                        }
-                                                    })
-                                            ),
+                                        Tabs\Tab::make('SEO e Social')
+                                            ->icon('heroicon-o-magnifying-glass-circle')
+                                            ->schema([
+                                                \App\Filament\Components\SeoForm::make(),
+                                            ]),
                                     ]),
-
-                                Section::make('Integrações (Google Shopping / Meta)')
-                                    ->collapsible()
-                                    ->collapsed()
-                                    ->icon('heroicon-o-globe-alt')
-                                    ->schema([
-                                        TextInput::make('gtin')
-                                            ->label('GTIN / EAN')
-                                            ->placeholder('EAN-13 ou deixe vazio')
-                                            ->helperText('Se vazio, enviará "identifier_exists=no".'),
-                                        Select::make('google_product_category')
-                                            ->label('Categoria Google')
-                                            ->options(\App\Services\GoogleTaxonomy::getSoftwareCategories())
-                                            ->searchable()
-                                            ->preload()
-                                            ->placeholder('Busque por: Software, ERP, CRM...'),
-                                        TextInput::make('brand')
-                                            ->label('Marca')
-                                            ->default('AdasSoft'),
-
-                                        Forms\Components\Toggle::make('disponivel_revenda')
-                                            ->label('Disponível para Revenda')
-                                            ->helperText('Permite que revendedores comercializem este software.')
-                                            ->default(false)
-                                            ->columnSpanFull(),
-                                    ])->columns(3),
                             ]),
 
                         // Coluna Lateral (Direita - 1/3)

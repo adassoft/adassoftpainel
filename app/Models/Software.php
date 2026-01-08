@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Software extends Model
 {
+    use \App\Models\Concerns\HasSeo;
+
     protected $table = 'softwares';
     public $timestamps = false; // Se quiser createdAt/updatedAt, mude para true
 
