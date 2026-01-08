@@ -82,42 +82,78 @@ class LicenseResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->contentGrid([
+                'md' => 1,
+                'xl' => 2,
+            ])
             ->columns([
-                Tables\Columns\TextColumn::make('software.nome_software')
-                    ->label('Software')
-                    ->sortable()
-                    ->weight(\Filament\Support\Enums\FontWeight::Bold)
-                    ->searchable(),
+                Tables\Columns\Layout\Stack::make([
+                    // Topo: Imagem + Nome + Status
+                    Tables\Columns\Layout\Split::make([
+                        Tables\Columns\ImageColumn::make('software.imagem')
+                            ->circular()
+                            ->defaultImageUrl('/img/placeholder_card.svg')
+                            ->grow(false)
+                            ->size(40),
 
-                Tables\Columns\TextColumn::make('data_ativacao')
-                    ->label('Data Liberação')
-                    ->date('d/m/Y')
-                    ->sortable()
-                    ->color('gray'),
+                        Tables\Columns\Layout\Stack::make([
+                            Tables\Columns\TextColumn::make('software.nome_software')
+                                ->weight(\Filament\Support\Enums\FontWeight::Bold)
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Large),
 
-                Tables\Columns\TextColumn::make('data_ultima_renovacao')
-                    ->label('Últ. Renovação')
-                    ->date('d/m/Y')
-                    ->sortable()
-                    ->toggleable(),
+                            Tables\Columns\TextColumn::make('serial_atual')
+                                ->formatStateUsing(fn($state) => \Illuminate\Support\Str::limit($state, 20))
+                                ->icon('heroicon-m-key')
+                                ->color('gray')
+                                ->copyable()
+                                ->tooltip('Copiar Serial'),
+                        ])->space(1),
 
-                Tables\Columns\TextColumn::make('data_expiracao')
-                    ->label('Expira em')
-                    ->date('d/m/Y')
-                    ->sortable()
-                    ->weight(\Filament\Support\Enums\FontWeight::Bold)
-                    ->color(fn($state) => $state < now()->addDays(7) ? 'danger' : 'success'),
+                        Tables\Columns\TextColumn::make('status')
+                            ->badge()
+                            ->color(fn(string $state): string => match ($state) {
+                                'ativo' => 'success',
+                                'inativo', 'bloqueado' => 'danger',
+                                default => 'warning',
+                            })
+                            ->grow(false),
+                    ])->from('md'),
 
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'ativo' => 'success',
-                        'inativo', 'bloqueado' => 'danger',
-                        default => 'warning',
-                    }),
-                Tables\Columns\TextColumn::make('terminais_uso')
-                    ->label('Terminais')
-                    ->state(fn(License $record): string => "{$record->terminais_utilizados} / {$record->terminais_permitidos}")
+                    // Separador e Detalhes
+                    Tables\Columns\Layout\Panel::make([
+                        Tables\Columns\Layout\Split::make([
+                            Tables\Columns\Layout\Stack::make([
+                                Tables\Columns\TextColumn::make('data_ativacao')
+                                    ->date('d/m/Y')
+                                    ->description('Ativação')
+                                    ->color('gray')
+                                    ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
+
+                                Tables\Columns\TextColumn::make('data_expiracao')
+                                    ->date('d/m/Y')
+                                    ->description('Vencimento')
+                                    ->weight(\Filament\Support\Enums\FontWeight::Bold)
+                                    ->color(fn($state) => $state < now()->addDays(7) ? 'danger' : 'success')
+                                    ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
+                            ])->space(2),
+
+                            Tables\Columns\Layout\Stack::make([
+                                Tables\Columns\TextColumn::make('terminais_uso')
+                                    ->getStateUsing(fn(License $record): string => "{$record->terminais_utilizados} / {$record->terminais_permitidos} Terminais")
+                                    ->icon('heroicon-m-computer-desktop')
+                                    ->color('info')
+                                    ->badge(),
+
+                                Tables\Columns\TextColumn::make('data_ultima_renovacao')
+                                    ->date('d/m/Y')
+                                    ->prefix('Renovado: ')
+                                    ->color('gray')
+                                    ->size(Tables\Columns\TextColumn\TextColumnSize::Small)
+                                    ->visible(fn($state) => !empty($state)),
+                            ])->alignment('end')->space(2),
+                        ])
+                    ])->class('bg-gray-50 rounded-lg p-3 mt-2'),
+                ])->space(3),
             ])
             ->filters([
                 //
