@@ -44,6 +44,7 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
             'secret_key' => $this->config->secret_key,
             'redirect_uri_display' => route('ml.callback'),
             'url_notificacoes' => route('ml.webhook'),
+            'status' => $this->config?->is_active ? 'Conectado como: ' . $this->config->ml_user_id : 'Desconectado',
         ]);
     }
 
