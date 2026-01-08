@@ -172,7 +172,7 @@ class LicenseResource extends Resource
                     ->icon('heroicon-o-sparkles')
                     ->color('success')
                     ->button()
-                    ->extraAttributes(['class' => 'w-full justify-center mb-2'])
+                    ->extraAttributes(['class' => 'w-full justify-start mb-2'])
                     ->requiresConfirmation()
                     ->modalHeading('Renovar Licença')
                     ->modalDescription('Você será redirecionado para a tela de pagamento. Deseja continuar?')
@@ -190,6 +190,7 @@ class LicenseResource extends Resource
                     ->label('Histórico de Pagamentos')
                     ->icon('heroicon-o-clock')
                     ->color('gray')
+                    ->extraAttributes(['class' => 'w-full justify-start mb-2'])
                     ->modalContent(function ($record) {
                         $company = $record->company;
 
@@ -210,6 +211,7 @@ class LicenseResource extends Resource
                     ->label('Ver Terminais Vinculados')
                     ->icon('heroicon-o-computer-desktop')
                     ->color('gray')
+                    ->extraAttributes(['class' => 'w-full justify-start mb-2'])
                     ->modalContent(function ($record) {
                         $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
                             ->where('terminais_software.licenca_id', $record->id)
@@ -224,6 +226,7 @@ class LicenseResource extends Resource
                     ->color('gray')
                     ->action(function () {})
                     ->extraAttributes(fn($record) => [
+                        'class' => 'w-full justify-start mb-2',
                         'onclick' => 'window.navigator.clipboard.writeText("' . $record->serial_atual . '"); new FilamentNotification().title("Token copiado!").success().send();',
                     ]),
 
@@ -232,6 +235,7 @@ class LicenseResource extends Resource
                     ->label('Baixar Instalador')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
+                    ->extraAttributes(['class' => 'w-full justify-start mb-2'])
                     ->url(function ($record) {
                         $sw = $record->software;
                         if (!$sw)
