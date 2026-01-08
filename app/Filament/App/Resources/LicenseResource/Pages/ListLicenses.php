@@ -24,29 +24,41 @@ class ListLicenses extends ListRecords
         ];
     }
 
-    public function desvincularTerminal($terminalId, $licenseId)
+    public function desvincularTerminalAction(): \Filament\Actions\Action
     {
-        try {
-            \Illuminate\Support\Facades\DB::table('terminais_software')
-                ->where('terminal_codigo', $terminalId)
-                ->where('licenca_id', $licenseId)
-                ->update(['ativo' => 0]);
+        return \Filament\Actions\Action::make('desvincularTerminal')
+            ->requiresConfirmation()
+            ->modalHeading('Desvincular Terminal')
+            ->modalDescription('Tem certeza que deseja desvincular este terminal? Ele perderá o acesso ao software imediatamente.')
+            ->modalSubmitActionLabel('Sim, desvincular')
+            ->color('danger')
+            ->action(function (array $arguments) {
+                $terminalId = $arguments['terminal_id'] ?? null;
+                $licenseId = $arguments['license_id'] ?? null;
 
-            \Filament\Notifications\Notification::make()
-                ->title('Terminal desvinculado')
-                ->success()
-                ->send();
+                if (!$terminalId || !$licenseId) {
+                    return;
+                }
 
-            // Força o recarregamento da página para atualizar o modal (já que modals puramente dinâmicos não reagem reativamente a changes externos facilmente sem fechar)
-            // Idealmente usariamos um componente Livewire filho, mas refresh resolve rápido.
-            $this->redirect(request()->header('Referer'));
+                try {
+                    \Illuminate\Support\Facades\DB::table('terminais_software')
+                        ->where('terminal_codigo', $terminalId)
+                        ->where('licenca_id', $licenseId)
+                        ->update(['ativo' => 0]);
 
-        } catch (\Exception $e) {
-            \Filament\Notifications\Notification::make()
-                ->title('Erro ao desvincular')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        }
+                    \Filament\Notifications\Notification::make()
+                        ->title('Terminal desvinculado')
+                        ->success()
+                        ->send();
+
+                    $this->redirect(request()->header('Referer'));
+                } catch (\Exception $e) {
+                    \Filament\Notifications\Notification::make()
+                        ->title('Erro ao desvincular')
+                        ->body($e->getMessage())
+                        ->danger()
+                        ->send();
+                }
+            });
     }
 }

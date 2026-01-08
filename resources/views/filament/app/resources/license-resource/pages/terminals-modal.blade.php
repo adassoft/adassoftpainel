@@ -20,8 +20,7 @@
                         </td>
                         <td class="px-6 py-4">
                             <button type="button"
-                                wire:click="desvincularTerminal({{ $terminal->CODIGO }}, {{ $license_id }})"
-                                wire:confirm="Tem certeza que deseja desvincular este terminal? Ele perderá o acesso ao software imediatamente."
+                                wire:click="mountAction('desvincularTerminal', { terminal_id: {{ $terminal->CODIGO }}, license_id: {{ $license_id }} })"
                                 class="text-red-600 hover:text-red-800 font-medium text-xs flex items-center gap-1 border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors">
                                 <x-heroicon-o-trash class="w-4 h-4" /> Desvincular
                             </button>
