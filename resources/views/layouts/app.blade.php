@@ -18,7 +18,7 @@
         img-src 'self' data: https://www.facebook.com https://googleads.g.doubleclick.net https://stats.g.doubleclick.net https://www.google-analytics.com https://*.clarity.ms; 
         font-src 'self' https://fonts.gstatic.com data:; 
         frame-src 'self' https://www.youtube.com https://www.facebook.com https://app.chatwoot.com; 
-        connect-src 'self' https://www.google-analytics.com https://stats.g.doubleclick.net https://*.clarity.ms https://c.bing.com https://www.facebook.com https://app.chatwoot.com https://cdn.tailwindcss.com;
+        connect-src 'self' https://www.google-analytics.com https://stats.g.doubleclick.net https://*.clarity.ms https://c.bing.com https://www.facebook.com https://app.chatwoot.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net;
     ">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description"
