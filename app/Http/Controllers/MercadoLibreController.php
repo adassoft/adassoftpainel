@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 class MercadoLibreController extends Controller
 {
     // Redireciona para o ML
+    // Redireciona para o ML
     public function auth(Request $request)
     {
         // Aqui assumimos que estamos configurando para a empresa atual ou parâmetro
@@ -20,15 +21,22 @@ class MercadoLibreController extends Controller
 
         // Se as configs estiverem no banco, melhor:
         $config = MercadoLibreConfig::first(); // Pega a primeira para teste ou use lógica de tenant
+
+        $siteDomain = 'mercadolivre.com.br'; // Padrão BR
+
         if ($config) {
             $appId = $config->app_id;
+            // Ajuste simples de domínio baseado no site_id
+            if ($config->site_id === 'MLA')
+                $siteDomain = 'mercadolibre.com.ar';
+            // Adicionar outros maps se necessário
         }
 
         if (!$appId) {
             return redirect()->back()->with('error', 'App ID não configurado.');
         }
 
-        $url = "https://auth.mercadolivre.com.br/authorization?response_type=code&client_id={$appId}&redirect_uri={$redirectUri}";
+        $url = "https://auth.{$siteDomain}/authorization?response_type=code&client_id={$appId}&redirect_uri={$redirectUri}";
 
         return redirect($url);
     }

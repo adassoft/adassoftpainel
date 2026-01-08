@@ -8,6 +8,7 @@ class MercadoLibreConfig extends Model
 {
     protected $fillable = [
         'company_id',
+        'site_id',
         'app_id',
         'secret_key',
         'redirect_uri',
