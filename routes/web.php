@@ -103,6 +103,7 @@ Route::post('/ajuda/{id}/vote', [\App\Http\Controllers\KbController::class, 'vot
 // === Mercado Livre Integration ===
 Route::get('/ml/auth', [\App\Http\Controllers\MercadoLibreController::class, 'auth'])->name('ml.auth');
 Route::get('/ml/callback', [\App\Http\Controllers\MercadoLibreController::class, 'callback'])->name('ml.callback');
+Route::post('/ml/notifications', [\App\Http\Controllers\MercadoLibreController::class, 'webhook'])->name('ml.webhook');
 
 // === Gerenciador de Redirecionamentos (SEO) ===
 Route::fallback(function () {

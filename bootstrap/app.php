@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'shield.auth' => \App\Http\Middleware\VerifyShieldApiKey::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            '/ml/notifications',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

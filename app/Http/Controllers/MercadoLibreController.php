@@ -83,4 +83,13 @@ class MercadoLibreController extends Controller
 
         return redirect('/admin/companies/mercado-libre-integration')->with('success', 'Conectado com sucesso!');
     }
+    // Recebe notificações do ML (Webhooks)
+    public function webhook(Request $request)
+    {
+        // Log para debug inicial
+        Log::info('ML Webhook recebido', $request->all());
+
+        // Retorna 200 para o ML não ficar reenviando
+        return response()->json(['status' => 'ok']);
+    }
 }

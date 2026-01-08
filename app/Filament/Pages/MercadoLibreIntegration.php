@@ -43,6 +43,7 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
             'app_id' => $this->config->app_id,
             'secret_key' => $this->config->secret_key,
             'redirect_uri_display' => route('ml.callback'),
+            'url_notificacoes' => route('ml.webhook'),
         ]);
     }
 
@@ -75,6 +76,20 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
                                     ])
                             )
                             ->helperText('Copie esta URL e cole nas configurações do seu aplicativo no Mercado Livre.'),
+
+                        TextInput::make('url_notificacoes')
+                            ->label('URL de Notificações (Webhook)')
+                            ->default(route('ml.webhook'))
+                            ->readOnly()
+                            ->suffixAction(
+                                \Filament\Forms\Components\Actions\Action::make('copy_webhook')
+                                    ->icon('heroicon-m-clipboard-document-check')
+                                    ->action(function () {})
+                                    ->extraAttributes([
+                                        'x-on:click' => 'window.navigator.clipboard.writeText("' . route('ml.webhook') . '"); $tooltip("Copiado!", { timeout: 1500 });',
+                                    ])
+                            )
+                            ->helperText('Cole esta URL no campo "URL de retornos de chamada de notificação".'),
                     ])
                     ->columns(2),
 
