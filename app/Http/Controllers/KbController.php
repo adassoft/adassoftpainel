@@ -41,7 +41,6 @@ class KbController extends Controller
         $articles = $category->articles()
             ->where('is_active', true)
             ->where('is_public', true)
-            ->orderBy('sort_order', 'asc')
             ->orderBy('updated_at', 'desc')
             ->paginate(12);
 
