@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\CompanyResource\Pages;
+namespace App\Filament\Pages;
 
 use App\Models\MercadoLibreConfig;
 use Filament\Actions\Action;
@@ -12,21 +12,19 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Actions\Contracts\HasActions;
-use App\Filament\Resources\CompanyResource;
-use Filament\Resources\Pages\Page;
+use Filament\Pages\Page;
 
 class MercadoLibreIntegration extends Page implements HasForms, HasActions
 {
     use InteractsWithForms;
     use InteractsWithActions;
 
-    protected static string $resource = CompanyResource::class;
-
-    protected static string $view = 'filament.resources.company-resource.pages.mercado-libre-integration';
-
-    protected static ?string $title = 'Integração Mercado Livre';
-    protected static ?string $navigationLabel = 'Mercado Livre';
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
+    protected static ?string $navigationLabel = 'Mercado Livre';
+    protected static ?string $title = 'Integração Mercado Livre';
+    protected static ?string $slug = 'mercado-libre-integration';
+
+    protected static string $view = 'filament.pages.mercado-libre-integration';
 
     public ?array $data = [];
     public ?MercadoLibreConfig $config = null;
