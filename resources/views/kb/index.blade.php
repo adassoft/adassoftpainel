@@ -160,7 +160,12 @@
                                                 @endphp
                                             @endif
                                         </div>
-                                        <div class="cat-title">{{ $category->name }}</div>
+                                        <div class="cat-title">
+                                            <a href="{{ route('kb.category', $category->slug) }}"
+                                                style="color: inherit; text-decoration: none;">
+                                                {{ $category->name }}
+                                            </a>
+                                        </div>
                                     </div>
                                     <span class="badge badge-light badge-pill text-muted">{{ $category->articles_count }}</span>
                                 </div>
