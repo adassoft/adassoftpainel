@@ -65,6 +65,12 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
                             ->placeholder(route('ml.callback'))
                             ->default(route('ml.callback'))
                             ->readOnly()
+                            ->suffixIcon('heroicon-m-clipboard-document-check')
+                            ->suffixIconColor('success')
+                            ->extraAttributes([
+                                'onclick' => 'navigator.clipboard.writeText(this.value); new FilamentNotification().title("Copiado!").success().send()',
+                                'style' => 'cursor: pointer;',
+                            ])
                             ->helperText('Copie esta URL e cole nas configurações do seu aplicativo no Mercado Livre.'),
                     ])
                     ->columns(2),
