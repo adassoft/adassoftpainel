@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            \App\Http\Middleware\Monitor404Middleware::class,
+        ]);
+
         $middleware->alias([
             'shield.auth' => \App\Http\Middleware\VerifyShieldApiKey::class,
         ]);
