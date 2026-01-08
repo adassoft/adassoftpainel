@@ -6,7 +6,7 @@
                 <tr>
                     <th scope="col" class="px-6 py-3">Computador</th>
                     <th scope="col" class="px-6 py-3">MAC Address</th>
-                    <th scope="col" class="px-6 py-3">Status</th>
+                    <th scope="col" class="px-6 py-3">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -19,8 +19,12 @@
                             {{ $terminal->MAC }}
                         </td>
                         <td class="px-6 py-4">
-                            <span
-                                class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Vinculado</span>
+                            <button type="button"
+                                wire:click="desvincularTerminal({{ $terminal->CODIGO }}, {{ $license_id }})"
+                                wire:confirm="Tem certeza que deseja desvincular este terminal? Ele perderá o acesso ao software imediatamente."
+                                class="text-red-600 hover:text-red-800 font-medium text-xs flex items-center gap-1 border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors">
+                                <x-heroicon-o-trash class="w-4 h-4" /> Desvincular
+                            </button>
                         </td>
                     </tr>
                 @empty

@@ -215,8 +215,9 @@ class LicenseResource extends Resource
                     ->modalContent(function ($record) {
                         $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
                             ->where('terminais_software.licenca_id', $record->id)
+                            ->where('terminais_software.ativo', 1) // Apenas ativos
                             ->select('terminais.*', 'terminais_software.ultima_atividade', 'terminais_software.ativo as status_vinculo')->get();
-                        return view('filament.app.resources.license-resource.pages.terminals-modal', ['terminais' => $terminais]);
+                        return view('filament.app.resources.license-resource.pages.terminals-modal', ['terminais' => $terminais, 'license_id' => $record->id]);
                     })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
 
                 // 4. Copiar Token (Link simples)
