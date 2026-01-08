@@ -88,27 +88,30 @@ class LicenseResource extends Resource
             ])
             ->columns([
                 Tables\Columns\Layout\Stack::make([
-                    // Topo: Imagem + Nome + Status
+                    // SECTION 1: Cabeçalho com Imagem, Nome e Status
                     Tables\Columns\Layout\Split::make([
+                        // Esquerda: Imagem
                         Tables\Columns\ImageColumn::make('software_imagem')
                             ->circular()
                             ->defaultImageUrl('/img/placeholder_card.svg')
                             ->grow(false)
-                            ->size(40),
+                            ->size(50), // Aumentei um pouco para destaque
 
+                        // Centro: Nome e Terminais
                         Tables\Columns\Layout\Stack::make([
                             Tables\Columns\TextColumn::make('nome_software')
                                 ->weight(\Filament\Support\Enums\FontWeight::Bold)
-                                ->size(Tables\Columns\TextColumn\TextColumnSize::Large),
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Large)
+                                ->color('primary'), // Destaque na cor da marca
 
-                            Tables\Columns\TextColumn::make('serial_atual')
-                                ->formatStateUsing(fn($state) => \Illuminate\Support\Str::limit($state, 20))
-                                ->icon('heroicon-m-key')
-                                ->color('gray')
-                                ->copyable()
-                                ->tooltip('Copiar Serial'),
-                        ])->space(1),
+                            Tables\Columns\TextColumn::make('resumo_terminais')
+                                ->badge()
+                                ->icon('heroicon-m-computer-desktop')
+                                ->color('info')
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
+                        ])->space(1), // Espaço entre nome e badge
 
+                        // Direita: Status
                         Tables\Columns\TextColumn::make('status')
                             ->badge()
                             ->color(fn(string $state): string => match ($state) {
@@ -117,39 +120,46 @@ class LicenseResource extends Resource
                                 default => 'warning',
                             })
                             ->grow(false),
-                    ])->from('md'),
+                    ])->from('md')->extraAttributes(['class' => 'items-center']), // Alinhamento vertical centralizado
 
-                    // Separador e Detalhes
-
+                    // SECTION 2: Datas Importantes (Box Cinza)
                     Tables\Columns\Layout\Split::make([
+                        // Data Ativação
                         Tables\Columns\Layout\Stack::make([
+                            Tables\Columns\TextColumn::make('LabelAtivacao')
+                                ->default('Ativação')
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::ExtraSmall)
+                                ->color('gray')
+                                ->weight(\Filament\Support\Enums\FontWeight::Medium),
+
                             Tables\Columns\TextColumn::make('data_ativacao')
                                 ->date('d/m/Y')
-                                ->description('Ativação')
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Medium)
+                                ->color('gray'),
+                        ])->space(0),
+
+                        // Data Vencimento (Com destaque)
+                        Tables\Columns\Layout\Stack::make([
+                            Tables\Columns\TextColumn::make('LabelVencimento')
+                                ->default('Vencimento')
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::ExtraSmall)
                                 ->color('gray')
-                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
+                                ->weight(\Filament\Support\Enums\FontWeight::Medium)
+                                ->alignment('end'),
 
                             Tables\Columns\TextColumn::make('data_expiracao')
                                 ->date('d/m/Y')
-                                ->description('Vencimento')
                                 ->weight(\Filament\Support\Enums\FontWeight::Bold)
                                 ->color(fn($state) => $state < now()->addDays(7) ? 'danger' : 'success')
-                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
-                        ])->space(2),
+                                ->size(Tables\Columns\TextColumn\TextColumnSize::Medium)
+                                ->alignment('end'),
+                        ])->space(0),
 
-                        Tables\Columns\Layout\Stack::make([
-                            Tables\Columns\TextColumn::make('resumo_terminais')
-                                ->icon('heroicon-m-computer-desktop')
-                                ->color('info')
-                                ->badge(),
+                    ])->extraAttributes([
+                                'class' => 'bg-gray-50 rounded-lg border border-gray-100 p-3 mt-3 mb-1',
+                            ]),
 
-                            Tables\Columns\TextColumn::make('data_ultima_renovacao')
-                                ->date('d/m/Y')
-                                ->prefix('Renovado: ')
-                                ->color('gray')
-                                ->size(Tables\Columns\TextColumn\TextColumnSize::Small),
-                        ])->alignment('end')->space(2),
-                    ])->extraAttributes(['class' => 'bg-gray-50 rounded-lg p-3 mt-2', 'style' => 'background-color: #f9fafb; padding: 0.75rem; border-radius: 0.5rem; margin-top: 0.5rem;']),
+                    // SECTION 3: Ações (Renderizadas automaticamente pelo Actions abaixo, mas podemos adicionar infos extras aqui se quiser)
                 ])->space(3),
             ])
             ->filters([
