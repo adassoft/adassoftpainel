@@ -206,19 +206,13 @@ class LicenseResource extends Resource
                         return view('filament.app.resources.license-resource.pages.history-modal', ['orders' => $orders]);
                     })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
 
-                // 3. Terminais (Link simples)
+                // 3. Terminais (Página dedicada)
                 Tables\Actions\Action::make('terminais')
                     ->label('Ver Terminais Vinculados')
                     ->icon('heroicon-o-computer-desktop')
                     ->color('gray')
                     ->extraAttributes(['class' => 'w-full justify-start mb-2'])
-                    ->modalContent(function ($record) {
-                        $terminais = \App\Models\Terminal::join('terminais_software', 'terminais.CODIGO', '=', 'terminais_software.terminal_codigo')
-                            ->where('terminais_software.licenca_id', $record->id)
-                            ->where('terminais_software.ativo', 1) // Apenas ativos
-                            ->select('terminais.*', 'terminais_software.ultima_atividade', 'terminais_software.ativo as status_vinculo')->get();
-                        return view('filament.app.resources.license-resource.pages.terminals-modal', ['terminais' => $terminais, 'license_id' => $record->id]);
-                    })->modalSubmitAction(false)->modalCancelActionLabel('Fechar'),
+                    ->url(fn($record) => LicenseResource::getUrl('terminals', ['record' => $record])),
 
                 // 4. Copiar Token (Link simples)
                 Tables\Actions\Action::make('copiar')
@@ -268,6 +262,7 @@ class LicenseResource extends Resource
     {
         return [
             'index' => Pages\ListLicenses::route('/'),
+            'terminals' => Pages\ManageLicenseTerminals::route('/{record}/terminals'),
         ];
     }
 }
