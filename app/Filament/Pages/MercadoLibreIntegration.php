@@ -154,6 +154,17 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
                 ->color('warning')
                 ->visible(fn() => $this->config?->is_active),
 
+            PageAction::make('force_expire')
+                ->label('Simular Expiração')
+                ->action(function () {
+                    if ($this->config) {
+                        $this->config->update(['expires_at' => now()->subHour()]);
+                        Notification::make()->title('Token expirado artificialmente! Agora teste o Refresh.')->warning()->send();
+                    }
+                })
+                ->color('danger')
+                ->visible(fn() => $this->config?->is_active),
+
             PageAction::make('save_top')
                 ->label('Salvar Configurações')
                 ->action('save')
