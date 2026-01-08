@@ -1,0 +1,119 @@
+commit d1e1cec3349abba64add9dd67ae134512337165f
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 22:11:27 2026 -0300
+
+    fix(build): add root tailwind config and use absolute paths in admin theme config to ensure proper css generation
+
+commit fb0c2ef1bf328648af5bb000d892563138986007
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 22:08:13 2026 -0300
+
+    fix(tailwind): correct content paths in admin theme config to reference project root
+
+commit c2555c24aee035c550e3d8136126d738351aed8e
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 21:55:23 2026 -0300
+
+    fix(checkout): require authentication for download and plan checkout routes to prevent 500 error on guest access
+
+commit bf15acc0d6b75305d1035a11b57ec2bcb62c25a0
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 21:34:36 2026 -0300
+
+    fix(filament): enable vite theme in App Panel to ensure consistent styling
+
+commit 68f6de175cc5fa9525f2d13358c68e95e9d305a1
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 21:27:01 2026 -0300
+
+    fix(config): unset ASSET_URL in runtime to force correct domain usage for assets
+
+commit 0314eb39432892dbe4b1ad39da7217fc8f15d161
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 21:20:38 2026 -0300
+
+    fix(config): revert asset_url override in AppServiceProvider to restore styles
+
+commit 5c4eda0e195c6a7cb850e824468d4905a4b8073e
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 21:17:55 2026 -0300
+
+    fix(config): dinamically set ASSET_URL in AppServiceProvider to match current domain
+
+commit 2b5dbb0df0dacd1589483bca314a44235092e9c2
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 21:12:16 2026 -0300
+
+    fix(app): force https scheme in production/proxy environments to fix mixed content and styling issues
+
+commit b55d31ae76c77893ad83f5a9f23e76ac0dfb64f1
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 21:06:22 2026 -0300
+
+    feat(downloads): support file versioning in download controller
+
+commit 33a9b9d2967f4e9b04bf878baa0212d7f1229171
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 21:01:50 2026 -0300
+
+    fix(downloads): improve file search logic with multiple paths and detailed logging
+
+commit ae60a7da11e601f2980559a1e1c458d2759339da
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 20:43:51 2026 -0300
+
+    fix(downloads): prevent 500 error when file is missing by adding file_exists check before download
+
+commit c4919049790b4146332f2888e92458bd6783264a
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 20:33:51 2026 -0300
+
+    fix(syntax): missing php tag in shop index view
+
+commit 5c146ef340f766b8bcc98516f73830b22c28d0df
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 20:29:58 2026 -0300
+
+    fix(images): replace asset() with relative paths to avoid APP_URL issues in multitenant environment
+
+commit 19bf741164e1cabbe4b378b7d8f65e139dac7e41
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 20:20:19 2026 -0300
+
+    fix(images): apply absolute url fix to checkout and downloads pages
+
+commit 5d357b15e34afaf35da5ffda01f9035092e95ca2
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 20:15:25 2026 -0300
+
+    fix(images): force relative path for product images to fix broken links on domain change
+
+commit 70a88702c6bb12c28283c4c294e91ff6a76b4c82
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 20:13:49 2026 -0300
+
+    fix: use relative path for public disk url
+
+commit 795090ceea1d05a5e0d476e9546f700838802702
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 19:55:00 2026 -0300
+
+    chore: redirect www to non-www for SEO
+
+commit 45129dc9a1283e9ef7645f79e390d98771b1b683
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 19:35:21 2026 -0300
+
+    feat: add blog link for default branding
+
+commit 25b2492c3de55362c34880aa1962305db9174bfe
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Wed Jan 7 18:21:16 2026 -0300
+
+    fix(admin): resolve error 500 on logo branding null check
+
+commit cabd584d60bfed6836d19d6cbe1af999ef2d3168
+Author: Adailton Rodrigues de Souza <adailton@adassoft.com>
+Date:   Tue Jan 6 10:53:03 2026 -0300
+
+    fix(accessibility): improve contrast, heading order, and aria labels

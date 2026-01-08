@@ -18,8 +18,17 @@
                     <div class="w-full md:w-1/3 flex justify-center">
                         <div class="relative group">
                             @php
-                                $imgPath = $product->imagem_destaque ?: $product->imagem;
-                                $displayPath = $imgPath ? (filter_var($imgPath, FILTER_VALIDATE_URL) ? $imgPath : asset($imgPath)) : asset('img/placeholder_card.svg');
+                                $imgPathRaw = $product->imagem_destaque ?: $product->imagem;
+                                $displayPath = '/img/placeholder_card.svg';
+                                
+                                if ($imgPathRaw) {
+                                    if (filter_var($imgPathRaw, FILTER_VALIDATE_URL)) {
+                                         $path = parse_url($imgPathRaw, PHP_URL_PATH);
+                                         $displayPath = '/' . ltrim($path, '/');
+                                    } else {
+                                         $displayPath = '/' . ltrim($imgPathRaw, '/');
+                                    }
+                                }
                             @endphp
                             <img src="{{ $displayPath }}" alt="{{ $product->nome_software }}"
                                 class="rounded-2xl shadow-2xl max-h-[400px] w-auto object-contain transform group-hover:scale-105 transition-transform duration-500">

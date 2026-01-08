@@ -19,6 +19,11 @@ class CheckoutController extends Controller
 {
     public function start($planId)
     {
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            session(['url.intended' => route('checkout.start', $planId)]);
+            return redirect()->route('login');
+        }
+
         Log::info("Iniciando Checkout para Plano ID: {$planId}");
 
         $plan = Plano::with('software')->find($planId);
@@ -185,6 +190,11 @@ class CheckoutController extends Controller
 
     public function startDownload($id)
     {
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            session(['url.intended' => route('checkout.download.start', $id)]);
+            return redirect()->route('login');
+        }
+
         $download = null;
         if (is_numeric($id)) {
             $download = \App\Models\Download::find($id);

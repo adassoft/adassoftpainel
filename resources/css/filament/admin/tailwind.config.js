@@ -1,11 +1,16 @@
 import preset from '../../../../vendor/filament/filament/tailwind.config.preset'
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default {
     presets: [preset],
     content: [
-        './app/Filament/**/*.php',
-        './resources/views/filament/**/*.blade.php',
-        './vendor/filament/**/*.blade.php',
+        join(__dirname, '../../../../app/Filament/**/*.php'),
+        join(__dirname, '../../../../resources/views/filament/**/*.blade.php'),
+        join(__dirname, '../../../../vendor/filament/**/*.blade.php'),
     ],
     theme: {
         extend: {

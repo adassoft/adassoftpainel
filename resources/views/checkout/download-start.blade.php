@@ -15,8 +15,17 @@
 
                     <div class="flex items-start gap-4 mb-6">
                         @php
-                            $imgPath = $download->imagem;
-                            $displayPath = $imgPath ? (filter_var($imgPath, FILTER_VALIDATE_URL) ? $imgPath : asset('storage/' . $imgPath)) : asset('img/placeholder_card.svg');
+                            $imgPathRaw = $download->imagem;
+                            $displayPath = '/img/placeholder_card.svg';
+
+                            if ($imgPathRaw) {
+                                if (filter_var($imgPathRaw, FILTER_VALIDATE_URL)) {
+                                    $path = parse_url($imgPathRaw, PHP_URL_PATH);
+                                    $displayPath = '/' . ltrim($path, '/');
+                                } else {
+                                    $displayPath = '/storage/' . ltrim($imgPathRaw, '/');
+                                }
+                            }
                         @endphp
                         <img src="{{ $displayPath }}" alt="{{ $download->titulo }}"
                             class="w-24 h-24 object-contain rounded-lg border bg-white p-2">

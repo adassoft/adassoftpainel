@@ -210,8 +210,17 @@
                             <div class="category-badge">{{ $prod->categoria }}</div>
 
                             @php
-                                $imgPath = $prod->imagem_destaque ?: $prod->imagem;
-                                $displayPath = $imgPath ? (filter_var($imgPath, FILTER_VALIDATE_URL) ? $imgPath : asset($imgPath)) : asset('img/placeholder_card.svg');
+                                $imgPathRaw = $prod->imagem_destaque ?: $prod->imagem;
+                                $displayPath = '/img/placeholder_card.svg';
+
+                                if ($imgPathRaw) {
+                                    if (filter_var($imgPathRaw, FILTER_VALIDATE_URL)) {
+                                        $path = parse_url($imgPathRaw, PHP_URL_PATH);
+                                        $displayPath = '/' . ltrim($path, '/');
+                                    } else {
+                                        $displayPath = '/' . ltrim($imgPathRaw, '/');
+                                    }
+                                }
                             @endphp
 
                             <img src="{{ $displayPath }}" alt="{{ $prod->nome_software }}"

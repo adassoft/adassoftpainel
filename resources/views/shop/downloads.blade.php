@@ -122,7 +122,20 @@
                             <div class="card-body text-center p-5 d-flex flex-column">
                                 <div class="icon-box">
                                     @if(!empty($soft['imagem']))
-                                        <img src="{{ $soft['imagem'] }}" class="img-fluid rounded-circle"
+                                        @php
+                                            $imgPathRaw = $soft['imagem'];
+                                            $displayPath = '/img/placeholder_card.svg';
+
+                                            if ($imgPathRaw) {
+                                                if (filter_var($imgPathRaw, FILTER_VALIDATE_URL)) {
+                                                    $path = parse_url($imgPathRaw, PHP_URL_PATH);
+                                                    $displayPath = '/' . ltrim($path, '/');
+                                                } else {
+                                                    $displayPath = '/' . ltrim($imgPathRaw, '/');
+                                                }
+                                            }
+                                        @endphp
+                                        <img src="{{ $displayPath }}" class="img-fluid rounded-circle"
                                             style="width:100%; height:100%; object-fit:cover;">
                                     @else
                                         <i class="fas fa-file-download"></i>

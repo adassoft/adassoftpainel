@@ -305,39 +305,60 @@ class DownloadController extends Controller
                     return redirect()->route('login')->with('error', 'Por favor, faça login para baixar este arquivo.');
                 }
 
-                // Se logado mas sem acesso (Ex: Produto Pago)
                 $detailsUrl = route('downloads.show', $download->slug ?? $download->id);
                 return redirect($detailsUrl)->with('error', 'Este é um produto exclusivo. Adquira para liberar o download.');
             }
 
             $download->increment('contador');
 
-            // Se for link externo disfarçado (URL completa no arquivo_path)
-            if (filter_var($download->arquivo_path, FILTER_VALIDATE_URL)) {
-                return redirect()->away($download->arquivo_path);
+            $arquivoPath = $download->arquivo_path;
+
+            // Se não tiver arquivo no Pai, busca na última versão
+            if (empty($arquivoPath)) {
+                $lastVersion = $download->versions()->orderBy('data_lancamento', 'desc')->first();
+                if ($lastVersion) {
+                    $arquivoPath = $lastVersion->arquivo_path;
+                }
             }
 
-            // 1. Tenta no disco Seguro (Novo Padrão)
-            $path = storage_path('app/products/' . $download->arquivo_path);
-
-            // 2. Tenta no disco Público (Legado)
-            if (!file_exists($path)) {
-                $path = storage_path('app/public/' . $download->arquivo_path);
+            if (empty($arquivoPath)) {
+                \Illuminate\Support\Facades\Log::warning("Download {$id} sem arquivo vinculado (nem pai, nem versão).");
+                abort(404, 'Nenhum arquivo vinculado a este download.');
             }
 
-            // 3. Tenta na Raiz Storage (Legado)
-            if (!file_exists($path)) {
-                $path = storage_path('app/' . $download->arquivo_path);
+            // Se for link externo disfarçado
+            if (filter_var($arquivoPath, FILTER_VALIDATE_URL)) {
+                return redirect()->away($arquivoPath);
             }
 
+            // Tenta em múltiplos locais
+            // 1. App Products (Novo Padrão)
+            $path = storage_path('app/products/' . $arquivoPath);
+
+            // 2. App Public (Legado)
             if (!file_exists($path)) {
+                $path = storage_path('app/public/' . $arquivoPath);
+            }
+
+            // 3. App Raiz (Legado)
+            if (!file_exists($path)) {
+                $path = storage_path('app/' . $arquivoPath);
+            }
+
+            // 4. Public Raiz (Legacy Assets)
+            if (!file_exists($path)) {
+                $path = public_path($arquivoPath);
+            }
+
+            if (!file_exists($path) || !is_file($path)) {
+                \Illuminate\Support\Facades\Log::error("Download falhou: Arquivo não encontrado em nenhum local. Path alvo: {$arquivoPath}");
                 abort(404, 'Arquivo físico não encontrado no servidor.');
             }
 
             return response()->download($path);
         }
 
-        // 2. Fallback: Software (Legacy) - Não tem contador na tabela softwares ainda, mas podemos redirecionar
+        // 2. Fallback: Software (Legacy)
         $software = null;
         if (is_numeric($id)) {
             $software = Software::find($id);
@@ -346,25 +367,10 @@ class DownloadController extends Controller
         }
 
         if ($software) {
-            // Em softwares, se quiser contar, teria que adicionar coluna contador na tabela softwares
-            // Por enquanto, apenas entrega
-
-            // 1. Verifica se está vinculado a um repositório de download (Prioridade)
+            // 1. Verifica se está vinculado a um repositório de download
             if ($software->id_download_repo) {
-                $linkedDownload = Download::find($software->id_download_repo);
-                if ($linkedDownload) {
-                    $linkedDownload->increment('contador');
-
-                    if (filter_var($linkedDownload->arquivo_path, FILTER_VALIDATE_URL)) {
-                        return redirect()->away($linkedDownload->arquivo_path);
-                    }
-
-                    $path = storage_path('app/public/' . $linkedDownload->arquivo_path);
-                    if (!file_exists($path)) {
-                        $path = storage_path('app/' . $linkedDownload->arquivo_path);
-                    }
-                    return response()->download($path);
-                }
+                // Redireciona para lógica principal recursivamente (seguro) ou repete a logica
+                return $this->downloadFile($software->id_download_repo);
             }
 
             // 2. Verifica cadastro direto no software
@@ -372,7 +378,10 @@ class DownloadController extends Controller
                 return redirect()->away($software->url_download);
             }
             if ($software->arquivo_software) {
-                return response()->download(storage_path('app/public/' . $software->arquivo_software));
+                $path = storage_path('app/public/' . $software->arquivo_software);
+                if (file_exists($path)) {
+                    return response()->download($path);
+                }
             }
         }
 

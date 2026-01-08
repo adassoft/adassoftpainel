@@ -16,8 +16,17 @@
 
                     @php
                         $product = $plan->software;
-                        $imgPath = $product->imagem_destaque ?: $product->imagem;
-                        $displayPath = $imgPath ? (filter_var($imgPath, FILTER_VALIDATE_URL) ? $imgPath : asset($imgPath)) : asset('img/placeholder_card.svg');
+                        $imgPathRaw = $product->imagem_destaque ?: $product->imagem;
+                        $displayPath = '/img/placeholder_card.svg';
+
+                        if ($imgPathRaw) {
+                            if (filter_var($imgPathRaw, FILTER_VALIDATE_URL)) {
+                                $path = parse_url($imgPathRaw, PHP_URL_PATH);
+                                $displayPath = '/' . ltrim($path, '/');
+                            } else {
+                                $displayPath = '/' . ltrim($imgPathRaw, '/');
+                            }
+                        }
 
                         $valorShow = $plan->preco_final;
                         $periodName = match ($plan->recorrencia) {
