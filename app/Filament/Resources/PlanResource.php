@@ -207,6 +207,12 @@ class PlanResource extends Resource
                                         return substr(str_replace(['=', '*', '+'], ' ', $final), 0, 60);
                                     })
                                     ->required()->maxLength(60),
+                                TextInput::make('price')
+                                    ->label('Preço')
+                                    ->numeric()
+                                    ->prefix('R$')
+                                    ->default(fn(Plano $record) => $record->valor)
+                                    ->required(),
                                 TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
                                 Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
                                 Select::make('category_id')
