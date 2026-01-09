@@ -342,7 +342,7 @@ class DownloadResource extends Resource
 
                         // Fallback logic
                         $hasFamily = collect($finalAttributes)->contains('id', 'FAMILY_NAME');
-                        if (!$hasFamily && $data['category_id'] == 'MLB11172') {
+                        if (!$hasFamily) {
                             $finalAttributes[] = ['id' => 'FAMILY_NAME', 'value_name' => 'Software'];
                         }
 
