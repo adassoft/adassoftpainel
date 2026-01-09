@@ -370,8 +370,7 @@ class DownloadResource extends Resource
                             $finalAttributes[] = ['id' => 'family_name', 'value_name' => 'Software'];
                         }
 
-                        // Atualiza o corpo com os atributos garantidos
-                        $body['attributes'] = $finalAttributes;
+
 
                         $body = [
                             'title' => $data['title'],
@@ -386,6 +385,10 @@ class DownloadResource extends Resource
                             'pictures' => [['source' => $data['image_url']]],
                             'attributes' => $finalAttributes
                         ];
+
+                        // Injeta parâmetros extras na RAÍZ para garantir compatibilidade
+                        $body['family_name'] = 'Software'; // Para categorias legadas
+                        $body['FAMILY_NAME'] = 'Software';
 
                         try {
                             $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);
