@@ -386,9 +386,7 @@ class DownloadResource extends Resource
                             'attributes' => $finalAttributes
                         ];
 
-                        // Injeta parâmetros extras na RAÍZ para garantir compatibilidade
-                        $body['family_name'] = 'Software'; // Para categorias legadas
-                        $body['FAMILY_NAME'] = 'Software';
+
 
                         try {
                             $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);

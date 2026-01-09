@@ -198,7 +198,7 @@ class PlanResource extends Resource
                     ->steps([
                         \Filament\Forms\Components\Wizard\Step::make('Dados Básicos')
                             ->schema([
-                                TextInput::make('title')->label('Título')->default(fn(Plano $record) => substr($record->nome_plano . ' - ' . ($record->software->nome_software ?? ''), 0, 60))->required()->maxLength(60),
+                                TextInput::make('title')->label('Título')->default(fn(Plano $record) => substr(str_replace('=', '-', $record->nome_plano . ' - ' . ($record->software->nome_software ?? '')), 0, 60))->required()->maxLength(60),
                                 TextInput::make('price')->label('Preço (R$)')->default(fn(Plano $record) => $record->valor)->numeric()->required(),
                                 TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
                                 Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
@@ -330,10 +330,6 @@ class PlanResource extends Resource
                             'pictures' => [['source' => $data['image_url']]],
                             'attributes' => $finalAttributes
                         ];
-
-                        // Injeta parâmetros extras na RAÍZ para garantir compatibilidade
-                        $body['family_name'] = 'Software';
-                        $body['FAMILY_NAME'] = 'Software';
 
                         try {
                             $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);
