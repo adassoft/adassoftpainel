@@ -55,12 +55,16 @@ class MercadoLibreProducts extends Page implements HasTable
                         ->color('success')
                         ->prefix('R$ '),
 
-                    Tables\Columns\TextColumn::make('download.titulo')
+                    Tables\Columns\TextColumn::make('linked_resource')
                         ->label('Vinculado a')
                         ->icon('heroicon-m-link')
                         ->color('primary')
                         ->getStateUsing(function ($record) {
-                            return $record->download ? 'Vinculado: ' . $record->download->titulo : 'Não vinculado';
+                            if ($record->download)
+                                return 'Download: ' . $record->download->titulo;
+                            if ($record->plano)
+                                return 'Plano: ' . $record->plano->nome_plano;
+                            return 'Não vinculado';
                         })
                         ->badge()
                         ->color(fn($state) => str_contains($state, 'Não') ? 'gray' : 'primary'),
@@ -93,8 +97,8 @@ class MercadoLibreProducts extends Page implements HasTable
                     ->trueLabel('Vinculados')
                     ->falseLabel('Não Vinculados')
                     ->queries(
-                        true: fn($query) => $query->whereNotNull('download_id'),
-                        false: fn($query) => $query->whereNull('download_id'),
+                        true: fn($query) => $query->where(fn($q) => $q->whereNotNull('download_id')->orWhereNotNull('plano_id')),
+                        false: fn($query) => $query->whereNull('download_id')->whereNull('plano_id'),
                     ),
             ])
             ->actions([
@@ -102,16 +106,43 @@ class MercadoLibreProducts extends Page implements HasTable
                     ->label('Vincular')
                     ->icon('heroicon-m-link')
                     ->modalHeading('Vincular Produto Local')
-                    ->modalDescription('Escolha qual produto digital será entregue quando este anúncio for vendido.')
+                    ->modalDescription('Escolha qual produto (Download ou Plano) será entregue quando este anúncio for vendido.')
                     ->form([
+                        \Filament\Forms\Components\Radio::make('type')
+                            ->label('Tipo de Entrega')
+                            ->options([
+                                'download' => 'Arquivo Único (Download)',
+                                'plan' => 'Assinatura (Plano SaaS)'
+                            ])
+                            ->default('download')
+                            ->live(),
+
                         Select::make('download_id')
                             ->label('Produto Digital (Download)')
                             ->options(Download::query()->pluck('titulo', 'id'))
                             ->searchable()
                             ->preload()
-                            ->required()
-                            ->helperText('Ao vender este anúncio no ML, o sistema entregará uma licença deste produto.'),
-                    ]),
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('type') === 'download')
+                            ->required(fn(\Filament\Forms\Get $get) => $get('type') === 'download')
+                            ->helperText('O cliente receberá um link para download.'),
+
+                        Select::make('plano_id')
+                            ->label('Plano de Software (Assinatura)')
+                            ->options(\App\Models\Plano::query()->pluck('nome_plano', 'id'))
+                            ->searchable()
+                            ->preload()
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('type') === 'plan')
+                            ->required(fn(\Filament\Forms\Get $get) => $get('type') === 'plan')
+                            ->helperText('O sistema criará um pedido de assinatura e liberará o acesso.'),
+                    ])
+                    ->after(function ($record, $data) {
+                        // Limpa o campo oposto para garantir integridade
+                        if ($data['type'] === 'download') {
+                            $record->update(['plano_id' => null]);
+                        } else {
+                            $record->update(['download_id' => null]);
+                        }
+                    }),
 
                 Tables\Actions\Action::make('open_ml')
                     ->label('Ver no ML')

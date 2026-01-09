@@ -21,6 +21,7 @@ class MercadoLibreItem extends Model
         'permalink',
         'thumbnail',
         'download_id',
+        'plano_id',
         'last_synced_at',
     ];
 
@@ -33,7 +34,13 @@ class MercadoLibreItem extends Model
 
     public function download()
     {
-        // Relacionamento com o produto local
+        // Relacionamento com o produto local (Arquivo)
         return $this->belongsTo(Download::class, 'download_id');
+    }
+
+    public function plano()
+    {
+        // Relacionamento com o Plano (SaaS/Assinatura)
+        return $this->belongsTo(Plano::class, 'plano_id');
     }
 }

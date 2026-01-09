@@ -184,29 +184,31 @@ class MercadoLibreController extends Controller
 
         // 2. Processa Itens
         // O ML envia múltiplos itens se for carrinho.
-        $downloadIdsToGrant = [];
-        $itemsText = [];
+        $itemsToProcess = [];
 
         foreach ($orderData['order_items'] as $itemData) {
             $mlItemId = $itemData['item']['id'];
             $title = $itemData['item']['title'];
             $quantity = $itemData['quantity'];
 
-            $itemsText[] = "{$quantity}x {$title}";
-
             // Busca mapeamento
             $localMap = \App\Models\MercadoLibreItem::where('ml_id', $mlItemId)->first();
 
-            if ($localMap && $localMap->download_id) {
-                // Produto vinculado!
-                $downloadIdsToGrant[] = $localMap->download_id;
+            if ($localMap) {
+                if ($localMap->download_id) {
+                    $itemsToProcess[] = ['type' => 'download', 'id' => $localMap->download_id, 'title' => $title, 'price' => $itemData['unit_price']];
+                } elseif ($localMap->plano_id) {
+                    $itemsToProcess[] = ['type' => 'plan', 'id' => $localMap->plano_id, 'title' => $title, 'price' => $itemData['unit_price']];
+                } else {
+                    Log::warning("Webhook ML Order {$mlOrderId}: Item '{$mlItemId}' mapeado mas sem destino (download/plano).");
+                }
             } else {
                 Log::warning("Webhook ML Order {$mlOrderId}: Item '{$mlItemId}' ({$title}) não vinculado a produto local.");
             }
         }
 
-        if (empty($downloadIdsToGrant)) {
-            Log::info("Webhook ML Order {$mlOrderId}: Nenhum produto digital vinculado encontrado no pedido.");
+        if (empty($itemsToProcess)) {
+            Log::info("Webhook ML Order {$mlOrderId}: Nenhum serviço local processável no pedido.");
             return;
         }
 
@@ -214,9 +216,6 @@ class MercadoLibreController extends Controller
         $buyer = $orderData['buyer'];
         $buyerId = $buyer['id'];
         $buyerName = trim(($buyer['first_name'] ?? '') . ' ' . ($buyer['last_name'] ?? ''));
-        // Email nem sempre vem, ou vem alias
-        // Tenta pegar email do buyer se disponível (depende das permissões)
-        // Se não, gera fake
         $buyerEmail = $buyer['email'] ?? null;
         if (empty($buyerEmail) || str_contains($buyerEmail, 'missing')) {
             $buyerEmail = "ml_{$buyerId}@mercadolivre.com";
@@ -225,21 +224,32 @@ class MercadoLibreController extends Controller
         $user = \App\Models\User::where('email', $buyerEmail)->first();
 
         if (!$user) {
-            // Tenta buscar pelo nickname se tiver mapeado? Não, email é mais seguro.
             // Cria usuário
             $user = \App\Models\User::create([
                 'nome' => $buyerName ?: "Cliente ML {$buyerId}",
                 'email' => $buyerEmail,
                 'login' => $buyerEmail,
-                'senha' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)), // Senha aleatória
+                'senha' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)),
                 'status' => 'Ativo',
-                'acesso' => 3, // Cliente Final
-                'empresa_id' => $config->company_id // Associa ao tenant se houver
+                'acesso' => 3,
+                'empresa_id' => $config->company_id
             ]);
-            Log::info("Webhook ML: Usuário criado {$user->id} ({$user->email})");
+            // Importante: criar Empresa vinculada para assinaturas funcionarem
+            \App\Models\Empresa::firstOrCreate(
+                ['email' => $buyerEmail],
+                [
+                    'razao' => $buyerName,
+                    'cnpj' => 'ML-' . $buyerId, // Fake CNPJ
+                    'status' => 'Ativo',
+                    'data' => now(),
+                    'cnpj_representante' => $config->company_id ? \App\Models\Company::find($config->company_id)?->cnpj : null
+                ]
+            );
+
+            Log::info("Webhook ML: Usuário criado {$user->id}");
         }
 
-        // 4. Cria o Pedido Local
+        // 4. Cria o Pedido Local e Entrega
         if (!$existingOrder) {
             $existingOrder = \App\Models\Order::create([
                 'user_id' => $user->id,
@@ -249,44 +259,55 @@ class MercadoLibreController extends Controller
                 'external_id' => $mlOrderId,
                 'external_reference' => $mlOrderId,
                 'paid_at' => now(),
-                // 'cnpj_revenda' => ... ? Pega da empresa do config
             ]);
-
-            // Cria Order Items
-            foreach ($orderData['order_items'] as $itemData) {
-                // Busca mapeamento de novo só pra pegar o ID ou usa o loop anterior
-                $mlItemId = $itemData['item']['id'];
-                $localMap = \App\Models\MercadoLibreItem::where('ml_id', $mlItemId)->first();
-
-                \App\Models\OrderItem::create([
-                    'order_id' => $existingOrder->id,
-                    'download_id' => $localMap?->download_id,
-                    'product_name' => $itemData['item']['title'],
-                    'price' => $itemData['unit_price']
-                ]);
-            }
         } else {
-            // Atualiza status se estava pendente
             $existingOrder->update(['status' => 'paid', 'paid_at' => now()]);
         }
 
-        // 5. Libera Licenças (User Library) e Envia Mensagem
-        $deliveredLinks = [];
+        $deliveredMessages = [];
 
-        foreach ($downloadIdsToGrant as $downloadId) {
-            // Grant Access
-            \App\Models\UserLibrary::firstOrCreate([
-                'user_id' => $user->id,
-                'download_id' => $downloadId,
-            ], ['order_id' => $existingOrder->id]);
+        foreach ($itemsToProcess as $item) {
+            // Cria Item do Pedido
+            \App\Models\OrderItem::firstOrCreate([
+                'order_id' => $existingOrder->id,
+                'product_name' => $item['title']
+            ], [
+                'download_id' => $item['type'] === 'download' ? $item['id'] : null,
+                'price' => $item['price']
+            ]);
 
-            // Get Link
-            $dl = \App\Models\Download::find($downloadId);
-            if ($dl) {
-                // Gera link direto ou instrução
-                $link = route('downloads.show', $dl->slug ?? $dl->id);
-                $deliveredLinks[] = "- {$dl->titulo}: " . $link;
+            // ENTREGA
+            if ($item['type'] === 'download') {
+                $dl = \App\Models\Download::find($item['id']);
+                if ($dl) {
+                    \App\Models\UserLibrary::firstOrCreate([
+                        'user_id' => $user->id,
+                        'download_id' => $dl->id,
+                    ], ['order_id' => $existingOrder->id]);
+
+                    $link = route('downloads.show', $dl->slug ?? $dl->id);
+                    $deliveredMessages[] = "📥 DOWNLOAD LIBERADO: {$dl->titulo}\nAcesse: {$link}";
+                }
+            } elseif ($item['type'] === 'plan') {
+                $plano = \App\Models\Plano::find($item['id']);
+                if ($plano) {
+                    // Atualiza Order com plano
+                    $existingOrder->update(['plano_id' => $plano->id]);
+
+                    $software = $plano->software;
+                    if ($software) {
+                        $painelUrl = 'https://adassoft.com/login'; // Ou url dinamica
+                        $deliveredMessages[] = "🚀 ASSINATURA ATIVA: {$plano->nome_plano}\nSeu acesso ao software '{$software->nome_software}' foi liberado.\nAcesse: {$painelUrl}\nUser: {$user->email}\nSenha: (Use 'Esqueci minha senha' se necessário)";
+                    }
+                }
             }
+        }
+
+        // 6. Envia Mensagem no Chat da Compra
+        if (!empty($deliveredMessages)) {
+            $msgContent = "Olá! Seu pedido foi processado com sucesso.\n\n" . implode("\n\n", $deliveredMessages) . "\n\nObrigado pela preferência!";
+
+            $this->sendMessage($orderData['id'], $config->ml_user_id, $buyerId, $msgContent, $config);
         }
 
         // 6. Envia Mensagem no Chat da Compra
