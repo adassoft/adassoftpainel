@@ -4,7 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlanResource\Pages;
 use App\Filament\Resources\PlanResource\RelationManagers;
-use App\Models\Plan;
+use App\Models\Plano;
+use App\Models\MercadoLibreConfig;
+use App\Models\MercadoLibreItem;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Http;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PlanResource extends Resource
 {
-    protected static ?string $model = Plan::class;
+    protected static ?string $model = Plano::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $modelLabel = 'Plano de Venda';
@@ -142,7 +149,7 @@ class PlanResource extends Resource
                     ->label('Software')
                     ->sortable()
                     ->description(
-                        fn(Plan $record): string =>
+                        fn(Plano $record): string =>
                         ($record->software?->codigo ?? '-') . ' v' . ($record->software?->versao ?? '-')
                     )
                     ->searchable()
@@ -184,6 +191,65 @@ class PlanResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('publish_ml')
+                    ->label('Publicar no ML')
+                    ->icon('heroicon-o-cloud-arrow-up')
+                    ->color('success')
+                    ->modalHeading('Publicar Anúncio no Mercado Livre')
+                    ->form([
+                        TextInput::make('title')->label('Título')->default(fn(Plano $record) => substr($record->nome_plano . ' - ' . ($record->software->nome_software ?? ''), 0, 60))->required()->maxLength(60),
+                        TextInput::make('price')->label('Preço (R$)')->default(fn(Plano $record) => $record->valor)->numeric()->required(),
+                        TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
+                        Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
+                        TextInput::make('category_id')->label('Categoria ML')->default('MLB11172')->required()->helperText('ID da Categoria (Ex: MLB11172 para Software)'),
+                        TextInput::make('image_url')->label('URL Imagem')->default(fn(Plano $record) => $record->software->imagem ? url($record->software->imagem) : '')->required(),
+                        Textarea::make('description')->label('Descrição')->default(fn(Plano $record) => strip_tags($record->software->descricao ?? ''))->rows(3)
+                    ])
+                    ->action(function (Plano $record, array $data) {
+                        $config = MercadoLibreConfig::where('is_active', true)->first();
+                        if (!$config) {
+                            Notification::make()->title('ML Desconectado')->danger()->send();
+                            return;
+                        }
+
+                        $body = [
+                            'title' => $data['title'],
+                            'category_id' => $data['category_id'],
+                            'price' => (float) $data['price'],
+                            'currency_id' => 'BRL',
+                            'available_quantity' => (int) $data['quantity'],
+                            'buying_mode' => 'buy_it_now',
+                            'listing_type_id' => $data['listing_type_id'],
+                            'condition' => 'new',
+                            'description' => ['plain_text' => $data['description']],
+                            'pictures' => [['source' => $data['image_url']]],
+                        ];
+
+                        try {
+                            $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);
+                            if ($res->failed())
+                                throw new \Exception($res->body());
+
+                            $ml = $res->json();
+
+                            MercadoLibreItem::create([
+                                'ml_id' => $ml['id'],
+                                'title' => $ml['title'],
+                                'price' => $ml['price'],
+                                'status' => $ml['status'],
+                                'permalink' => $ml['permalink'],
+                                'thumbnail' => $ml['thumbnail'] ?? '',
+                                'plano_id' => $record->id,
+                                'ml_user_id' => $config->ml_user_id,
+                                'company_id' => $config->company_id,
+                                'last_synced_at' => now()
+                            ]);
+
+                            Notification::make()->title('Anúncio Publicado!')->body("Link: {$ml['permalink']}")->success()->send();
+                        } catch (\Exception $e) {
+                            Notification::make()->title('Erro ao publicar')->body($e->getMessage())->danger()->send();
+                        }
+                    }),
                 Tables\Actions\EditAction::make()
                     ->label('')
                     ->icon('heroicon-m-pencil-square')
@@ -195,9 +261,9 @@ class PlanResource extends Resource
                     ->icon('heroicon-m-pause')
                     ->button()
                     ->color('warning')
-                    ->action(fn(Plan $record) => $record->update(['status' => !$record->status]))
+                    ->action(fn(Plano $record) => $record->update(['status' => !$record->status]))
                     ->requiresConfirmation()
-                    ->tooltip(fn(Plan $record) => $record->status ? 'Inativar' : 'Ativar'),
+                    ->tooltip(fn(Plano $record) => $record->status ? 'Inativar' : 'Ativar'),
                 Tables\Actions\DeleteAction::make()
                     ->label('')
                     ->icon('heroicon-m-trash')
