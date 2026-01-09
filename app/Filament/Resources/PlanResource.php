@@ -202,12 +202,27 @@ class PlanResource extends Resource
                                 TextInput::make('price')->label('Preço (R$)')->default(fn(Plano $record) => $record->valor)->numeric()->required(),
                                 TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
                                 Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
-                                TextInput::make('category_id')
-                                    ->label('Categoria ML')
-                                    ->default('MLB11172')
+                                Select::make('category_id')
+                                    ->label('Categoria do ML')
+                                    ->placeholder('Digite para buscar (ex: Software)...')
+                                    ->searchable()
+                                    ->getSearchResultsUsing(function (string $search) {
+                                        if (strlen($search) < 2)
+                                            return [];
+                                        try {
+                                            $response = Http::get("https://api.mercadolibre.com/sites/MLB/domain_discovery/search?q=" . urlencode($search));
+                                            return collect($response->json())
+                                                ->take(10)
+                                                ->mapWithKeys(fn($item) => [$item['category_id'] => ($item['category_name'] ?? $item['domain_name']) . " ({$item['category_id']})"])
+                                                ->toArray();
+                                        } catch (\Exception $e) {
+                                            return [];
+                                        }
+                                    })
+                                    ->allowHtml()
                                     ->required()
-                                    ->live(onBlur: true)
-                                    ->helperText('Digite o ID e clique fora para carregar os atributos (Ex: MLB11172).'),
+                                    ->live()
+                                    ->helperText('Selecione a categoria correta para carregar os atributos.'),
                             ]),
                         \Filament\Forms\Components\Wizard\Step::make('Atributos Dinâmicos')
                             ->description('Campos obrigatórios pelo Mercado Livre.')
@@ -289,8 +304,15 @@ class PlanResource extends Resource
                             }
                         }
 
-                        // Fallback logic
-                        $hasFamily = collect($finalAttributes)->contains('id', 'FAMILY_NAME');
+                        // Fallback logic manual explícito
+                        $hasFamily = false;
+                        foreach ($finalAttributes as $attr) {
+                            if ($attr['id'] === 'FAMILY_NAME') {
+                                $hasFamily = true;
+                                break;
+                            }
+                        }
+
                         if (!$hasFamily) {
                             $finalAttributes[] = ['id' => 'FAMILY_NAME', 'value_name' => 'Software'];
                         }
