@@ -196,10 +196,15 @@ class PlanResource extends Resource
                     ->icon('heroicon-o-cloud-arrow-up')
                     ->color('success')
                     ->steps([
-                        \Filament\Forms\Components\Wizard\Step::make('Dados Básicos')
-                            ->schema([
-                                TextInput::make('title')->label('Título')->default(fn(Plano $record) => substr(str_replace('=', '-', $record->nome_plano . ' - ' . ($record->software->nome_software ?? '')), 0, 60))->required()->maxLength(60),
-                                TextInput::make('price')->label('Preço (R$)')->default(fn(Plano $record) => $record->valor)->numeric()->required(),
+                                TextInput::make('title')->label('Título')
+                                    ->default(function (Plano $record) {
+                                        $nome = $record->nome_plano;
+                                        $soft = $record->software->nome_software ?? '';
+                                        // Evita "Super Carnê - Super Carnê"
+                                        $final = ($soft && stripos($nome, $soft) !== false) ? $nome : "$nome - $soft";
+                                        return substr(str_replace(['=', '*', '+'], ' ', $final), 0, 60);
+                                    })
+                                    ->required()->maxLength(60),
                                 TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
                                 Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
                                 Select::make('category_id')

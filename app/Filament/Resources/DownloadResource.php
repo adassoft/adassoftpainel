@@ -249,7 +249,7 @@ class DownloadResource extends Resource
                     ->steps([
                         \Filament\Forms\Components\Wizard\Step::make('Dados Básicos')
                             ->schema([
-                                TextInput::make('title')->label('Título')->default(fn(Download $record) => substr($record->titulo, 0, 60))->required()->maxLength(60),
+                                TextInput::make('title')->label('Título')->default(fn(Download $record) => substr(str_replace(['=', '*', '+'], ' ', $record->titulo), 0, 60))->required()->maxLength(60),
                                 TextInput::make('price')->label('Preço (R$)')->default(fn(Download $record) => $record->preco)->numeric()->required(),
                                 TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
                                 Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
