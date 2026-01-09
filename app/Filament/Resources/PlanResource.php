@@ -223,6 +223,13 @@ class PlanResource extends Resource
                             'condition' => 'new',
                             'description' => ['plain_text' => $data['description']],
                             'pictures' => [['source' => $data['image_url']]],
+                            'attributes' => [
+                                ['id' => 'BRAND', 'value_name' => 'AdasSoft'],
+                                ['id' => 'MODEL', 'value_name' => 'Digital'],
+                                ['id' => 'FORMAT', 'value_name' => 'Digital'],
+                                ['id' => 'SOFTWARE_NAME', 'value_name' => $record->software->nome_software ?? 'Software'],
+                                ['id' => 'FAMILY_NAME', 'value_name' => 'Software'], // Required by ML
+                            ]
                         ];
 
                         try {
