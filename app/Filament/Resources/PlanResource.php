@@ -353,7 +353,18 @@ class PlanResource extends Resource
 
                             Notification::make()->title('Anúncio Publicado!')->body("Link: {$ml['permalink']}")->success()->send();
                         } catch (\Exception $e) {
-                            Notification::make()->title('Erro ao publicar: ' . $e->getMessage())->danger()->send();
+                            $msg = $e->getMessage();
+                            $decoded = json_decode($msg, true);
+                            if ($decoded) {
+                                $msg = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                            }
+
+                            Notification::make()
+                                ->title('Erro ao publicar')
+                                ->body($msg)
+                                ->danger()
+                                ->persistent()
+                                ->send();
                         }
                     }),
                 Tables\Actions\EditAction::make()
