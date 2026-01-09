@@ -269,12 +269,17 @@ class DownloadController extends Controller
             return $path;
         }
 
-        // Se começar com 'img/', assume que está na pasta public raiz (ex: ícones gerados)
+        // Se começar com 'img/produtos', é upload novo do Filament -> Storage
+        if (str_starts_with($path, 'img/produtos/')) {
+            return asset('storage/' . $path);
+        }
+
+        // Se começar com 'img/' (legacy), assume que está na pasta public raiz
         if (str_starts_with($path, 'img/')) {
             return asset($path);
         }
 
-        // Caso contrário, assume que é um upload do Filament (Storage)
+        // Caso contrário, assume que é um upload do Filament (Storage) genérico
         return asset('storage/' . $path);
     }
 
