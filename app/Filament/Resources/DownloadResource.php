@@ -355,19 +355,23 @@ class DownloadResource extends Resource
                             }
                         }
 
-                        // Fallback logic manual e explícito
+                        // Fallback logic manual e explícito (Double Check)
                         $hasFamily = false;
                         foreach ($finalAttributes as $attr) {
-                            if ($attr['id'] === 'FAMILY_NAME') {
+                            if (strtoupper($attr['id']) === 'FAMILY_NAME') {
                                 $hasFamily = true;
                                 break;
                             }
                         }
 
                         if (!$hasFamily) {
-                            // Força bruta para garantir que o campo vá
+                            // Envia ambas as variações para garantir
                             $finalAttributes[] = ['id' => 'FAMILY_NAME', 'value_name' => 'Software'];
+                            $finalAttributes[] = ['id' => 'family_name', 'value_name' => 'Software'];
                         }
+
+                        // Atualiza o corpo com os atributos garantidos
+                        $body['attributes'] = $finalAttributes;
 
                         $body = [
                             'title' => $data['title'],
@@ -406,16 +410,20 @@ class DownloadResource extends Resource
 
                             Notification::make()->title('Anúncio Publicado!')->body("Link: {$ml['permalink']}")->success()->send();
                         } catch (\Exception $e) {
-                            $msg = $e->getMessage();
-                            // Tenta formatar se for JSON para ficar mais legível
-                            $decoded = json_decode($msg, true);
-                            if ($decoded) {
-                                $msg = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-                            }
+                            $errorMsg = $e->getMessage();
+                            $decodedError = json_decode($errorMsg, true);
+
+                            // Debug: Monta mensagem com o que foi enviado + erro
+                            $debugInfo = [
+                                'ENVIADO (Body)' => $body,
+                                'ERRO (API)' => $decodedError ?? $errorMsg
+                            ];
+
+                            $finalMsg = json_encode($debugInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
                             Notification::make()
                                 ->title('Erro ao publicar')
-                                ->body($msg)
+                                ->body($finalMsg)
                                 ->danger()
                                 ->persistent()
                                 ->send();
