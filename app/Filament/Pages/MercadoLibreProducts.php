@@ -43,7 +43,6 @@ class MercadoLibreProducts extends Page
             // status=active para pegar apenas ativos. Tire o parametro se quiser todos.
             $searchResponse = Http::withToken($config->access_token)
                 ->get("https://api.mercadolibre.com/users/{$config->ml_user_id}/items/search", [
-                    'status' => 'active',
                     'limit' => 50, // Paginação simples por enquanto
                 ]);
 
@@ -77,15 +76,7 @@ class MercadoLibreProducts extends Page
                         if (($itemWrapper['code'] ?? 0) === 200) {
                             $product = $itemWrapper['body'];
 
-                            // Filtros de qualidade
-                            $isStatusActive = ($product['status'] ?? '') === 'active';
-                            $hasThumbnail = !empty($product['thumbnail']);
-                            // O ML as vezes retorna uma imagem placeholder padrão, tente evitar se soubermos a url padrão
-                            // Mas verificar vazio e status já deve ajudar muito.
-
-                            if ($isStatusActive && $hasThumbnail) {
-                                $this->products[] = $product;
-                            }
+                            $this->products[] = $product;
                         }
                     }
                 }
