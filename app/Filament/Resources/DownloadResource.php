@@ -347,6 +347,26 @@ class DownloadResource extends Resource
                             return;
                         }
 
+                        // Validação de Imagem (Mercado Livre não aceita SVG)
+                        // A imagem aqui vem de $data['image_url'] ou $record->imagem?
+                        // No DownloadResource, o wizard não tem campo image_url explícito no step 'Finalizar' visto anteriormente?
+                        // Vamos verificar o código. Assumindo que a imagem principal do download seja usada.
+                        $imgUrl = '';
+                        if (!empty($data['image_url']))
+                            $imgUrl = $data['image_url'];
+                        elseif ($record->imagem)
+                            $imgUrl = url($record->imagem);
+
+                        if ($imgUrl && str_ends_with(strtolower($imgUrl), '.svg')) {
+                            Notification::make()
+                                ->title('Imagem Inválida')
+                                ->body('O Mercado Livre não aceita imagens SVG. Edite o download e troque a imagem por JPG/PNG.')
+                                ->danger()
+                                ->persistent()
+                                ->send();
+                            return;
+                        }
+
                         $finalAttributes = [];
                         if (isset($data['attributes'])) {
                             foreach ($data['attributes'] as $id => $val) {
@@ -392,8 +412,7 @@ class DownloadResource extends Resource
 
 
 
-                        // HACK DE COMPATIBILIDADE: family_name na raiz
-                        $body['family_name'] = 'Software';
+
 
                         try {
                             $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);

@@ -309,6 +309,17 @@ class PlanResource extends Resource
                             return;
                         }
 
+                        // Validação de Imagem (Mercado Livre não aceita SVG)
+                        if (str_ends_with(strtolower($data['image_url']), '.svg')) {
+                            Notification::make()
+                                ->title('Imagem Inválida')
+                                ->body('O Mercado Livre não aceita imagens SVG. Por favor, altere a imagem do software para JPG ou PNG.')
+                                ->danger()
+                                ->persistent()
+                                ->send();
+                            return;
+                        }
+
                         $finalAttributes = [];
                         if (isset($data['attributes'])) {
                             foreach ($data['attributes'] as $id => $val) {
@@ -350,8 +361,7 @@ class PlanResource extends Resource
                             'attributes' => $finalAttributes
                         ];
 
-                        // HACK DE COMPATIBILIDADE: family_name na raiz (apenas minúsculo)
-                        $body['family_name'] = 'Software';
+
 
                         try {
                             $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);
