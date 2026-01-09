@@ -147,13 +147,18 @@ class SoftwareResource extends Resource
                                                                 // Icon Row
                                                                 Group::make()
                                                                     ->schema([
-                                                                        TextInput::make('imagem')
+                                                                        FileUpload::make('imagem')
                                                                             ->label('Ícone / Logo (Quadrado)')
-                                                                            ->placeholder('https://... ou Caminho gerado')
-                                                                            ->suffixAction(
+                                                                            ->disk('public')
+                                                                            ->directory('img/produtos')
+                                                                            ->visibility('public')
+                                                                            ->image()
+                                                                            ->imageEditor()
+                                                                            ->helperText('Para o Mercado Livre, use JPG ou PNG. (SVG não é aceito na publicação)')
+                                                                            ->hintAction(
                                                                                 Action::make('gerar_icon_ia')
                                                                                     ->icon('heroicon-o-sparkles')
-                                                                                    ->label('Ícone IA')
+                                                                                    ->label('Gerar Ícone IA')
                                                                                     ->color('primary')
                                                                                     ->form([
                                                                                         Textarea::make('prompt_imagem')
@@ -213,13 +218,17 @@ class SoftwareResource extends Resource
                                                                 // Banner Row
                                                                 Group::make()
                                                                     ->schema([
-                                                                        TextInput::make('imagem_destaque')
+                                                                        FileUpload::make('imagem_destaque')
                                                                             ->label('Imagem Destaque (Banner)')
-                                                                            ->placeholder('https://... ou Caminho gerado')
-                                                                            ->suffixAction(
+                                                                            ->disk('public')
+                                                                            ->directory('img/produtos')
+                                                                            ->visibility('public')
+                                                                            ->image()
+                                                                            ->imageEditor()
+                                                                            ->hintAction(
                                                                                 Action::make('gerar_banner_ia')
                                                                                     ->icon('heroicon-o-photo')
-                                                                                    ->label('Banner IA')
+                                                                                    ->label('Gerar Banner IA')
                                                                                     ->color('info')
                                                                                     ->form([
                                                                                         Textarea::make('prompt_banner')
