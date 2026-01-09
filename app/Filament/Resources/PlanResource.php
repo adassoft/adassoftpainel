@@ -331,6 +331,10 @@ class PlanResource extends Resource
                             'attributes' => $finalAttributes
                         ];
 
+                        // Injeta parâmetros extras na RAÍZ para garantir compatibilidade
+                        $body['family_name'] = 'Software';
+                        $body['FAMILY_NAME'] = 'Software';
+
                         try {
                             $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);
                             if ($res->failed())
@@ -353,15 +357,20 @@ class PlanResource extends Resource
 
                             Notification::make()->title('Anúncio Publicado!')->body("Link: {$ml['permalink']}")->success()->send();
                         } catch (\Exception $e) {
-                            $msg = $e->getMessage();
-                            $decoded = json_decode($msg, true);
-                            if ($decoded) {
-                                $msg = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-                            }
+                            $errorMsg = $e->getMessage();
+                            $decodedError = json_decode($errorMsg, true);
+
+                            // Debug: Monta mensagem com o que foi enviado + erro
+                            $debugInfo = [
+                                'ENVIADO (Body)' => $body,
+                                'ERRO (API)' => $decodedError ?? $errorMsg
+                            ];
+
+                            $finalMsg = json_encode($debugInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
                             Notification::make()
                                 ->title('Erro ao publicar')
-                                ->body($msg)
+                                ->body($finalMsg)
                                 ->danger()
                                 ->persistent()
                                 ->send();
