@@ -83,12 +83,28 @@ class MercadoLibreController extends Controller
 
         $data = $response->json();
 
-        // Salva tokens
+        $accessToken = $data['access_token'];
+        $userId = $data['user_id'];
+        $nickname = null;
+
+        // Busca informações do usuário (Nickname)
+        try {
+            $userResponse = Http::withToken($accessToken)->get("https://api.mercadolibre.com/users/{$userId}");
+            if ($userResponse->successful()) {
+                $userData = $userResponse->json();
+                $nickname = $userData['nickname'] ?? null;
+            }
+        } catch (\Exception $e) {
+            Log::warning('Erro ao buscar nickname ML: ' . $e->getMessage());
+        }
+
+        // Salva tokens e nickname
         $config->update([
             'access_token' => $data['access_token'],
             'refresh_token' => $data['refresh_token'],
             'expires_at' => now()->addSeconds($data['expires_in']),
-            'ml_user_id' => $data['user_id'],
+            'ml_user_id' => $userId,
+            'ml_user_nickname' => $nickname,
             'is_active' => true,
         ]);
 
