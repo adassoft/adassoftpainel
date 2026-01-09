@@ -5,6 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\DownloadResource\Pages;
 use App\Filament\Resources\DownloadResource\RelationManagers;
 use App\Models\Download;
+use App\Models\MercadoLibreConfig;
+use App\Models\MercadoLibreItem;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Http;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -235,6 +243,150 @@ class DownloadResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('publish_ml')
+                    ->label('Publicar no ML')
+                    ->icon('heroicon-o-cloud-arrow-up')
+                    ->color('success')
+                    ->steps([
+                        \Filament\Forms\Components\Wizard\Step::make('Dados Básicos')
+                            ->schema([
+                                TextInput::make('title')->label('Título')->default(fn(Download $record) => substr($record->titulo, 0, 60))->required()->maxLength(60),
+                                TextInput::make('price')->label('Preço (R$)')->default(fn(Download $record) => $record->preco)->numeric()->required(),
+                                TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
+                                Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
+                                TextInput::make('category_id')
+                                    ->label('Categoria ML')
+                                    ->default('MLB11172')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->helperText('Digite o ID e clique fora para carregar os atributos (Ex: MLB11172).'),
+                            ]),
+                        \Filament\Forms\Components\Wizard\Step::make('Atributos Dinâmicos')
+                            ->description('Campos obrigatórios pelo Mercado Livre.')
+                            ->schema(function (\Filament\Forms\Get $get) {
+                                $categoryId = $get('category_id');
+                                if (!$categoryId)
+                                    return [Forms\Components\Placeholder::make('info')->content('Informe a categoria no passo anterior.')];
+
+                                $config = MercadoLibreConfig::where('is_active', true)->first();
+                                if (!$config)
+                                    return [Forms\Components\Placeholder::make('error')->content('ML desconectado.')];
+
+                                try {
+                                    $response = Http::get("https://api.mercadolibre.com/categories/{$categoryId}/attributes");
+                                    if ($response->failed())
+                                        return [Forms\Components\Placeholder::make('error')->content('Categoria inválida ou erro na API.')];
+
+                                    $attributes = $response->json();
+                                    $schema = [];
+
+                                    foreach ($attributes as $attr) {
+                                        $isRequired = isset($attr['tags']['required']) && $attr['tags']['required'];
+                                        $forceInclude = in_array($attr['id'], ['BRAND', 'MODEL', 'FAMILY_NAME', 'SOFTWARE_NAME', 'FORMAT']);
+
+                                        if ($isRequired || $forceInclude) {
+                                            $field = TextInput::make("attributes.{$attr['id']}")
+                                                ->label($attr['name'])
+                                                ->required($isRequired);
+
+                                            if (in_array($attr['id'], ['BRAND', 'brand']))
+                                                $field->default('AdasSoft');
+                                            if (in_array($attr['id'], ['MODEL', 'model']))
+                                                $field->default('Digital');
+                                            if ($attr['id'] === 'FAMILY_NAME')
+                                                $field->default('Software');
+                                            if ($attr['id'] === 'FORMAT')
+                                                $field->default('Digital');
+
+                                            if (!empty($attr['values'])) {
+                                                $options = collect($attr['values'])->pluck('name', 'name')->toArray();
+                                                $field = Select::make("attributes.{$attr['id']}")
+                                                    ->label($attr['name'])
+                                                    ->options($options)
+                                                    ->searchable()
+                                                    ->required($isRequired)
+                                                    ->default(count($options) == 1 ? array_key_first($options) : null);
+                                            }
+
+                                            $schema[] = $field;
+                                        }
+                                    }
+
+                                    if (empty($schema)) {
+                                        return [Forms\Components\Placeholder::make('info')->content('Nenhum atributo obrigatório extra encontrado.')];
+                                    }
+                                    return $schema;
+                                } catch (\Exception $e) {
+                                    return [Forms\Components\Placeholder::make('error')->content('Erro: ' . $e->getMessage())];
+                                }
+                            }),
+                        \Filament\Forms\Components\Wizard\Step::make('Finalizar')
+                            ->schema([
+                                TextInput::make('image_url')->label('URL Imagem')->default('')->required()->helperText('Cole a URL da imagem de capa (Obrigatório no ML)'),
+                                Textarea::make('description')->label('Descrição')->default(fn(Download $record) => strip_tags($record->descricao ?? ''))->rows(3)
+                            ]),
+                    ])
+                    ->action(function (Download $record, array $data) {
+                        $config = MercadoLibreConfig::where('is_active', true)->first();
+                        if (!$config) {
+                            Notification::make()->title('ML Desconectado')->danger()->send();
+                            return;
+                        }
+
+                        $finalAttributes = [];
+                        if (isset($data['attributes'])) {
+                            foreach ($data['attributes'] as $id => $val) {
+                                if ($val)
+                                    $finalAttributes[] = ['id' => $id, 'value_name' => $val];
+                            }
+                        }
+
+                        // Fallback logic
+                        $hasFamily = collect($finalAttributes)->contains('id', 'FAMILY_NAME');
+                        if (!$hasFamily && $data['category_id'] == 'MLB11172') {
+                            $finalAttributes[] = ['id' => 'FAMILY_NAME', 'value_name' => 'Software'];
+                        }
+
+                        $body = [
+                            'title' => $data['title'],
+                            'category_id' => $data['category_id'],
+                            'price' => (float) $data['price'],
+                            'currency_id' => 'BRL',
+                            'available_quantity' => (int) $data['quantity'],
+                            'buying_mode' => 'buy_it_now',
+                            'listing_type_id' => $data['listing_type_id'],
+                            'condition' => 'new',
+                            'description' => ['plain_text' => $data['description']],
+                            'pictures' => [['source' => $data['image_url']]],
+                            'attributes' => $finalAttributes
+                        ];
+
+                        try {
+                            $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);
+                            if ($res->failed())
+                                throw new \Exception($res->body());
+
+                            $ml = $res->json();
+
+                            MercadoLibreItem::create([
+                                'ml_id' => $ml['id'],
+                                'title' => $ml['title'],
+                                'price' => $ml['price'],
+                                'status' => $ml['status'],
+                                'permalink' => $ml['permalink'],
+                                'thumbnail' => $ml['thumbnail'] ?? '',
+                                'plano_id' => null,
+                                'download_id' => $record->id,
+                                'ml_user_id' => $config->ml_user_id,
+                                'company_id' => $config->company_id,
+                                'last_synced_at' => now()
+                            ]);
+
+                            Notification::make()->title('Anúncio Publicado!')->body("Link: {$ml['permalink']}")->success()->send();
+                        } catch (\Exception $e) {
+                            Notification::make()->title('Erro ao publicar: ' . $e->getMessage())->danger()->send();
+                        }
+                    }),
                 Tables\Actions\EditAction::make(), // Slideover removido para suportar tabs complexas
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\Action::make('download')
