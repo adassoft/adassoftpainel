@@ -305,16 +305,22 @@ class PlanResource extends Resource
                         }
 
                         // Fallback logic manual explícito
-                        $hasFamily = false;
+                        $hasFamilyUpper = false;
+                        $hasFamilyLower = false;
+
                         foreach ($finalAttributes as $attr) {
-                            if ($attr['id'] === 'FAMILY_NAME') {
-                                $hasFamily = true;
-                                break;
-                            }
+                            if ($attr['id'] === 'FAMILY_NAME')
+                                $hasFamilyUpper = true;
+                            if ($attr['id'] === 'family_name')
+                                $hasFamilyLower = true;
                         }
 
-                        if (!$hasFamily) {
+                        if (!$hasFamilyUpper) {
                             $finalAttributes[] = ['id' => 'FAMILY_NAME', 'value_name' => 'Software'];
+                        }
+                        // OBRIGATÓRIO: Se não tem o minúsculo, adiciona (mesmo se tiver o maiúsculo)
+                        if (!$hasFamilyLower) {
+                            $finalAttributes[] = ['id' => 'family_name', 'value_name' => 'Software'];
                         }
 
                         $body = [
