@@ -337,6 +337,9 @@ class PlanResource extends Resource
                             'attributes' => $finalAttributes
                         ];
 
+                        // HACK DE COMPATIBILIDADE: family_name na raiz (apenas minúsculo)
+                        $body['family_name'] = 'Software';
+
                         try {
                             $res = Http::withToken($config->access_token)->post('https://api.mercadolibre.com/items', $body);
                             if ($res->failed())
