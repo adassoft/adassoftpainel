@@ -215,10 +215,14 @@
 
                                 if ($imgPathRaw) {
                                     if (filter_var($imgPathRaw, FILTER_VALIDATE_URL)) {
-                                        $path = parse_url($imgPathRaw, PHP_URL_PATH);
-                                        $displayPath = '/' . ltrim($path, '/');
+                                        $displayPath = $imgPathRaw;
+                                    } elseif (Str::startsWith($imgPathRaw, 'img/') || Str::startsWith($imgPathRaw, '/img/')) {
+                                        // Legacy path in public/img or new path in storage/img?
+                                        // FileUpload saves as 'img/produtos/xxx'.
+                                        // We need to check if it's in storage.
+                                        $displayPath = Storage::url($imgPathRaw);
                                     } else {
-                                        $displayPath = '/' . ltrim($imgPathRaw, '/');
+                                        $displayPath = Storage::url($imgPathRaw);
                                     }
                                 }
                             @endphp
