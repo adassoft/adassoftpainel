@@ -39,12 +39,18 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
             ['is_active' => false]
         );
 
+        $statusLabel = 'Desconectado';
+        if ($this->config?->is_active) {
+            $userLabel = $this->config->ml_user_nickname ?? $this->config->ml_user_id;
+            $statusLabel = 'Conectado como: ' . $userLabel;
+        }
+
         $this->form->fill([
             'app_id' => $this->config->app_id,
             'secret_key' => $this->config->secret_key,
             'redirect_uri_display' => route('ml.callback'),
             'url_notificacoes' => route('ml.webhook'),
-            'status' => $this->config?->is_active ? 'Conectado como: ' . $this->config->ml_user_id : 'Desconectado',
+            'status' => $statusLabel,
         ]);
     }
 
