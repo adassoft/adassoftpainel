@@ -75,7 +75,17 @@ class MercadoLibreProducts extends Page
                     // O retorno é [{code: 200, body: {...}}, ...]
                     foreach ($itemsData as $itemWrapper) {
                         if (($itemWrapper['code'] ?? 0) === 200) {
-                            $this->products[] = $itemWrapper['body'];
+                            $product = $itemWrapper['body'];
+
+                            // Filtros de qualidade
+                            $isStatusActive = ($product['status'] ?? '') === 'active';
+                            $hasThumbnail = !empty($product['thumbnail']);
+                            // O ML as vezes retorna uma imagem placeholder padrão, tente evitar se soubermos a url padrão
+                            // Mas verificar vazio e status já deve ajudar muito.
+
+                            if ($isStatusActive && $hasThumbnail) {
+                                $this->products[] = $product;
+                            }
                         }
                     }
                 }

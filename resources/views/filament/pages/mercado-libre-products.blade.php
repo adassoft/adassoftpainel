@@ -23,21 +23,31 @@
                                     {{ $product['status'] }}
                                 </span>
                             </div>
-                            <div class="p-4">
-                                <a href="{{ $product['permalink'] }}" target="_blank"
-                                    class="text-lg font-semibold text-gray-900 dark:text-white hover:text-primary-600 line-clamp-2">
-                                    {{ $product['title'] }}
-                                </a>
-                                <div class="mt-2 flex items-center justify-between">
-                                    <span class="text-xl font-bold text-gray-900 dark:text-white">
-                                        R$ {{ number_format($product['price'], 2, ',', '.') }}
-                                    </span>
-                                    <span class="text-sm text-gray-500">
-                                        Qtd: {{ $product['available_quantity'] }}
-                                    </span>
+                            <div class="p-4 flex flex-col h-full justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2"
+                                        title="{{ $product['title'] }}">
+                                        {{ $product['title'] }}
+                                    </h3>
+                                    <div class="mt-2 flex items-center justify-between">
+                                        <span class="text-xl font-bold text-gray-900 dark:text-white">
+                                            R$ {{ number_format($product['price'], 2, ',', '.') }}
+                                        </span>
+                                        <span class="text-sm text-gray-500">
+                                            Qtd: {{ $product['available_quantity'] }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-1 text-xs text-gray-400">
+                                        ID: {{ $product['id'] }}
+                                    </div>
                                 </div>
-                                <div class="mt-4 flex items-center text-xs text-gray-400">
-                                    <span>ID: {{ $product['id'] }}</span>
+
+                                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                                    <x-filament::button tag="a" href="{{ $product['permalink'] }}" target="_blank"
+                                        icon="heroicon-m-arrow-top-right-on-square" color="gray" size="sm"
+                                        class="w-full justify-center">
+                                        Ver no Mercado Livre
+                                    </x-filament::button>
                                 </div>
                             </div>
                         </div>
