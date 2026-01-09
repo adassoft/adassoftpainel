@@ -195,21 +195,104 @@ class PlanResource extends Resource
                     ->label('Publicar no ML')
                     ->icon('heroicon-o-cloud-arrow-up')
                     ->color('success')
-                    ->modalHeading('Publicar Anúncio no Mercado Livre')
-                    ->form([
-                        TextInput::make('title')->label('Título')->default(fn(Plano $record) => substr($record->nome_plano . ' - ' . ($record->software->nome_software ?? ''), 0, 60))->required()->maxLength(60),
-                        TextInput::make('price')->label('Preço (R$)')->default(fn(Plano $record) => $record->valor)->numeric()->required(),
-                        TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
-                        Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
-                        TextInput::make('category_id')->label('Categoria ML')->default('MLB11172')->required()->helperText('ID da Categoria (Ex: MLB11172 para Software)'),
-                        TextInput::make('image_url')->label('URL Imagem')->default(fn(Plano $record) => $record->software->imagem ? url($record->software->imagem) : '')->required(),
-                        Textarea::make('description')->label('Descrição')->default(fn(Plano $record) => strip_tags($record->software->descricao ?? ''))->rows(3)
+                    ->steps([
+                        \Filament\Forms\Components\Wizard\Step::make('Dados Básicos')
+                            ->schema([
+                                TextInput::make('title')->label('Título')->default(fn(Plano $record) => substr($record->nome_plano . ' - ' . ($record->software->nome_software ?? ''), 0, 60))->required()->maxLength(60),
+                                TextInput::make('price')->label('Preço (R$)')->default(fn(Plano $record) => $record->valor)->numeric()->required(),
+                                TextInput::make('quantity')->label('Estoque')->default(999)->numeric(),
+                                Select::make('listing_type_id')->label('Tipo')->options(['gold_special' => 'Clássico', 'gold_pro' => 'Premium', 'free' => 'Grátis'])->default('gold_special')->required(),
+                                TextInput::make('category_id')
+                                    ->label('Categoria ML')
+                                    ->default('MLB11172')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->helperText('Digite o ID e clique fora para carregar os atributos (Ex: MLB11172).'),
+                            ]),
+                        \Filament\Forms\Components\Wizard\Step::make('Atributos Dinâmicos')
+                            ->description('Campos obrigatórios pelo Mercado Livre.')
+                            ->schema(function (\Filament\Forms\Get $get) {
+                                $categoryId = $get('category_id');
+                                if (!$categoryId)
+                                    return [Forms\Components\Placeholder::make('info')->content('Informe a categoria no passo anterior.')];
+
+                                $config = MercadoLibreConfig::where('is_active', true)->first();
+                                if (!$config)
+                                    return [Forms\Components\Placeholder::make('error')->content('ML desconectado.')];
+
+                                try {
+                                    $response = Http::get("https://api.mercadolibre.com/categories/{$categoryId}/attributes");
+                                    if ($response->failed())
+                                        return [Forms\Components\Placeholder::make('error')->content('Categoria inválida ou erro na API.')];
+
+                                    $attributes = $response->json();
+                                    $schema = [];
+
+                                    foreach ($attributes as $attr) {
+                                        $isRequired = isset($attr['tags']['required']) && $attr['tags']['required'];
+                                        $forceInclude = in_array($attr['id'], ['BRAND', 'MODEL', 'FAMILY_NAME', 'SOFTWARE_NAME', 'FORMAT']);
+
+                                        if ($isRequired || $forceInclude) {
+                                            $field = TextInput::make("attributes.{$attr['id']}")
+                                                ->label($attr['name'])
+                                                ->required($isRequired);
+
+                                            if (in_array($attr['id'], ['BRAND', 'brand']))
+                                                $field->default('AdasSoft');
+                                            if (in_array($attr['id'], ['MODEL', 'model']))
+                                                $field->default('Digital');
+                                            if ($attr['id'] === 'FAMILY_NAME')
+                                                $field->default('Software');
+                                            if ($attr['id'] === 'FORMAT')
+                                                $field->default('Digital');
+
+                                            if (!empty($attr['values'])) {
+                                                $options = collect($attr['values'])->pluck('name', 'name')->toArray();
+                                                $field = Select::make("attributes.{$attr['id']}")
+                                                    ->label($attr['name'])
+                                                    ->options($options)
+                                                    ->searchable()
+                                                    ->required($isRequired)
+                                                    ->default(count($options) == 1 ? array_key_first($options) : null);
+                                            }
+
+                                            $schema[] = $field;
+                                        }
+                                    }
+
+                                    if (empty($schema)) {
+                                        return [Forms\Components\Placeholder::make('info')->content('Nenhum atributo obrigatório extra encontrado.')];
+                                    }
+                                    return $schema;
+                                } catch (\Exception $e) {
+                                    return [Forms\Components\Placeholder::make('error')->content('Erro: ' . $e->getMessage())];
+                                }
+                            }),
+                        \Filament\Forms\Components\Wizard\Step::make('Finalizar')
+                            ->schema([
+                                TextInput::make('image_url')->label('URL Imagem')->default(fn(Plano $record) => $record->software->imagem ? url($record->software->imagem) : '')->required(),
+                                Textarea::make('description')->label('Descrição')->default(fn(Plano $record) => strip_tags($record->software->descricao ?? ''))->rows(3)
+                            ]),
                     ])
                     ->action(function (Plano $record, array $data) {
                         $config = MercadoLibreConfig::where('is_active', true)->first();
                         if (!$config) {
                             Notification::make()->title('ML Desconectado')->danger()->send();
                             return;
+                        }
+
+                        $finalAttributes = [];
+                        if (isset($data['attributes'])) {
+                            foreach ($data['attributes'] as $id => $val) {
+                                if ($val)
+                                    $finalAttributes[] = ['id' => $id, 'value_name' => $val];
+                            }
+                        }
+
+                        // Fallback logic
+                        $hasFamily = collect($finalAttributes)->contains('id', 'FAMILY_NAME');
+                        if (!$hasFamily && $data['category_id'] == 'MLB11172') {
+                            $finalAttributes[] = ['id' => 'FAMILY_NAME', 'value_name' => 'Software'];
                         }
 
                         $body = [
@@ -223,13 +306,7 @@ class PlanResource extends Resource
                             'condition' => 'new',
                             'description' => ['plain_text' => $data['description']],
                             'pictures' => [['source' => $data['image_url']]],
-                            'attributes' => [
-                                ['id' => 'BRAND', 'value_name' => 'AdasSoft'],
-                                ['id' => 'MODEL', 'value_name' => 'Digital'],
-                                ['id' => 'FORMAT', 'value_name' => 'Digital'],
-                                ['id' => 'SOFTWARE_NAME', 'value_name' => $record->software->nome_software ?? 'Software'],
-                                ['id' => 'FAMILY_NAME', 'value_name' => 'Software'], // Required by ML
-                            ]
+                            'attributes' => $finalAttributes
                         ];
 
                         try {
@@ -254,7 +331,7 @@ class PlanResource extends Resource
 
                             Notification::make()->title('Anúncio Publicado!')->body("Link: {$ml['permalink']}")->success()->send();
                         } catch (\Exception $e) {
-                            Notification::make()->title('Erro ao publicar')->body($e->getMessage())->danger()->send();
+                            Notification::make()->title('Erro ao publicar: ' . $e->getMessage())->danger()->send();
                         }
                     }),
                 Tables\Actions\EditAction::make()
