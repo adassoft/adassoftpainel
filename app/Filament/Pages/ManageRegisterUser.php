@@ -28,8 +28,8 @@ class ManageRegisterUser extends Page implements HasForms
 
     protected static ?string $title = 'Cadastro Manual de Usuários';
 
-    protected static ?string $navigationGroup = 'Clientes e Licenças';
-
+    protected static ?string $navigationGroup = 'Gestão de Clientes';
+    protected static ?int $navigationSort = 7;
     protected static string $view = 'filament.pages.manage-register-user';
 
     public ?array $data = [];

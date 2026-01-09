@@ -33,6 +33,7 @@ class ManageEmail extends Page implements HasForms
     protected static ?string $title = 'Notificações por Email';
 
     protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 1;
 
     protected static string $view = 'filament.pages.manage-email';
 

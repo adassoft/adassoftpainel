@@ -21,7 +21,8 @@ class ManageTerminals extends Page implements HasForms
     // Definição visual
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
     protected static ?string $navigationLabel = 'Gerenciar Terminais';
-    protected static ?string $navigationGroup = 'Licenciamento';
+    protected static ?string $navigationGroup = 'Gestão de Clientes';
+    protected static ?int $navigationSort = 5;
     protected static ?string $title = 'Terminais por Licença';
     protected static string $view = 'filament.pages.manage-terminals';
 

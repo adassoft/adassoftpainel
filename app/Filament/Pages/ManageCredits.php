@@ -22,8 +22,8 @@ class ManageCredits extends Page implements HasTable
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?string $navigationGroup = 'Gestão de Revendas';
-
+    protected static ?string $navigationGroup = 'Revenda';
+    protected static ?int $navigationSort = 3;
     protected static ?string $navigationLabel = 'Gerência de Créditos';
 
     protected static ?string $title = 'Gerência de Créditos (Revenda)';

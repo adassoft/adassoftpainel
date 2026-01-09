@@ -21,7 +21,8 @@ class MercadoLibreIntegration extends Page implements HasForms, HasActions
     use InteractsWithActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?string $navigationLabel = 'Mercado Livre';
+    protected static ?string $navigationGroup = 'Mercado Livre';
+    protected static ?string $navigationLabel = 'Configurações';
     protected static ?string $title = 'Integração Mercado Livre';
     protected static ?string $slug = 'mercado-libre-integration';
 

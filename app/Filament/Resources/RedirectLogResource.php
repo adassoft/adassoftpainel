@@ -22,8 +22,8 @@ class RedirectLogResource extends Resource
     protected static ?string $navigationLabel = 'Monitor 404';
     protected static ?string $modelLabel = 'Erro 404';
     protected static ?string $pluralModelLabel = 'Erros 404 Pendentes';
-    protected static ?string $navigationGroup = 'Configurações de SEO';
-    protected static ?int $navigationSort = 10;
+    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 7;
 
     public static function getEloquentQuery(): Builder
     {

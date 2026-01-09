@@ -21,8 +21,8 @@ class MercadoLibreProducts extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
-    protected static ?string $navigationLabel = 'Anúncios ML';
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
+    protected static ?string $navigationLabel = 'Anúncios';
     protected static ?string $title = 'Anúncios do Mercado Livre';
     protected static ?string $slug = 'mercado-libre-products';
     protected static ?string $navigationGroup = 'Mercado Livre';

@@ -22,7 +22,7 @@ class ResellerResource extends Resource
     protected static ?string $navigationLabel = 'Revendas';
     protected static ?string $modelLabel = 'Revenda';
     protected static ?string $slug = 'revendas';
-    protected static ?string $navigationGroup = 'Gestão de Revendas';
+    protected static ?string $navigationGroup = 'Revenda';
     protected static ?int $navigationSort = 1;
 
     public static function getEloquentQuery(): Builder

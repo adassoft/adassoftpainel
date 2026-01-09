@@ -21,7 +21,8 @@ class SeoEntryResource extends Resource
     protected static ?string $navigationLabel = 'Páginas Estáticas (SEO)';
     protected static ?string $modelLabel = 'Página';
     protected static ?string $pluralModelLabel = 'SEO de Páginas Estáticas';
-    protected static ?string $navigationGroup = 'Configurações de SEO';
+    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 5;
 
     public static function getEloquentQuery(): Builder
     {

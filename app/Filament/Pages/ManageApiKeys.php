@@ -34,6 +34,7 @@ class ManageApiKeys extends Page implements HasForms, HasTable
     protected static ?string $navigationLabel = 'Gestão de API Keys';
     protected static ?string $title = 'Gestão de API Keys';
     protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 2;
     protected static string $view = 'filament.pages.manage-api-keys';
 
     public ?array $data = [];

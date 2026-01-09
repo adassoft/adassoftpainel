@@ -19,8 +19,8 @@ class ResellerConfigResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-swatch';
 
-    protected static ?string $navigationGroup = 'Gestão de Usuários e Clientes';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Revenda';
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $modelLabel = 'Configuração White Label';
 

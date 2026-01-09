@@ -18,10 +18,10 @@ class LicenseResource extends Resource
     protected static ?string $model = License::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-key';
+
+    protected static ?string $navigationGroup = 'Gestão de Clientes';
     protected static ?string $modelLabel = 'Licença';
-    protected static ?string $pluralModelLabel = 'Gestão de Licenças';
-    protected static ?string $navigationGroup = 'Licenciamento e Ativações';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

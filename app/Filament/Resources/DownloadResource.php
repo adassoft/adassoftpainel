@@ -26,7 +26,7 @@ class DownloadResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-cloud-arrow-down';
     protected static ?string $navigationLabel = 'Gerenciar Downloads';
-    protected static ?string $navigationGroup = 'Catálogo de Softwares';
+    protected static ?string $navigationGroup = 'Catálogo';
     protected static ?int $navigationSort = 3;
     protected static ?string $modelLabel = 'Download';
 

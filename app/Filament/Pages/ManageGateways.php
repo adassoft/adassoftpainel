@@ -14,7 +14,8 @@ use Filament\Support\Enums\MaxWidth;
 class ManageGateways extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?string $navigationGroup = 'Integrações';
+    protected static ?int $navigationSort = 2;
     protected static ?string $title = 'Gateways de Pagamento';
     protected static ?string $slug = 'gateways';
     protected static string $view = 'filament.pages.manage-gateways';

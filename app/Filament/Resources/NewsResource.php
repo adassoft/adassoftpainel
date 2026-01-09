@@ -20,8 +20,8 @@ class NewsResource extends Resource
     protected static ?string $navigationLabel = 'Notícias e Avisos';
     protected static ?string $modelLabel = 'Notícia';
     protected static ?string $pluralModelLabel = 'Notícias e Avisos';
-    protected static ?string $navigationGroup = 'Suporte e Conteúdo';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Conteúdo & Suporte';
+    protected static ?int $navigationSort = 4;
 
 
     public static function form(Form $form): Form

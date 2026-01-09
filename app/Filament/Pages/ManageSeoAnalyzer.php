@@ -28,7 +28,8 @@ class ManageSeoAnalyzer extends Page implements HasForms
 
     protected static ?string $title = 'Analisador de SEO com Inteligência Artificial';
 
-    protected static ?string $navigationGroup = 'Gestão';
+    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 4;
 
     protected static string $view = 'filament.pages.manage-seo-analyzer';
 

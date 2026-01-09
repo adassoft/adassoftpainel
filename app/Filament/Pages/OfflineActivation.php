@@ -18,7 +18,8 @@ class OfflineActivation extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-shield-exclamation';
     protected static ?string $title = 'Ativação Offline';
-    protected static ?string $navigationGroup = 'Licenciamento';
+    protected static ?string $navigationGroup = 'Gestão de Clientes';
+    protected static ?int $navigationSort = 6;
     protected static string $view = 'filament.pages.offline-activation';
 
     public ?array $data = [];

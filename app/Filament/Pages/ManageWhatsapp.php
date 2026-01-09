@@ -27,7 +27,8 @@ class ManageWhatsapp extends Page implements HasForms
 
     protected static ?string $title = 'Notificações por WhatsApp';
 
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?string $navigationGroup = 'Integrações';
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.pages.manage-whatsapp';
 

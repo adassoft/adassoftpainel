@@ -23,7 +23,8 @@ class ManageGoogle extends Page implements HasForms
 
     protected static ?string $title = 'Integrações Google';
 
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?string $navigationGroup = 'Integrações';
+    protected static ?int $navigationSort = 4;
 
     protected static string $view = 'filament.pages.manage-google';
 

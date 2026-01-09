@@ -14,7 +14,8 @@ class ManageAapanel extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-server';
     protected static ?string $navigationLabel = 'Integração aaPanel';
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?string $navigationGroup = 'Integrações';
+    protected static ?int $navigationSort = 6;
     protected static ?string $title = 'aaPanel (Automação de Domínios)';
     protected static string $view = 'filament.pages.manage-aapanel';
 

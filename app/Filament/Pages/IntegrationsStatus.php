@@ -8,7 +8,8 @@ class IntegrationsStatus extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-signal';
     protected static ?string $title = 'Status das Integrações';
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?string $navigationGroup = 'Integrações';
+    protected static ?int $navigationSort = 1;
 
     protected static string $view = 'filament.pages.integrations-status';
 

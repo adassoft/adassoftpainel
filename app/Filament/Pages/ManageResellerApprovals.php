@@ -14,8 +14,8 @@ class ManageResellerApprovals extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-check-badge';
 
-    protected static ?string $navigationGroup = 'Gestão de Revendas';
-
+    protected static ?string $navigationGroup = 'Revenda';
+    protected static ?int $navigationSort = 2;
     protected static ?string $navigationLabel = 'Aprovações Pendentes';
 
     protected static ?string $title = 'Aprovações Pendentes (White Label)';

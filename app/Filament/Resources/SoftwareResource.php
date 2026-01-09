@@ -33,7 +33,7 @@ class SoftwareResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-cube';
     protected static ?string $modelLabel = 'Software';
     protected static ?string $pluralModelLabel = 'Softwares';
-    protected static ?string $navigationGroup = 'Catálogo de Softwares';
+    protected static ?string $navigationGroup = 'Catálogo';
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form

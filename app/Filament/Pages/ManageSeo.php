@@ -25,6 +25,7 @@ class ManageSeo extends Page implements HasForms
     protected static ?string $title = 'Configurações de SEO';
 
     protected static ?string $navigationGroup = 'Configurações';
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.pages.manage-seo';
 

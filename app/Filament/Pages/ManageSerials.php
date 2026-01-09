@@ -33,7 +33,8 @@ class ManageSerials extends Page implements HasForms, HasTable
     protected static ?string $navigationIcon = 'heroicon-o-key';
     protected static ?string $navigationLabel = 'Gerenciamento de Seriais';
     protected static ?string $title = 'Gerenciamento Avançado de Seriais';
-    protected static ?string $navigationGroup = 'Licenciamento';
+    protected static ?string $navigationGroup = 'Gestão de Clientes';
+    protected static ?int $navigationSort = 4;
     protected static string $view = 'filament.pages.manage-serials';
 
     public ?array $generatorData = [];
@@ -187,11 +188,11 @@ class ManageSerials extends Page implements HasForms, HasTable
                 TextColumn::make('validade_licenca')
                     ->label('Validade')
                     ->date('d/m/Y')
-                    ->color(fn($record) => $record->validade_licenca < now() ? 'danger' : 'success'),
+                    ->color(fn($record) => \Carbon\Carbon::parse($record->validade_licenca)->isPast() ? 'danger' : 'success'),
                 TextColumn::make('status')
                     ->label('Status')
                     ->state(function (SerialHistory $record): string {
-                        if ($record->validade_licenca && $record->validade_licenca->lt(now()->startOfDay())) {
+                        if ($record->validade_licenca && \Carbon\Carbon::parse($record->validade_licenca)->lt(now()->startOfDay())) {
                             return 'Expirado';
                         }
                         $obs = json_decode($record->observacoes, true);
@@ -326,7 +327,7 @@ class ManageSerials extends Page implements HasForms, HasTable
                 'Empresa' => $history->company->razao ?? 'N/A',
                 'Software' => $history->software->nome_software ?? 'N/A',
                 'Status' => $history->ativo ? 'Ativo' : 'Inativo/Suspenso',
-                'Validade' => $history->validade_licenca ? $history->validade_licenca->format('d/m/Y') : 'N/A',
+                'Validade' => $history->validade_licenca ? \Carbon\Carbon::parse($history->validade_licenca)->format('d/m/Y') : 'N/A',
             ];
         } else {
             $this->validationResult = 'invalid';

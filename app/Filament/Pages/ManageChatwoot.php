@@ -15,7 +15,8 @@ class ManageChatwoot extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     protected static ?string $navigationLabel = 'Integração Chatwoot';
-    protected static ?string $navigationGroup = 'Configurações';
+    protected static ?string $navigationGroup = 'Integrações';
+    protected static ?int $navigationSort = 5;
     protected static ?string $title = 'Chatwoot Live Chat';
     protected static string $view = 'filament.pages.manage-chatwoot';
 

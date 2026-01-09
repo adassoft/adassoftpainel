@@ -20,8 +20,8 @@ class CompanyResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $modelLabel = 'Cliente';
     protected static ?string $pluralModelLabel = 'Gerenciar Clientes';
-    protected static ?string $navigationGroup = 'Gestão de Usuários e Clientes';
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationGroup = 'Gestão de Clientes';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
