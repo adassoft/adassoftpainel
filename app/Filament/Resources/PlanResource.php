@@ -196,6 +196,8 @@ class PlanResource extends Resource
                     ->icon('heroicon-o-cloud-arrow-up')
                     ->color('success')
                     ->steps([
+                        \Filament\Forms\Components\Wizard\Step::make('Dados Básicos')
+                            ->schema([
                                 TextInput::make('title')->label('Título')
                                     ->default(function (Plano $record) {
                                         $nome = $record->nome_plano;
