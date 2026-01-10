@@ -12,24 +12,23 @@ class FixImportedUserRoles extends Command
 
     public function handle()
     {
-        // Encontra usuários que são Admin (1) E têm perfil pendente (marca da importação)
-        // Ignora admin principal por segurança
+        // Encontra TODOS usuários que são Admin (1) exceto o admin principal
+        $adminEmail = 'adassoft@outlook.com.br';
+
         $users = User::where('acesso', 1)
-            ->where('pending_profile_completion', true)
-            ->where('email', '!=', 'admin@adassoft.com')
+            ->where('email', '!=', $adminEmail)
             ->get();
 
         $count = $users->count();
 
         if ($count === 0) {
-            $this->info("Nenhum usuário importado com nível Admin encontrado.");
+            $this->info("Nenhum usuário com nível Admin indevido encontrado.");
             return;
         }
 
-        if ($this->confirm("Encontrados $count usuários importados como Admin. Deseja rebaixá-los para Cliente?")) {
+        if ($this->confirm("Encontrados $count usuários com nível Admin (exceto $adminEmail). Deseja rebaixá-los para Cliente (0)?")) {
             User::where('acesso', 1)
-                ->where('pending_profile_completion', true)
-                ->where('email', '!=', 'admin@adassoft.com')
+                ->where('email', '!=', $adminEmail)
                 ->update(['acesso' => 0]);
 
             $this->info("Sucesso! $count usuários foram corrigidos.");
