@@ -35,21 +35,35 @@ class WhatsappService
             return null;
         }
 
+        // 1. Remove tudo que não for dígito
         $digits = preg_replace('/\D+/', '', $numero);
+
         if ($digits === '') {
             return null;
         }
 
-        // Se tiver 10 ou 11 dígitos, assume que é BR e adiciona 55
-        if ((strlen($digits) === 10 || strlen($digits) === 11) && substr($digits, 0, 2) !== '55') {
-            $digits = '55' . $digits;
+        // 2. Remove prefixo 55 se existir (para normalizar análise)
+        if (str_starts_with($digits, '55') && strlen($digits) >= 12) {
+            $digits = substr($digits, 2);
         }
 
+        // 3. Verifica se é celular antigo (10 dígitos: DDD + 8 números)
+        // Regra: DDD (2) + Dígito 7, 8 ou 9 (Celular) + 7 dígitos
+        if (strlen($digits) === 10) {
+            $firstDigit = (int) substr($digits, 2, 1);
+            if ($firstDigit >= 7) {
+                // Insere o 9
+                $digits = substr($digits, 0, 2) . '9' . substr($digits, 2);
+            }
+        }
+
+        // 4. Se ficou com 11 dígitos ou é fixo (10), adiciona 55
+        // Se for menor que 10, é inválido
         if (strlen($digits) < 10) {
             return null;
         }
 
-        return $digits;
+        return '55' . $digits;
     }
 
     public function sendMessage(array $config, string $numero, string $mensagem): array
