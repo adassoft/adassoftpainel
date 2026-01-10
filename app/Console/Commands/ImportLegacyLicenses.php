@@ -82,14 +82,14 @@ class ImportLegacyLicenses extends Command
         }
 
         // Garante que usuario tenha empresa
-        if (!$user->empresa_codigo) {
+        if (!$user->empresa_id) {
             $company = Company::create([
                 'codigo' => Company::max('codigo') + 1,
                 'razao' => $user->name . ' (Importado)',
                 'email' => $email,
                 'fone1' => $user->celular ?? '',
             ]);
-            $user->empresa_codigo = $company->codigo;
+            $user->empresa_id = $company->codigo;
             $user->save();
         }
 
@@ -119,7 +119,7 @@ class ImportLegacyLicenses extends Command
         }
 
         License::create([
-            'empresa_codigo' => $user->empresa_codigo,
+            'empresa_codigo' => $user->empresa_id,
             'cnpj_revenda' => $defaultResellerCnpj,
             'software_id' => $softwareId, // Assumindo IDPRO == software_id novo
             'terminais_permitidos' => $machines,
