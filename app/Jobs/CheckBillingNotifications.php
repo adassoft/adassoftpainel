@@ -38,15 +38,17 @@ class CheckBillingNotifications implements ShouldQueue
 
         $isEvolution = ($whatsappConfig['provider'] ?? 'official') === 'evolution';
 
-        // --- 1. Notificações de Vencimento Próximo ---
-        $ordersUpcoming = Order::where('status', 'pending')
-            ->whereNotNull('due_date')
-            ->whereDate('due_date', $targetDate)
-            ->with('user')
+        // ... (Config loading logic stays same up to here)
+
+        // --- 1. LICENÇAS: Vencimento Próximo (Days Before) ---
+        // Buscamos licenças ativas que expiram na data alvo
+        $licensesUpcoming = \App\Models\License::where('status', 'ativo')
+            ->whereDate('data_expiracao', $targetDate)
+            ->with('company')
             ->get();
 
-        foreach ($ordersUpcoming as $order) {
-            $phone = $this->extractPhone($order);
+        foreach ($licensesUpcoming as $license) {
+            $phone = $license->company->fone ?? null;
             if (!$phone)
                 continue;
 
@@ -54,65 +56,69 @@ class CheckBillingNotifications implements ShouldQueue
 
             // WhatsApp
             if (($whatsappConfig['enabled'] ?? false) && $prefs->shouldNotify('days_before_due', 'customer', 'whatsapp')) {
-                $msg = $templateService->getFormattedMessage('billing_due_soon_whatsapp', $order, $extraData);
-                if ($msg) { // Send only if template exists
+                // Reutilizamos o template 'billing_due_soon'
+                $msg = $templateService->getFormattedMessage('billing_due_soon_whatsapp', $license, $extraData);
+                if ($msg) {
                     $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
-                    Log::info("WP enviado para {$phone} (Order {$order->id})");
+                    Log::info("WP Licença Prox Venc enviada para {$phone} (Lic #{$license->id})");
 
-                    // Delay "Anti-Ban" para Evolution API
-                    if ($isEvolution) {
-                        $sleepSecs = rand(60, 120); // Intervalo variável entre 1 e 2 minutos
-                        sleep($sleepSecs);
-                    }
+                    if ($isEvolution)
+                        sleep(rand(60, 120));
                 }
             }
 
             // SMS
             if (($smsConfig['enabled'] ?? false) && $prefs->shouldNotify('days_before_due', 'customer', 'sms')) {
-                $msg = $templateService->getFormattedMessage('billing_due_soon_sms', $order, $extraData);
+                $msg = $templateService->getFormattedMessage('billing_due_soon_sms', $license, $extraData);
                 if ($msg) {
                     $sms->sendSms($smsConfig, $phone, $msg);
-                    Log::info("SMS enviado para {$phone} (Order {$order->id})");
+                    Log::info("SMS Licença Prox Venc enviada para {$phone} (Lic #{$license->id})");
                 }
             }
         }
 
-        // --- 2. Notificações de Vencidos (Overdue) ---
-        $yesterday = now()->subDay()->toDateString();
 
-        $ordersOverdue = Order::where('status', 'pending')
-            ->whereNotNull('due_date')
-            ->whereDate('due_date', $yesterday)
-            ->with('user')
+        // --- 2. LICENÇAS: Vencidas Ontem (Overdue) ---
+        $yesterday = now()->subDay()->toDateString();
+        $licensesExpired = \App\Models\License::where('status', 'ativo') // Ainda ativos mas data passada
+            ->whereDate('data_expiracao', $yesterday)
+            ->with('company')
             ->get();
 
-        foreach ($ordersOverdue as $order) {
-            $phone = $this->extractPhone($order);
+        foreach ($licensesExpired as $license) {
+            $phone = $license->company->fone ?? null;
             if (!$phone)
                 continue;
 
             // WhatsApp
             if (($whatsappConfig['enabled'] ?? false) && $prefs->shouldNotify('overdue', 'customer', 'whatsapp')) {
-                $msg = $templateService->getFormattedMessage('billing_overdue_whatsapp', $order);
+                $msg = $templateService->getFormattedMessage('billing_overdue_whatsapp', $license);
                 if ($msg) {
                     $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
+                    Log::info("WP Licença Vencida enviada para {$phone} (Lic #{$license->id})");
 
-                    // Delay "Anti-Ban" para Evolution API
-                    if ($isEvolution) {
-                        $sleepSecs = rand(60, 120);
-                        sleep($sleepSecs);
-                    }
+                    if ($isEvolution)
+                        sleep(rand(60, 120));
                 }
             }
 
             // SMS
             if (($smsConfig['enabled'] ?? false) && $prefs->shouldNotify('overdue', 'customer', 'sms')) {
-                $msg = $templateService->getFormattedMessage('billing_overdue_sms', $order);
+                $msg = $templateService->getFormattedMessage('billing_overdue_sms', $license);
                 if ($msg) {
                     $sms->sendSms($smsConfig, $phone, $msg);
                 }
             }
         }
+
+        // --- 3. PEDIDOS: Mantendo lógica legada para casos onde o pedido é gerado ---
+        // (Apenas se houver pedido pendente com data de vencimento explícita)
+        $ordersUpcoming = Order::where('status', 'pending')
+            ->whereNotNull('due_date')
+            ->whereDate('due_date', $targetDate)
+            ->with('user')
+            ->get();
+        // ... (rest of old logic for orders)
     }
 
     private function extractPhone($order)

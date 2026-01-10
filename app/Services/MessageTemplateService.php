@@ -29,7 +29,7 @@ class MessageTemplateService
         return $defaults;
     }
 
-    public function getFormattedMessage(string $key, Order $order, array $extraData = []): string
+    public function getFormattedMessage(string $key, $model, array $extraData = []): string
     {
         $templates = $this->loadTemplates();
         $template = $templates[$key] ?? '';
@@ -38,16 +38,30 @@ class MessageTemplateService
             return '';
         }
 
-        // Dados para substituição
-        $vars = [
-            '{name}' => $order->user->nome ?? 'Cliente',
-            '{company}' => $order->user->empresa->razao ?? 'Sua Empresa',
-            '{value}' => 'R$ ' . number_format($order->total, 2, ',', '.'),
-            '{due_date}' => $order->due_date ? \Carbon\Carbon::parse($order->due_date)->format('d/m/Y') : 'N/A',
-            '{link}' => $order->payment_url ?? $order->external_url ?? '#',
-            '{days}' => $extraData['days'] ?? '0',
-            '{id}' => $order->id,
-        ];
+        $vars = [];
+
+        if ($model instanceof Order) {
+            $vars = [
+                '{name}' => $model->user->nome ?? 'Cliente',
+                '{company}' => $model->user->empresa->razao ?? 'Sua Empresa',
+                '{value}' => 'R$ ' . number_format($model->total, 2, ',', '.'),
+                '{due_date}' => $model->due_date ? \Carbon\Carbon::parse($model->due_date)->format('d/m/Y') : 'N/A',
+                '{link}' => $model->payment_url ?? $model->external_url ?? '#',
+                '{id}' => $model->id,
+            ];
+        } elseif ($model instanceof \App\Models\License) {
+            $vars = [
+                '{name}' => $model->company->razao ?? 'Cliente',
+                '{company}' => $model->company->razao ?? 'Sua Empresa',
+                // Licença não tem valor fixo fácil, talvez via Plano? Deixar vazio ou generico.
+                '{value}' => '-',
+                '{due_date}' => $model->data_expiracao ? $model->data_expiracao->format('d/m/Y') : 'N/A',
+                '{link}' => 'https://painel.adassoft.com/meus-produtos', // Link genérico para renovação
+                '{id}' => $model->id,
+            ];
+        }
+
+        $vars['{days}'] = $extraData['days'] ?? '0';
 
         return str_replace(array_keys($vars), array_values($vars), $template);
     }
