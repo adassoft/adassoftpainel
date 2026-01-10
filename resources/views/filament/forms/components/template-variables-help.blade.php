@@ -5,6 +5,7 @@
     <ul class="space-y-1">
         <li><code class="text-primary-600 font-bold">{name}</code> Nome do cliente</li>
         <li><code class="text-primary-600 font-bold">{company}</code> Razão social da empresa</li>
+        <li><code class="text-primary-600 font-bold">{software}</code> Nome do produto/software</li>
         <li><code class="text-primary-600 font-bold">{value}</code> Valor formatado (R$ 100,00)</li>
         <li><code class="text-primary-600 font-bold">{due_date}</code> Data de vencimento (DD/MM/AAAA)</li>
         <li><code class="text-primary-600 font-bold">{link}</code> Link do boleto/pix</li>
