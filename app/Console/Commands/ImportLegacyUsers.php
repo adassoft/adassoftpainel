@@ -36,24 +36,25 @@ class ImportLegacyUsers extends Command
         while (($line = fgets($handle)) !== false) {
             // Procura por linhas de INSERT INTO `ss_users`
             if (strpos($line, 'INSERT INTO `ss_users`') !== false) {
-                // Remove o prefixo do INSERT para ficar só com os VALUES
-                // Ex: ... VALUES (1, 0, 'Nome', ...), (2, 0, ...)
-                $valuesPart = strstr($line, 'VALUES');
+                $buffer = $line;
+                while (strpos($buffer, ';') === false && ($nextLine = fgets($handle)) !== false) {
+                    $buffer .= $nextLine;
+                }
+
+                $valuesPart = strstr($buffer, 'VALUES');
                 $valuesPart = substr($valuesPart, 6); // Remove 'VALUES'
                 $valuesPart = trim($valuesPart, " ;\r\n");
 
-                // Parseia os grupos (...)
-                // Regex simples para capturar conteudos entre parênteses
-                // Atenção: F falha se houver parenteses dentro do texto, mas para esse dump simples deve servir
-                if (preg_match_all('/\((.*?)\)/', $valuesPart, $matches)) {
-                    foreach ($matches[1] as $userDataRaw) {
-                        try {
-                            $this->processUser($userDataRaw);
-                            $count++;
-                        } catch (\Exception $e) {
-                            $this->error("Erro ao processar linha: " . $e->getMessage());
-                            $skipped++;
-                        }
+                $rows = preg_split('/\),\s*\(/', $valuesPart);
+
+                foreach ($rows as $row) {
+                    $row = trim($row, "()");
+                    try {
+                        $this->processUser($row);
+                        $count++;
+                    } catch (\Exception $e) {
+                        // $this->error("Erro: " . $e->getMessage());
+                        $skipped++;
                     }
                 }
             }
