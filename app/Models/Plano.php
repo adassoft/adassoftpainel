@@ -13,6 +13,12 @@ class Plano extends Model
 
     protected $fillable = ['software_id', 'nome_plano', 'valor', 'recorrencia', 'status'];
 
+    protected $casts = [
+        'data_cadastro' => 'datetime',
+        'valor' => 'decimal:2',
+        'status' => 'boolean',
+    ];
+
     protected static function booted()
     {
         static::deleting(function ($plano) {

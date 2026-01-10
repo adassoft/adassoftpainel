@@ -19,6 +19,10 @@ class Monitor404Middleware
 
         if ($response->getStatusCode() === 404) {
             $path = '/' . trim($request->path(), '/');
+            // Trunca para evitar erro de banco (limite do campo geralmente 255)
+            if (strlen($path) > 190) {
+                $path = substr($path, 0, 190);
+            }
 
             // Ignora assets, livewire, filament debug, etc
             if ($request->is('livewire/*', 'filament/*', 'admin/*', 'storage/*', 'css/*', 'js/*', 'img/*')) {
