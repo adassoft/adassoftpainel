@@ -424,6 +424,13 @@ class PlanResource extends Resource
                     ->button()
                     ->color('danger')
                     ->tooltip('Excluir'),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Excluir Selecionados')
+                        ->requiresConfirmation(),
+                ]),
             ]);
     }
 
