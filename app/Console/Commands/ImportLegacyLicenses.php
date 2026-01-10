@@ -102,7 +102,7 @@ class ImportLegacyLicenses extends Command
         $status = $isActive; // true/false
 
         // Verifica se já existe para não duplicar
-        $exists = License::where('empresa_codigo', $user->empresa_codigo)
+        $exists = License::where('empresa_codigo', $user->empresa_id)
             ->where('software_id', $softwareId)
             ->exists();
 
