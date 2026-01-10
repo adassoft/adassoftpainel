@@ -13,6 +13,14 @@ class Plano extends Model
 
     protected $fillable = ['software_id', 'nome_plano', 'valor', 'recorrencia', 'status'];
 
+    protected static function booted()
+    {
+        static::deleting(function ($plano) {
+            // Exclui configurações de revenda vinculadas
+            \App\Models\PlanoRevenda::where('plano_id', $plano->id)->delete();
+        });
+    }
+
     public function software()
     {
         return $this->belongsTo(Software::class, 'software_id');
