@@ -102,7 +102,22 @@ class LicenseResource extends Resource
                         'ativo' => 'Ativo',
                         'suspenso' => 'Suspenso',
                         'expirado' => 'Expirado',
-                    ]),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        $value = $data['value'];
+                        if ($value === 'ativo') {
+                            $query->where(function ($q) {
+                                $q->where('status', true)
+                                    ->orWhere('status', 'ativo')
+                                    ->orWhere('status', 1);
+                            })->whereDate('data_expiracao', '>=', now());
+                        } elseif ($value === 'expirado') {
+                            $query->whereDate('data_expiracao', '<', now());
+                            // Opcionalmente incluir status 'expirado' se existir no banco
+                        } elseif ($value === 'suspenso') {
+                            $query->where('status', 'suspenso'); // ou o que for usado para suspenso
+                        }
+                    }),
             ])
             ->actions([
                 Tables\Actions\Action::make('renovar')
