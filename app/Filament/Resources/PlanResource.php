@@ -412,10 +412,13 @@ class PlanResource extends Resource
                     ->tooltip('Editar'),
                 Tables\Actions\Action::make('toggle_status')
                     ->label('')
-                    ->icon('heroicon-m-pause')
+                    ->icon(fn(Plano $record) => $record->status ? 'heroicon-m-pause' : 'heroicon-m-play')
                     ->button()
-                    ->color('warning')
-                    ->action(fn(Plano $record) => $record->update(['status' => !$record->status]))
+                    ->color(fn(Plano $record) => $record->status ? 'warning' : 'success')
+                    ->action(function (Plano $record) {
+                        $record->update(['status' => !$record->status]);
+                        Notification::make()->title('Status alterado')->success()->send();
+                    })
                     ->requiresConfirmation()
                     ->tooltip(fn(Plano $record) => $record->status ? 'Inativar' : 'Ativar'),
                 Tables\Actions\DeleteAction::make()
