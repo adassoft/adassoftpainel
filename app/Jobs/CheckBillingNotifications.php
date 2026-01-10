@@ -25,56 +25,67 @@ class CheckBillingNotifications implements ShouldQueue
     public function handle(): void
     {
         $prefs = new NotificationPreferences();
+
         $whatsapp = new WhatsappService();
-        $config = $whatsapp->loadConfig(); // Load base WhatsApp config
+        $whatsappConfig = $whatsapp->loadConfig();
 
-        if (!($config['enabled'] ?? false)) {
-            Log::info('CheckBillingNotifications: WhatsApp disabled.');
-            return;
-        }
+        $sms = new \App\Services\SmsService();
+        $smsConfig = $sms->loadConfig();
 
-        // 1. Notificar Vencimento Próximo (Days Before)
         $daysBefore = $prefs->getDaysBeforeDue();
         $targetDate = now()->addDays($daysBefore)->toDateString();
 
-        // Se a config de notificar cliente (WhatsApp) estiver ativa
-        if ($prefs->shouldNotify('days_before_due', 'customer', 'whatsapp')) {
-            $orders = Order::where('status', 'pending')
-                ->whereNotNull('due_date')
-                ->whereDate('due_date', $targetDate)
-                ->with('user')
-                ->get();
+        // --- 1. Notificações de Vencimento Próximo ---
+        $ordersUpcoming = Order::where('status', 'pending')
+            ->whereNotNull('due_date')
+            ->whereDate('due_date', $targetDate)
+            ->with('user')
+            ->get();
 
-            foreach ($orders as $order) {
-                if ($order->user && $order->user->email) { // Use email as unique id check or phone
-                    // Tenta achar telefone (assumindo que user tem 'fone' ou 'celular' ou empresa)
-                    $phone = $this->extractPhone($order);
+        foreach ($ordersUpcoming as $order) {
+            $phone = $this->extractPhone($order);
+            if (!$phone)
+                continue;
 
-                    if ($phone) {
-                        $msg = "Olá {$order->user->nome}, sua fatura Adassoft vence em {$daysBefore} dias. Valor: R$ {$order->total}. Link: {$order->payment_url}";
-                        $whatsapp->sendMessage($config, $phone, $msg);
-                        Log::info("Notificacão enviada para {$phone} (Order {$order->id})");
-                    }
-                }
+            $msg = "Olá {$order->user->nome}, sua fatura Adassoft vence em {$daysBefore} dias. Valor: R$ {$order->total}. Link: {$order->payment_url}";
+
+            // WhatsApp
+            if (($whatsappConfig['enabled'] ?? false) && $prefs->shouldNotify('days_before_due', 'customer', 'whatsapp')) {
+                $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
+                Log::info("WP enviado para {$phone} (Order {$order->id})");
+            }
+
+            // SMS
+            if (($smsConfig['enabled'] ?? false) && $prefs->shouldNotify('days_before_due', 'customer', 'sms')) {
+                $sms->sendSms($smsConfig, $phone, $msg);
+                Log::info("SMS enviado para {$phone} (Order {$order->id})");
             }
         }
 
-        // 2. Notificar Vencidos (Overdue) - Ex: 1 dia de atraso
-        if ($prefs->shouldNotify('overdue', 'customer', 'whatsapp')) {
-            $yesterday = now()->subDay()->toDateString();
+        // --- 2. Notificações de Vencidos (Overdue) ---
+        $yesterday = now()->subDay()->toDateString();
 
-            $orders = Order::where('status', 'pending')
-                ->whereNotNull('due_date')
-                ->whereDate('due_date', $yesterday)
-                ->with('user')
-                ->get();
+        $ordersOverdue = Order::where('status', 'pending')
+            ->whereNotNull('due_date')
+            ->whereDate('due_date', $yesterday)
+            ->with('user')
+            ->get();
 
-            foreach ($orders as $order) {
-                $phone = $this->extractPhone($order);
-                if ($phone) {
-                    $msg = "URGENTE: Sua fatura Adassoft venceu ontem via {$order->payment_url}. Regularize para evitar bloqueio.";
-                    $whatsapp->sendMessage($config, $phone, $msg);
-                }
+        foreach ($ordersOverdue as $order) {
+            $phone = $this->extractPhone($order);
+            if (!$phone)
+                continue;
+
+            $msg = "URGENTE: Sua fatura Adassoft venceu ontem. Regularize: {$order->payment_url}";
+
+            // WhatsApp
+            if (($whatsappConfig['enabled'] ?? false) && $prefs->shouldNotify('overdue', 'customer', 'whatsapp')) {
+                $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
+            }
+
+            // SMS
+            if (($smsConfig['enabled'] ?? false) && $prefs->shouldNotify('overdue', 'customer', 'sms')) {
+                $sms->sendSms($smsConfig, $phone, $msg);
             }
         }
     }
