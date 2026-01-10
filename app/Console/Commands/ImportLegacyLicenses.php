@@ -112,6 +112,7 @@ class ImportLegacyLicenses extends Command
 
         License::create([
             'empresa_codigo' => $user->empresa_codigo,
+            'cnpj_revenda' => '00000000000100', // Revenda Padrão (Adassoft/Admin)
             'software_id' => $softwareId, // Assumindo IDPRO == software_id novo
             'terminais_permitidos' => $machines,
             'terminais_utilizados' => 0,
