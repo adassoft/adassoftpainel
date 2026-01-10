@@ -83,9 +83,10 @@ class ImportLegacyLicenses extends Command
 
         // Garante que usuario tenha empresa
         if (!$user->empresa_id) {
+            $razao = substr($user->name, 0, 48) . ' (Importado)';
             $company = Company::create([
                 'codigo' => Company::max('codigo') + 1,
-                'razao' => $user->name . ' (Importado)',
+                'razao' => $razao,
                 'email' => $email,
                 'fone1' => $user->celular ?? '',
             ]);
@@ -97,10 +98,8 @@ class ImportLegacyLicenses extends Command
         $machines = (int) ($data[4] ?? 1); // MACHINES
         $startDate = $this->parseDate($data[15] ?? null);
         $endDate = $this->parseDate($data[16] ?? null);
-        $status = ($data[5] ?? '0') == '0' ? 'ativo' : 'inativo'; // DISABLED=0 -> Ativo
-
-        // Mapeamento de Status Legado se tiver outro campo
-        // STATUS (idx 7) -> ?
+        $isActive = ($data[5] ?? '0') == '0';
+        $status = $isActive; // true/false
 
         // Verifica se já existe para não duplicar
         $exists = License::where('empresa_codigo', $user->empresa_codigo)
