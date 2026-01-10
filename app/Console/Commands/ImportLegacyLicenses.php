@@ -113,17 +113,35 @@ class ImportLegacyLicenses extends Command
         // Definido fixo conforme solicitação do usuário
         $defaultResellerCnpj = '04733736000120';
 
+        // Busca Software para gerar Serial correto
+        $software = \App\Models\Software::find($softwareId);
+        $serial = null; // init
+
+        if ($software) {
+            try {
+                $company = \App\Models\Company::where('codigo', $user->empresa_id)->first();
+                $licenseService = new \App\Services\LicenseService();
+                $serial = $licenseService->generateSerial($company, $software);
+            } catch (\Exception $e) {
+                // Fallback se falhar (ex: CNPJ duplicado na geração de hash ou lock)
+            }
+        }
+
+        if (!$serial) {
+            $serial = strtoupper(Str::random(20));
+        }
+
         License::create([
             'empresa_codigo' => $user->empresa_id,
             'cnpj_revenda' => $defaultResellerCnpj,
-            'software_id' => $softwareId, // Assumindo IDPRO == software_id novo
+            'software_id' => $softwareId,
             'terminais_permitidos' => $machines,
             'terminais_utilizados' => 0,
             'data_criacao' => $startDate,
             'data_ativacao' => $startDate,
             'data_expiracao' => $endDate,
             'status' => $status,
-            'serial_atual' => Str::upper(Str::random(20)), // Gera um serial placeholder
+            'serial_atual' => $serial,
             'observacoes' => 'Importado do Legado',
         ]);
     }
