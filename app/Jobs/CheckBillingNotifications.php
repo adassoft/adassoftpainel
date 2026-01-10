@@ -25,6 +25,7 @@ class CheckBillingNotifications implements ShouldQueue
     public function handle(): void
     {
         $prefs = new NotificationPreferences();
+        $templateService = new \App\Services\MessageTemplateService();
 
         $whatsapp = new WhatsappService();
         $whatsappConfig = $whatsapp->loadConfig();
@@ -47,18 +48,24 @@ class CheckBillingNotifications implements ShouldQueue
             if (!$phone)
                 continue;
 
-            $msg = "Olá {$order->user->nome}, sua fatura Adassoft vence em {$daysBefore} dias. Valor: R$ {$order->total}. Link: {$order->payment_url}";
+            $extraData = ['days' => $daysBefore];
 
             // WhatsApp
             if (($whatsappConfig['enabled'] ?? false) && $prefs->shouldNotify('days_before_due', 'customer', 'whatsapp')) {
-                $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
-                Log::info("WP enviado para {$phone} (Order {$order->id})");
+                $msg = $templateService->getFormattedMessage('billing_due_soon_whatsapp', $order, $extraData);
+                if ($msg) { // Send only if template exists
+                    $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
+                    Log::info("WP enviado para {$phone} (Order {$order->id})");
+                }
             }
 
             // SMS
             if (($smsConfig['enabled'] ?? false) && $prefs->shouldNotify('days_before_due', 'customer', 'sms')) {
-                $sms->sendSms($smsConfig, $phone, $msg);
-                Log::info("SMS enviado para {$phone} (Order {$order->id})");
+                $msg = $templateService->getFormattedMessage('billing_due_soon_sms', $order, $extraData);
+                if ($msg) {
+                    $sms->sendSms($smsConfig, $phone, $msg);
+                    Log::info("SMS enviado para {$phone} (Order {$order->id})");
+                }
             }
         }
 
@@ -76,16 +83,20 @@ class CheckBillingNotifications implements ShouldQueue
             if (!$phone)
                 continue;
 
-            $msg = "URGENTE: Sua fatura Adassoft venceu ontem. Regularize: {$order->payment_url}";
-
             // WhatsApp
             if (($whatsappConfig['enabled'] ?? false) && $prefs->shouldNotify('overdue', 'customer', 'whatsapp')) {
-                $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
+                $msg = $templateService->getFormattedMessage('billing_overdue_whatsapp', $order);
+                if ($msg) {
+                    $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
+                }
             }
 
             // SMS
             if (($smsConfig['enabled'] ?? false) && $prefs->shouldNotify('overdue', 'customer', 'sms')) {
-                $sms->sendSms($smsConfig, $phone, $msg);
+                $msg = $templateService->getFormattedMessage('billing_overdue_sms', $order);
+                if ($msg) {
+                    $sms->sendSms($smsConfig, $phone, $msg);
+                }
             }
         }
     }
