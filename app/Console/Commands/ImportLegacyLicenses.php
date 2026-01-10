@@ -109,13 +109,9 @@ class ImportLegacyLicenses extends Command
         if ($exists)
             return;
 
-        // Busca CNPJ da Revenda Padrão (ID 5 conforme informado)
-        // Se não achar, usa placeholder
-        static $defaultResellerCnpj = null;
-        if ($defaultResellerCnpj === null) {
-            $reseller = User::find(5);
-            $defaultResellerCnpj = $reseller ? $reseller->cnpj : '00000000000100';
-        }
+        // Busca CNPJ da Revenda Padrão
+        // Definido fixo conforme solicitação do usuário
+        $defaultResellerCnpj = '04733736000120';
 
         License::create([
             'empresa_codigo' => $user->empresa_id,
