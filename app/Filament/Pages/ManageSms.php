@@ -104,6 +104,13 @@ class ManageSms extends Page implements HasForms
                                                 ->action(fn() => $this->sendTest())
                                         ])->fullWidth(), // Ajuste visual se necessário
                                     ]),
+
+                                Section::make('Serviços Recomendados')
+                                    ->schema([
+                                        ViewField::make('tips')
+                                            ->view('filament.forms.components.sms-tips'),
+                                    ])
+                                    ->collapsible(),
                             ]),
                     ]),
             ])
