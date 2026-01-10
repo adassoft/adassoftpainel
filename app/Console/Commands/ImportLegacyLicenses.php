@@ -52,7 +52,7 @@ class ImportLegacyLicenses extends Command
                         $this->processSubscription($row);
                         $count++;
                     } catch (\Exception $e) {
-                        // $this->error("Erro: " . $e->getMessage());
+                        $this->error("Erro na importação: " . $e->getMessage());
                         $skipped++;
                     }
                 }
