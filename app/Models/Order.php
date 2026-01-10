@@ -26,7 +26,8 @@ class Order extends Model
         'external_id',
         'payment_url',
         'paid_at',
-        'recorrencia'
+        'recorrencia',
+        'due_date'
     ];
 
     public function user()

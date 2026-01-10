@@ -313,15 +313,65 @@ class ValidationController extends Controller
 
         $token = $this->licenseService->generateLicenseToken($payload);
 
-        // Registrar Log de token (opcional aqui, mas bom ter)
+        // --- Lógica de Cobrança (SDK/Tela) ---
+        $alertaCobranca = null;
+        try {
+            $pendingOrder = \App\Models\Order::where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->whereNotNull('due_date')
+                ->orderBy('due_date') // Pega a mais antiga (urgente)
+                ->first();
+
+            if ($pendingOrder) {
+                $prefs = new \App\Services\NotificationPreferences();
+                $dueDate = \Carbon\Carbon::parse($pendingOrder->due_date);
+                $now = now();
+                $diffDays = $now->diffInDays($dueDate, false); // +10 (future), -5 (past)
+
+                // Verifica se deve notificar (Regra Genérica: Se cliente tem QUALQUER notificação habilitada)
+                // Se estiver vencido:
+                if ($diffDays < 0) {
+                    // Checa se alerta de vencido está ativo para cliente (reuso da config 'overdue')
+                    $channels = $prefs->shouldNotify('overdue', 'customer', 'whatsapp')
+                        || $prefs->shouldNotify('overdue', 'customer', 'email')
+                        || $prefs->shouldNotify('overdue', 'customer', 'sms');
+
+                    if ($channels) {
+                        $alertaCobranca = [
+                            'titulo' => 'Fatura em Atraso',
+                            'mensagem' => "Atenção: Consta uma fatura vencida em {$dueDate->format('d/m/Y')}. Evite o bloqueio.",
+                            'link_pagamento' => $pendingOrder->payment_url ?? $pendingOrder->external_url, // Ajustar conforme Asaas
+                            'tipo' => 'erro' // Vermelho
+                        ];
+                    }
+                }
+                // Se estiver vencendo em breve
+                elseif ($diffDays <= $prefs->getDaysBeforeDue()) {
+                    $channels = $prefs->shouldNotify('days_before_due', 'customer', 'whatsapp')
+                        || $prefs->shouldNotify('days_before_due', 'customer', 'email');
+
+                    if ($channels) {
+                        $alertaCobranca = [
+                            'titulo' => 'Renovação da Licença',
+                            'mensagem' => "Sua licença vencerá em {$dueDate->format('d/m/Y')}. Clique aqui para renovar.",
+                            'link_pagamento' => $pendingOrder->payment_url,
+                            'tipo' => 'aviso' // Amarelo
+                        ];
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Silencioso para não travar login
+        }
 
         return response()->json([
             'success' => true,
             'token' => $token,
             'expira_em' => $payload['expira_em'],
+            'alerta_cobranca' => $alertaCobranca, // Novo campo para o SDK
             'licenca' => [
                 'serial' => $license->serial_atual,
-                'valido' => ($license->status === 'ativo'), // Corrigido: Campo obrigatório para o SDK
+                'valido' => ($license->status === 'ativo'),
                 'software_id' => $softwareId,
                 'software' => $payload['software'],
                 'versao' => $request->input('versao_software'),
@@ -622,7 +672,8 @@ class ValidationController extends Controller
                 'cnpj' => $user->cnpj,
                 'recorrencia' => $plano->recorrencia,
                 'asaas_payment_id' => $pixData->id,
-                'payment_method' => 'PIX'
+                'payment_method' => 'PIX',
+                'due_date' => $pixData->expirationDate
             ]);
 
             // Retorna o payload completo para o Delphi montar a tela de Pix

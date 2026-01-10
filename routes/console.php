@@ -8,3 +8,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 \Illuminate\Support\Facades\Schedule::job(new \App\Jobs\RefreshMercadoLibreTokens)->hourly();
+\Illuminate\Support\Facades\Schedule::job(new \App\Jobs\CheckBillingNotifications)->dailyAt('09:00');
