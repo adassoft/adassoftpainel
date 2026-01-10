@@ -71,9 +71,11 @@ class MyCompany extends Page implements HasForms
 
                                 TextInput::make('cnpj')
                                     ->label('CNPJ (Somente Números)')
-                                    ->disabled() // CNPJ não deve ser alterado aqui facilmente para não quebrar licenças
+                                    ->disabled(fn() => !empty(Auth::user()->cnpj) && strlen(preg_replace('/\D/', '', Auth::user()->cnpj)) == 14)
                                     ->helperText('Para alterar o CNPJ, entre em contato com o suporte.')
-                                    ->dehydrated(),
+                                    ->dehydrated()
+                                    ->required()
+                                    ->mask('99.999.999/9999-99'),
 
                                 TextInput::make('fone')
                                     ->label('Telefone / WhatsApp')
