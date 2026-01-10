@@ -40,7 +40,8 @@ class WhatsappService
             return null;
         }
 
-        if (strlen($digits) === 11 && substr($digits, 0, 2) !== '55') {
+        // Se tiver 10 ou 11 dígitos, assume que é BR e adiciona 55
+        if ((strlen($digits) === 10 || strlen($digits) === 11) && substr($digits, 0, 2) !== '55') {
             $digits = '55' . $digits;
         }
 
