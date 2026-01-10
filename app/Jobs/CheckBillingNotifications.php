@@ -61,7 +61,7 @@ class CheckBillingNotifications implements ShouldQueue
 
                     // Delay "Anti-Ban" para Evolution API
                     if ($isEvolution) {
-                        $sleepSecs = rand(10, 25); // Intervalo variável entre 10s e 25s
+                        $sleepSecs = rand(60, 120); // Intervalo variável entre 1 e 2 minutos
                         sleep($sleepSecs);
                     }
                 }
@@ -99,7 +99,7 @@ class CheckBillingNotifications implements ShouldQueue
 
                     // Delay "Anti-Ban" para Evolution API
                     if ($isEvolution) {
-                        $sleepSecs = rand(10, 25);
+                        $sleepSecs = rand(60, 120);
                         sleep($sleepSecs);
                     }
                 }
