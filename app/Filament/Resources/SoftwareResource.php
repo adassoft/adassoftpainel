@@ -197,7 +197,7 @@ class SoftwareResource extends Resource
                                                                                             file_put_contents($path . '/' . $fileName, $svgCode);
 
                                                                                             $publicUrl = 'img/produtos/' . $fileName;
-                                                                                            $set('imagem', $publicUrl);
+                                                                                            $set('imagem', [$publicUrl]);
 
                                                                                             \Filament\Notifications\Notification::make()
                                                                                                 ->title('Ícone Gerado!')
@@ -267,7 +267,7 @@ class SoftwareResource extends Resource
                                                                                             file_put_contents($path . '/' . $fileName, $svgCode);
 
                                                                                             $publicUrl = 'img/produtos/' . $fileName;
-                                                                                            $set('imagem_destaque', $publicUrl);
+                                                                                            $set('imagem_destaque', [$publicUrl]);
 
                                                                                             \Filament\Notifications\Notification::make()
                                                                                                 ->title('Banner Gerado!')
