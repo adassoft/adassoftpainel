@@ -80,10 +80,17 @@ class LicenseResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
+                    ->getStateUsing(function (License $record) {
+                        if ($record->data_expiracao && \Carbon\Carbon::parse($record->data_expiracao)->isPast()) {
+                            return 'expirado';
+                        }
+                        return $record->status ? 'ativo' : 'inativo'; // Assuming boolean status
+                    })
                     ->color(fn(string $state): string => match ($state) {
                         'ativo' => 'success',
                         'suspenso' => 'warning',
                         'expirado' => 'danger',
+                        'inativo' => 'gray',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn(string $state) => ucfirst($state))
