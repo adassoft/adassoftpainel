@@ -34,19 +34,26 @@ class ImportLegacyLicenses extends Command
 
         while (($line = fgets($handle)) !== false) {
             if (strpos($line, 'INSERT INTO `ss_subscriptions`') !== false) {
-                $valuesPart = strstr($line, 'VALUES');
+                $buffer = $line;
+                while (strpos($buffer, ';') === false && ($nextLine = fgets($handle)) !== false) {
+                    $buffer .= $nextLine;
+                }
+
+                $valuesPart = strstr($buffer, 'VALUES');
                 $valuesPart = substr($valuesPart, 6);
                 $valuesPart = trim($valuesPart, " ;\r\n");
 
-                if (preg_match_all('/\((.*?)\)/', $valuesPart, $matches)) {
-                    foreach ($matches[1] as $subDataRaw) {
-                        try {
-                            $this->processSubscription($subDataRaw);
-                            $count++;
-                        } catch (\Exception $e) {
-                            // $this->error("Erro: " . $e->getMessage());
-                            $skipped++;
-                        }
+                // Split by ),( to handle multiple rows
+                $rows = preg_split('/\),\s*\(/', $valuesPart);
+
+                foreach ($rows as $row) {
+                    $row = trim($row, "()");
+                    try {
+                        $this->processSubscription($row);
+                        $count++;
+                    } catch (\Exception $e) {
+                        // $this->error("Erro: " . $e->getMessage());
+                        $skipped++;
                     }
                 }
             }
