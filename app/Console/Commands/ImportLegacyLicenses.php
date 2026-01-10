@@ -110,9 +110,17 @@ class ImportLegacyLicenses extends Command
         if ($exists)
             return;
 
+        // Busca CNPJ da Revenda Padrão (ID 5 conforme informado)
+        // Se não achar, usa placeholder
+        static $defaultResellerCnpj = null;
+        if ($defaultResellerCnpj === null) {
+            $reseller = User::find(5);
+            $defaultResellerCnpj = $reseller ? $reseller->cnpj : '00000000000100';
+        }
+
         License::create([
             'empresa_codigo' => $user->empresa_codigo,
-            'cnpj_revenda' => '00000000000100', // Revenda Padrão (Adassoft/Admin)
+            'cnpj_revenda' => $defaultResellerCnpj,
             'software_id' => $softwareId, // Assumindo IDPRO == software_id novo
             'terminais_permitidos' => $machines,
             'terminais_utilizados' => 0,
