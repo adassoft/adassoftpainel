@@ -44,15 +44,21 @@ class GenerateLicense extends Page implements HasForms
                 Forms\Components\Section::make('Emissão Direta (Revenda)')
                     ->description('Selecione o plano desejado. O valor total será descontado do seu saldo.')
                     ->schema([
-                        Forms\Components\Select::make('company_id') // We need Company Code, but select returns ID/Key. Company PK is 'codigo'.
+                        Forms\Components\Select::make('company_id')
                             ->label('Cliente')
-                            ->options(function () {
+                            ->getSearchResultsUsing(function (string $search) {
                                 return Company::where('cnpj_representante', Auth::user()->cnpj)
-                                    ->orderBy('razao')
-                                    ->pluck('razao', 'codigo'); // Value is 'codigo'
+                                    ->where(function ($query) use ($search) {
+                                        $query->where('razao', 'like', "%{$search}%")
+                                            ->orWhere('cnpj', 'like', "%{$search}%");
+                                    })
+                                    ->limit(50)
+                                    ->pluck('razao', 'codigo');
                             })
+                            ->getOptionLabelUsing(fn($value): ?string => Company::where('codigo', $value)->value('razao'))
                             ->searchable()
                             ->required()
+                            ->preload(false) // Important: Do not preload all options
                             ->native(false),
 
                         Forms\Components\Select::make('plan_id')
