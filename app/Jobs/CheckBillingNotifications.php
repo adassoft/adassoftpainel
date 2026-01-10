@@ -36,6 +36,8 @@ class CheckBillingNotifications implements ShouldQueue
         $daysBefore = $prefs->getDaysBeforeDue();
         $targetDate = now()->addDays($daysBefore)->toDateString();
 
+        $isEvolution = ($whatsappConfig['provider'] ?? 'official') === 'evolution';
+
         // --- 1. Notificações de Vencimento Próximo ---
         $ordersUpcoming = Order::where('status', 'pending')
             ->whereNotNull('due_date')
@@ -56,6 +58,12 @@ class CheckBillingNotifications implements ShouldQueue
                 if ($msg) { // Send only if template exists
                     $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
                     Log::info("WP enviado para {$phone} (Order {$order->id})");
+
+                    // Delay "Anti-Ban" para Evolution API
+                    if ($isEvolution) {
+                        $sleepSecs = rand(10, 25); // Intervalo variável entre 10s e 25s
+                        sleep($sleepSecs);
+                    }
                 }
             }
 
@@ -88,6 +96,12 @@ class CheckBillingNotifications implements ShouldQueue
                 $msg = $templateService->getFormattedMessage('billing_overdue_whatsapp', $order);
                 if ($msg) {
                     $whatsapp->sendMessage($whatsappConfig, $phone, $msg);
+
+                    // Delay "Anti-Ban" para Evolution API
+                    if ($isEvolution) {
+                        $sleepSecs = rand(10, 25);
+                        sleep($sleepSecs);
+                    }
                 }
             }
 
