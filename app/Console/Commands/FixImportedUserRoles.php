@@ -26,12 +26,12 @@ class FixImportedUserRoles extends Command
             return;
         }
 
-        if ($this->confirm("Encontrados $count usuários com nível Admin (exceto $adminEmail). Deseja rebaixá-los para Cliente (0)?")) {
+        if ($this->confirm("Encontrados $count usuários com nível Admin (exceto $adminEmail). Deseja rebaixá-los para Cliente (Nível 3)?")) {
             User::where('acesso', 1)
                 ->where('email', '!=', $adminEmail)
-                ->update(['acesso' => 0]);
+                ->update(['acesso' => 3]);
 
-            $this->info("Sucesso! $count usuários foram corrigidos.");
+            $this->info("Sucesso! $count usuários foram corrigidos para o Nível 3.");
         }
     }
 }

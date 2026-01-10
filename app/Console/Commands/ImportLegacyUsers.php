@@ -100,7 +100,7 @@ class ImportLegacyUsers extends Command
             'password' => Hash::make(Str::random(16)), // Senha aleatória
             'celular' => $phone,
             'pending_profile_completion' => true,
-            'acesso' => 0, // 0 = Cliente (Não Admin)
+            'acesso' => 3, // 3 = Cliente (Conforme informado)
             'status' => 'Ativo',
             // Poderíamos salvar outros dados em JSON se necessário
         ]);
