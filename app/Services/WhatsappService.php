@@ -54,22 +54,50 @@ class WhatsappService
     public function sendMessage(array $config, string $numero, string $mensagem): array
     {
         $numero = $this->sanitizeNumber($numero);
+        $provider = $config['provider'] ?? 'official';
 
         if (!($config['enabled'] ?? false)) {
             return ['success' => false, 'error' => 'WhatsApp desabilitado'];
-        }
-
-        if (empty($config['access_token']) || empty($config['phone_number_id'])) {
-            return ['success' => false, 'error' => 'Configuração incompleta'];
         }
 
         if (!$numero) {
             return ['success' => false, 'error' => 'Número inválido'];
         }
 
-        $url = 'https://graph.facebook.com/v18.0/' . urlencode($config['phone_number_id']) . '/messages';
-
         try {
+            // --- EVOLUTION API ---
+            if ($provider === 'evolution') {
+                if (empty($config['evolution_url']) || empty($config['evolution_token'])) {
+                    return ['success' => false, 'error' => 'Configuração Evolution incompleta'];
+                }
+
+                $instance = $config['evolution_instance'] ?? 'Adassoft';
+                $baseUrl = rtrim($config['evolution_url'], '/');
+                $url = "{$baseUrl}/message/sendText/{$instance}";
+
+                // Formato padrão da Evolution v2 (POST /message/sendText/{instance})
+                $response = Http::withHeaders([
+                    'apikey' => $config['evolution_token'],
+                    'Content-Type' => 'application/json'
+                ])->post($url, [
+                            'number' => $numero, // Evolution geralmente aceita '5511...' sem @s.whatsapp.net na v2
+                            'text' => $mensagem,
+                            // 'delay' => 1200, // opcional
+                        ]);
+
+                if ($response->successful()) {
+                    return ['success' => true, 'response' => $response->body()];
+                }
+                return ['success' => false, 'error' => 'Evo Error ' . $response->status() . ': ' . $response->body()];
+            }
+
+            // --- META CLOUD API (OFFICIAL) ---
+            if (empty($config['access_token']) || empty($config['phone_number_id'])) {
+                return ['success' => false, 'error' => 'Configuração Cloud API incompleta'];
+            }
+
+            $url = 'https://graph.facebook.com/v18.0/' . urlencode($config['phone_number_id']) . '/messages';
+
             $response = Http::withToken($config['access_token'])
                 ->post($url, [
                     'messaging_product' => 'whatsapp',
@@ -85,9 +113,11 @@ class WhatsappService
                 return ['success' => true, 'response' => $response->body()];
             }
 
-            return ['success' => false, 'error' => 'HTTP ' . $response->status() . ' - ' . $response->body()];
+            return ['success' => false, 'error' => ' Meta Error ' . $response->status() . ' - ' . $response->body()];
+
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 }
+

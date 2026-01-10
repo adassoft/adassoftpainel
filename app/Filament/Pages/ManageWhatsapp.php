@@ -56,32 +56,68 @@ class ManageWhatsapp extends Page implements HasForms
                         Grid::make(1)
                             ->columnSpan(7)
                             ->schema([
-                                Section::make('Configuração WhatsApp Cloud API')
+                                Section::make('Configuração do Provedor')
                                     ->extraAttributes(['class' => 'whatsapp-section-main'])
                                     ->schema([
                                         Checkbox::make('enabled')
                                             ->label('Habilitar envio por WhatsApp'),
 
-                                        TextInput::make('access_token')
-                                            ->label('Access Token')
-                                            ->required()
-                                            ->helperText('Token permanente da Meta (WhatsApp Cloud API).'),
+                                        \Filament\Forms\Components\Select::make('provider')
+                                            ->label('Provedor de WhatsApp')
+                                            ->options([
+                                                'official' => 'Meta Official (Cloud API)',
+                                                'evolution' => 'Evolution API (Unofficial/Self-hosted)',
+                                            ])
+                                            ->default('official')
+                                            ->reactive(), // Atualiza o formulário ao mudar
 
-                                        TextInput::make('phone_number_id')
-                                            ->label('Phone Number ID')
-                                            ->required()
-                                            ->helperText('ID do número no painel do WhatsApp Cloud.'),
+                                        // --- Configuração Meta Official (Cloud API) ---
+                                        Grid::make(1)
+                                            ->visible(fn(\Filament\Forms\Get $get) => $get('provider') === 'official')
+                                            ->schema([
+                                                TextInput::make('access_token')
+                                                    ->label('Access Token (Meta)')
+                                                    ->required()
+                                                    ->password()
+                                                    ->revealable()
+                                                    ->helperText('Token permanente da Meta (WhatsApp Cloud API).'),
+
+                                                TextInput::make('phone_number_id')
+                                                    ->label('Phone Number ID')
+                                                    ->required()
+                                                    ->helperText('ID do número no painel do WhatsApp Cloud.'),
+                                            ]),
+
+                                        // --- Configuração Evolution API ---
+                                        Grid::make(1)
+                                            ->visible(fn(\Filament\Forms\Get $get) => $get('provider') === 'evolution')
+                                            ->schema([
+                                                TextInput::make('evolution_url')
+                                                    ->label('Base URL (Evolution)')
+                                                    ->placeholder('https://evo.seu-dominio.com')
+                                                    ->required()
+                                                    ->url()
+                                                    ->helperText('URL onde sua Evolution API está instalada.'),
+
+                                                TextInput::make('evolution_token')
+                                                    ->label('Global API Key (Evolution)')
+                                                    ->required()
+                                                    ->password()
+                                                    ->revealable()
+                                                    ->helperText('Chave de API configurada no .env da Evolution.'),
+
+                                                TextInput::make('evolution_instance')
+                                                    ->label('Nome da Instância')
+                                                    ->default('Adassoft')
+                                                    ->required()
+                                                    ->helperText('Nome da instância criada na Evolution (ex: Delivery, Atendimento).'),
+                                            ]),
 
                                         Textarea::make('message_template')
-                                            ->label('Template padrão')
+                                            ->label('Template padrão (Apenas referência)')
                                             ->rows(4)
-                                            ->placeholder('Olá {{empresa}}, sua licença do {{software}} expira em {{dias_restantes}} dia(s), em {{data_expiracao}}.')
-                                            ->helperText('Placeholders suportados: {{empresa}}, {{software}}, {{dias_restantes}}, {{data_expiracao}}, {{licenca_id}}, {{empresa_codigo}}, {{software_id}}.'),
-
-                                        TextInput::make('automation_secret')
-                                            ->label('Segredo para automações (n8n/Chatwoot)')
-                                            ->placeholder('Opcional')
-                                            ->helperText('Se preenchido, requisições automatizadas devem enviar automacao_secret com este valor.'),
+                                            ->placeholder('Olá {{empresa}}, sua licença...')
+                                            ->helperText('Usado para testes diretos.'),
                                     ]),
 
                             ]),
