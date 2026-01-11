@@ -66,6 +66,81 @@ class ManageMessageTemplates extends Page implements HasForms
                                     ]),
                             ]),
 
+                        Section::make('Onboarding & Retenção (Novos Usuários)')
+                            ->columnSpan(8)
+                            ->collapsed()
+                            ->schema([
+                                // Welcome
+                                Section::make('Boas-vindas (Imediato)')
+                                    ->collapsed()
+                                    ->schema([
+                                        Textarea::make('onboarding_welcome_whatsapp')->label('WhatsApp')->rows(4),
+                                        \Filament\Forms\Components\TextInput::make('onboarding_welcome_email_subject')->label('Assunto E-mail'),
+                                        Textarea::make('onboarding_welcome_email_body')->label('Corpo E-mail')->rows(6),
+                                    ]),
+
+                                // Day 1
+                                Section::make('Check-in Dia 1 (24h)')
+                                    ->collapsed()
+                                    ->schema([
+                                        Textarea::make('onboarding_checkin_day1_whatsapp')->label('WhatsApp')->rows(4),
+                                        \Filament\Forms\Components\TextInput::make('onboarding_checkin_day1_email_subject')->label('Assunto E-mail'),
+                                        Textarea::make('onboarding_checkin_day1_email_body')->label('Corpo E-mail')->rows(6),
+                                    ]),
+
+                                // Day 3
+                                Section::make('Dicas Dia 3')
+                                    ->collapsed()
+                                    ->schema([
+                                        Textarea::make('onboarding_tips_day3_whatsapp')->label('WhatsApp')->rows(4),
+                                        \Filament\Forms\Components\TextInput::make('onboarding_tips_day3_email_subject')->label('Assunto E-mail'),
+                                        Textarea::make('onboarding_tips_day3_email_body')->label('Corpo E-mail')->rows(6),
+                                    ]),
+
+                                // Day 6
+                                Section::make('Fechamento (Véspera do Fim)')
+                                    ->collapsed()
+                                    ->schema([
+                                        Textarea::make('onboarding_closing_day6_whatsapp')->label('WhatsApp')->rows(4),
+                                        \Filament\Forms\Components\TextInput::make('onboarding_closing_day6_email_subject')->label('Assunto E-mail'),
+                                        Textarea::make('onboarding_closing_day6_email_body')->label('Corpo E-mail')->rows(6),
+                                    ]),
+                            ]),
+
+                        Section::make('Confirmação & Pós-Venda')
+                            ->columnSpan(8)
+                            ->collapsed()
+                            ->schema([
+                                // Payment Received
+                                Section::make('Pagamento Recebido')
+                                    ->collapsed()
+                                    ->schema([
+                                        Textarea::make('onboarding_payment_received_whatsapp')->label('WhatsApp')->rows(3),
+                                        \Filament\Forms\Components\TextInput::make('onboarding_payment_received_email_subject')->label('Assunto E-mail'),
+                                        Textarea::make('onboarding_payment_received_email_body')->label('Corpo E-mail')->rows(5),
+                                    ]),
+
+                                // License Released
+                                Section::make('Licença Liberada / Renovada')
+                                    ->collapsed()
+                                    ->schema([
+                                        Textarea::make('onboarding_license_released_whatsapp')->label('WhatsApp')->rows(3),
+                                        \Filament\Forms\Components\TextInput::make('onboarding_license_released_email_subject')->label('Assunto E-mail'),
+                                        Textarea::make('onboarding_license_released_email_body')->label('Corpo E-mail')->rows(5),
+                                    ]),
+
+                                // Post Purchase 15d
+                                Section::make('Check-in Pós-Venda (15 dias)')
+                                    ->collapsed()
+                                    ->schema([
+                                        Textarea::make('onboarding_post_purchase_15d_whatsapp')->label('WhatsApp')->rows(3),
+                                        \Filament\Forms\Components\TextInput::make('onboarding_post_purchase_15d_email_subject')->label('Assunto E-mail'),
+                                        Textarea::make('onboarding_post_purchase_15d_email_body')->label('Corpo E-mail')->rows(5),
+                                    ]),
+                            ]),
+
+
+
                         // Coluna Direita: Dicas/Variables
                         Grid::make(1)
                             ->columnSpan(4)
