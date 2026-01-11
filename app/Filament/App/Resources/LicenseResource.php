@@ -157,9 +157,9 @@ class LicenseResource extends Resource
                                 ->alignment('end'),
 
                             Tables\Columns\TextColumn::make('data_expiracao')
-                                ->formatStateUsing(fn(License $record) => $record->vitalicia ? 'VITALÍCIA' : ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '-'))
+                                ->formatStateUsing(fn(License $record) => (bool) $record->vitalicia ? 'VITALÍCIA' : ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '-'))
                                 ->weight(\Filament\Support\Enums\FontWeight::Bold)
-                                ->color(fn(License $record) => $record->vitalicia ? 'success' : ($record->data_expiracao < now()->addDays(7) ? 'danger' : 'success'))
+                                ->color(fn(License $record) => (bool) $record->vitalicia ? 'success' : ($record->data_expiracao < now()->addDays(7) ? 'danger' : 'success'))
                                 ->size(Tables\Columns\TextColumn\TextColumnSize::Medium)
                                 ->alignment('end'),
                         ])->space(0),

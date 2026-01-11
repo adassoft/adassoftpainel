@@ -79,10 +79,10 @@ class LicenseResource extends Resource
 
                 Tables\Columns\TextColumn::make('data_expiracao')
                     ->label('Validade')
-                    ->formatStateUsing(fn(License $record) => $record->vitalicia ? 'VITALÍCIA' : ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '-'))
+                    ->formatStateUsing(fn(License $record) => (bool) $record->vitalicia ? 'VITALÍCIA' : ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '-'))
                     ->sortable()
-                    ->color(fn(License $record) => $record->vitalicia ? 'success' : (\Carbon\Carbon::parse($record->data_expiracao)->isPast() ? 'danger' : (\Carbon\Carbon::parse($record->data_expiracao)->diffInDays(now()) <= 15 ? 'warning' : 'success')))
-                    ->weight('bold'),
+                    ->color(fn(License $record) => (bool) $record->vitalicia ? 'success' : (\Carbon\Carbon::parse($record->data_expiracao)->isPast() ? 'danger' : (\Carbon\Carbon::parse($record->data_expiracao)->diffInDays(now()) <= 15 ? 'warning' : 'success')))
+                    ->weight(\Filament\Support\Enums\FontWeight::Bold),
 
                 Tables\Columns\TextColumn::make('terminais')
                     ->label('Terminais')
