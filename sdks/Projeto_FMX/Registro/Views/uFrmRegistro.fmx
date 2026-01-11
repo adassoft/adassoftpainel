@@ -1,0 +1,288 @@
+﻿object frmRegistro: TfrmRegistro
+  Left = 0
+  Top = 0
+  Caption = 'Registro - Sistema'
+  ClientHeight = 550
+  ClientWidth = 600
+  Fill.Color = claWhite
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  OnCreate = FormCreate
+  object lytHeader: TLayout
+    Align = Top
+    Size.Width = 600.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    object lblTitle: TLabel
+      Position.X = 16.000000000000000000
+      Position.Y = 14.000000000000000000
+      Text = 'Registro de Licença'
+      TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.Font.Style = [fsBold]
+      TextSettings.FontColor = claBlack
+    end
+    object lblInstalacaoID: TLabel
+      Align = Right
+      Margins.Right = 16.000000000000000000
+      Position.X = 284.000000000000000000
+      Size.Width = 300.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      Text = '{ID-MAQUINA}'
+      TextSettings.HorzAlign = Trailing
+      TextSettings.Font.Size = 12.000000000000000000
+      TextSettings.Font.Style = [fsBold]
+      TextSettings.FontColor = claDarkorange
+    end
+    object LineHeader: TLine
+      Align = Bottom
+      Position.Y = 49.000000000000000000
+      Size.Width = 600.000000000000000000
+      Size.Height = 1.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = claSilver
+    end
+  end
+  object lytFooter: TLayout
+    Align = Bottom
+    Position.Y = 500.000000000000000000
+    Size.Width = 600.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    object LineFooter: TLine
+      Align = Top
+      Size.Width = 600.000000000000000000
+      Size.Height = 1.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = claSilver
+    end
+    object btnFechar: TButton
+      Align = Right
+      Margins.Right = 10.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 510.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 80.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Fechar'
+      OnClick = btnFecharClick
+    end
+    object btnComprar: TButton
+      Align = Right
+      Margins.Right = 10.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 410.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 90.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Comprar'
+      OnClick = btnComprarClick
+    end
+    object btnDesvincular: TButton
+      Align = Right
+      Margins.Right = 10.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 300.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 100.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Desvincular'
+      Visible = False
+      OnClick = btnDesvincularClick
+    end
+    object lytSupport: TLayout
+      Align = Left
+      Position.X = 0.000000000000000000
+      Position.Y = 0.000000000000000000
+      Size.Width = 250.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      object lblSuporteZap: TLabel
+        Position.X = 10.000000000000000000
+        Position.Y = 8.000000000000000000
+        Text = 'Suporte Zap: 3899999-9999'
+        TextSettings.Font.Style = [fsBold]
+      end
+      object lblSuporteEmail: TLabel
+        Position.X = 10.000000000000000000
+        Position.Y = 28.000000000000000000
+        Text = 'E-mail: suporte@adassoft.com'
+      end
+    end
+  end
+  object lytContent: TLayout
+    Align = Client
+    Size.Width = 600.000000000000000000
+    Size.Height = 450.000000000000000000
+    Size.PlatformDefault = False
+    object pnlLogin: TLayout
+      Align = Client
+      Visible = True
+      object gbLogin: TGroupBox
+        Position.X = 16.000000000000000000
+        Position.Y = 16.000000000000000000
+        Size.Width = 568.000000000000000000
+        Size.Height = 200.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Já possuo conta / Login'
+        object LabelMsg: TLabel
+          Position.X = 16.000000000000000000
+          Position.Y = 24.000000000000000000
+          Size.Width = 400.000000000000000000
+          Text = 'Por favor, digite seus dados de login e clique em [Entrar]'
+          TextSettings.FontColor = claGray
+        end
+        object Label2: TLabel
+          Position.X = 16.000000000000000000
+          Position.Y = 64.000000000000000000
+          Text = 'E-mail:'
+          TextSettings.Font.Style = [fsBold]
+        end
+        object edtEmail: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          TabOrder = 0
+          Position.X = 80.000000000000000000
+          Position.Y = 56.000000000000000000
+          Size.Width = 320.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          OnKeyDown = EditKeyDown
+        end
+        object Label3: TLabel
+          Position.X = 16.000000000000000000
+          Position.Y = 104.000000000000000000
+          Text = 'Senha:'
+          TextSettings.Font.Style = [fsBold]
+        end
+        object edtSenha: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          TabOrder = 1
+          Position.X = 80.000000000000000000
+          Position.Y = 96.000000000000000000
+          Size.Width = 320.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          Password = True
+          OnKeyDown = EditKeyDown
+        end
+        object lblEsqueciSenha: TLabel
+          Position.X = 80.000000000000000000
+          Position.Y = 136.000000000000000000
+          Text = 'Esqueceu a senha?'
+          TextSettings.Font.Style = [fsUnderline]
+          TextSettings.FontColor = claBlue
+          Cursor = crHandPoint
+          OnClick = lblEsqueciSenhaClick
+          HitTest = True
+        end
+        object btnAtivar: TButton
+          TabOrder = 2
+          Position.X = 420.000000000000000000
+          Position.Y = 56.000000000000000000
+          Size.Width = 130.000000000000000000
+          Size.Height = 68.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Entrar'
+          TextSettings.Font.Style = [fsBold]
+          OnClick = btnAtivarClick
+        end
+      end
+      object gbCadastro: TGroupBox
+        Position.X = 16.000000000000000000
+        Position.Y = 240.000000000000000000
+        Size.Width = 568.000000000000000000
+        Size.Height = 150.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Ainda não tem cadastro?'
+        object LabelInfo: TLabel
+          Position.X = 16.000000000000000000
+          Position.Y = 24.000000000000000000
+          Size.Width = 500.000000000000000000
+          Text = 'Para ativar ou adquirir uma licença, é necessário criar uma conta primeiro.'
+        end
+        object LabelInfo2: TLabel
+          Position.X = 16.000000000000000000
+          Position.Y = 44.000000000000000000
+          Size.Width = 500.000000000000000000
+          Text = 'É rápido, fácil e você já sai logado automaticamente.'
+          TextSettings.FontColor = claGray
+        end
+        object btnCriarConta: TButton
+          Position.X = 16.000000000000000000
+          Position.Y = 80.000000000000000000
+          Size.Width = 180.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Criar Nova Conta'
+          TextSettings.Font.Style = [fsBold]
+          OnClick = lblCriarContaClick
+        end
+      end
+    end
+    object pnlStatus: TLayout
+      Align = Client
+      Visible = False
+      object lblStatusTexto: TLabel
+        Align = Top
+        Size.Width = 600.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'STATUS: ATIVO'
+        TextSettings.HorzAlign = Center
+        TextSettings.Font.Size = 16.000000000000000000
+        TextSettings.Font.Style = [fsBold]
+      end
+      object lblDiasRestantes: TLabel
+        Position.X = 40.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 520.000000000000000000
+        Text = '14 dias restantes'
+        TextSettings.HorzAlign = Center
+      end
+      object pbTempo: TProgressBar
+        Position.X = 40.000000000000000000
+        Position.Y = 110.000000000000000000
+        Size.Width = 520.000000000000000000
+        Size.Height = 25.000000000000000000
+        Size.PlatformDefault = False
+        Max = 30.000000000000000000
+        Value = 15.000000000000000000
+      end
+      object lblDataInicio: TLabel
+        Position.X = 40.000000000000000000
+        Position.Y = 140.000000000000000000
+        Text = '01/01/2026'
+      end
+      object lblDataFim: TLabel
+        Position.X = 490.000000000000000000
+        Position.Y = 140.000000000000000000
+        Text = '31/01/2026'
+        TextSettings.HorzAlign = Trailing
+      end
+      object lblInfoTerminais: TLabel
+        Position.X = 40.000000000000000000
+        Position.Y = 200.000000000000000000
+        Size.Width = 520.000000000000000000
+        Text = 'Terminais: 1 / 10'
+        TextSettings.HorzAlign = Center
+      end
+      object pbTerminais: TProgressBar
+        Position.X = 40.000000000000000000
+        Position.Y = 230.000000000000000000
+        Size.Width = 520.000000000000000000
+        Size.Height = 25.000000000000000000
+        Size.PlatformDefault = False
+        Max = 10.000000000000000000
+        Value = 1.000000000000000000
+      end
+    end
+  end
+end

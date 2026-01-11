@@ -1,0 +1,200 @@
+﻿object frmCadastro: TfrmCadastro
+  Left = 0
+  Top = 0
+  Caption = 'Criar Nova Conta Shield'
+  ClientHeight = 600
+  ClientWidth = 450
+  Fill.Color = claWhite
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object lytHeader: TLayout
+    Align = Top
+    Size.Width = 450.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    object bgHeader: TRectangle
+      Align = Client
+      Fill.Color = claDodgerblue
+      Stroke.Kind = None
+    end
+    object lblTitle: TLabel
+      Position.X = 16.000000000000000000
+      Position.Y = 14.000000000000000000
+      Text = 'Cadastro de Usuário'
+      TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.Font.Style = [fsBold]
+      TextSettings.FontColor = claWhite
+    end
+  end
+  object lytFooter: TLayout
+    Align = Bottom
+    Size.Width = 450.000000000000000000
+    Size.Height = 60.000000000000000000
+    Size.PlatformDefault = False
+    object LineFooter: TLine
+      Align = Top
+      Size.Width = 450.000000000000000000
+      Size.Height = 1.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = claSilver
+    end
+    object btnCancelar: TButton
+      Position.X = 16.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 100.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Cancelar'
+      OnClick = btnCancelarClick
+    end
+    object btnReenviar: TButton
+      Position.X = 16.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 100.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Reenviar'
+      Visible = False
+      OnClick = btnReenviarClick
+    end
+    object btnAcao: TButton
+      Position.X = 220.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 210.000000000000000000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Enviar Código de Validação'
+      TextSettings.Font.Style = [fsBold]
+      OnClick = btnAcaoClick
+    end
+  end
+  object ScrollBox: TVertScrollBox
+    Align = Client
+    Size.Width = 450.000000000000000000
+    Size.Height = 490.000000000000000000
+    Size.PlatformDefault = False
+    object lytContent: TLayout
+      Align = Top
+      Size.Width = 450.000000000000000000
+      Size.Height = 550.000000000000000000
+      Size.PlatformDefault = False
+      object lbNome: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 16.000000000000000000
+        Text = 'Nome Completo*'
+      end
+      object edtNome: TEdit
+        Position.X = 24.000000000000000000
+        Position.Y = 36.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+      end
+      object lbEmail: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 76.000000000000000000
+        Text = 'E-mail*'
+      end
+      object edtEmail: TEdit
+        Position.X = 24.000000000000000000
+        Position.Y = 96.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+      end
+      object lbSenha: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 136.000000000000000000
+        Text = 'Senha*'
+      end
+      object edtSenha: TEdit
+        Position.X = 24.000000000000000000
+        Position.Y = 156.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        Password = True
+        TabOrder = 2
+      end
+      object lbCNPJ: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 196.000000000000000000
+        Text = 'CNPJ*'
+      end
+      object edtCNPJ: TEdit
+        Position.X = 24.000000000000000000
+        Position.Y = 216.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+      end
+      object lbRazao: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 256.000000000000000000
+        Text = 'Razão Social da Empresa'
+      end
+      object edtRazao: TEdit
+        Position.X = 24.000000000000000000
+        Position.Y = 276.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+      end
+      object lbZap: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 316.000000000000000000
+        Text = 'WhatsApp'
+      end
+      object edtWhatsapp: TEdit
+        Position.X = 24.000000000000000000
+        Position.Y = 336.000000000000000000
+        Size.Width = 190.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 5
+      end
+      object lbParceiro: TLabel
+        Position.X = 234.000000000000000000
+        Position.Y = 316.000000000000000000
+        Text = 'Cód. Parceiro (Opcional)'
+      end
+      object edtParceiro: TEdit
+        Position.X = 234.000000000000000000
+        Position.Y = 336.000000000000000000
+        Size.Width = 190.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 6
+      end
+      
+      object lytCodigo: TLayout
+        Position.X = 24.000000000000000000
+        Position.Y = 390.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        Visible = False
+        object lbCodigo: TLabel
+          Position.X = 0.000000000000000000
+          Position.Y = 0.000000000000000000
+          Text = 'CÓDIGO DE VERIFICAÇÃO (E-MAIL)*'
+          TextSettings.Font.Style = [fsBold]
+          TextSettings.FontColor = claRed
+        end
+        object edtCodigo: TEdit
+          Position.X = 0.000000000000000000
+          Position.Y = 24.000000000000000000
+          Size.Width = 200.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+        end
+      end
+    end
+  end
+end
