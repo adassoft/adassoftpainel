@@ -121,9 +121,11 @@ class LicenseResource extends Resource
                         // Direita: Status
                         Tables\Columns\TextColumn::make('status')
                             ->badge()
-                            ->color(fn(string $state): string => match ($state) {
-                                'ativo' => 'success',
-                                'inativo', 'bloqueado' => 'danger',
+                            ->formatStateUsing(fn(string $state, License $record): string => $record->data_expiracao < now() ? 'Expirado' : ucfirst($state))
+                            ->color(fn(string $state, License $record): string => match (true) {
+                                $record->data_expiracao < now() => 'danger',
+                                strtolower($state) === 'ativo' => 'success',
+                                in_array(strtolower($state), ['inativo', 'bloqueado']) => 'danger',
                                 default => 'warning',
                             })
                             ->grow(false),
