@@ -14,6 +14,8 @@ class GeographicDistributionChart extends ChartWidget
 
     protected static ?string $maxHeight = '300px';
 
+    protected int|string|array $columnSpan = 'full';
+
     public ?string $filter = 'uf';
 
     protected function getFilters(): ?array
