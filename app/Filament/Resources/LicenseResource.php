@@ -52,7 +52,12 @@ class LicenseResource extends Resource
                             ->schema([
                                 Forms\Components\DatePicker::make('data_expiracao')
                                     ->label('Data de Expiração')
-                                    ->required(),
+                                    ->required()
+                                    ->hidden(fn(Forms\Get $get) => $get('vitalicia')),
+
+                                Forms\Components\Toggle::make('vitalicia')
+                                    ->label('Licença Vitalícia')
+                                    ->live(),
 
                                 Forms\Components\TextInput::make('terminais_permitidos')
                                     ->label('Limite Terminais')
@@ -104,9 +109,10 @@ class LicenseResource extends Resource
 
                 Tables\Columns\TextColumn::make('data_expiracao')
                     ->label('Expira em')
-                    ->date('d/m/Y')
+                    ->formatStateUsing(fn(License $record) => $record->vitalicia ? 'VITALÍCIA' : ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '-'))
                     ->sortable()
-                    ->color(fn(License $record) => \Carbon\Carbon::parse($record->data_expiracao)->isPast() ? 'danger' : 'success'),
+                    ->color(fn(License $record) => $record->vitalicia ? 'success' : (\Carbon\Carbon::parse($record->data_expiracao)->isPast() ? 'danger' : 'success'))
+                    ->weight(\Filament\Support\Enums\FontWeight::Bold),
 
                 Tables\Columns\TextColumn::make('terminais')
                     ->label('Terminais')
