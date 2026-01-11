@@ -46,10 +46,12 @@ class LicenseResource extends Resource
                         Forms\Components\DatePicker::make('data_expiracao')
                             ->label('Nova Validade')
                             ->required()
-                            ->hidden(fn(Forms\Get $get) => $get('vitalicia')),
-                        Forms\Components\Toggle::make('vitalicia')
-                            ->label('Licença Vitalícia')
-                            ->live(),
+                            ->hidden(fn($record) => $record?->vitalicia ?? false),
+
+                        Forms\Components\Placeholder::make('lbl_vitalicia')
+                            ->label('Validade')
+                            ->content('Licença Vitalícia')
+                            ->visible(fn($record) => $record?->vitalicia ?? false),
                     ])
             ]);
     }
