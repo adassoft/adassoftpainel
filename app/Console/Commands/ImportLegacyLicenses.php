@@ -70,7 +70,7 @@ class ImportLegacyLicenses extends Command
 
         $data = str_getcsv($rawCsv, ",", "'");
 
-        $email = trim($data[12] ?? ''); // EMAIL is index 12 based on the CREATE TABLE order
+        $email = strtolower(trim($data[12] ?? '')); // EMAIL is index 12 based on the CREATE TABLE order
         if (empty($email))
             return;
 

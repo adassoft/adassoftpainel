@@ -74,7 +74,7 @@ class ImportLegacyUsers extends Command
         // 0: ID, 1: DISABLED, 2: FIRSTNAME, 3: LASTNAME, 4: COMPANY, 5: EMAIL, 
         // 6: PHONE, 7: STREET, 8: CITY, 9: ZIP, 10: STAT, 11: COUNTRY, 12: COMMENT, ...
 
-        $email = trim($data[5] ?? '');
+        $email = strtolower(trim($data[5] ?? ''));
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return; // Pula sem email válido
         }
