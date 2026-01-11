@@ -56,7 +56,13 @@ class LicenseResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('company.razao')
                     ->label('Cliente')
-                    ->description(fn(License $record) => $record->company?->cnpj ?? '-')
+                    ->description(fn(License $record) => (function ($doc) {
+                        $doc = preg_replace('/\D/', '', $doc ?? '');
+                        if (strlen($doc) <= 11 && strlen($doc) > 0) {
+                            return substr($doc, 0, 3) . '.***.***-' . substr($doc, -2);
+                        }
+                        return $record->company?->cnpj ?? '-';
+                    })($record->company?->cnpj))
                     ->searchable()
                     ->sortable(),
 

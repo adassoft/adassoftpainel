@@ -158,7 +158,14 @@ class CompanyResource extends Resource
                 Tables\Columns\TextColumn::make('cnpj')
                     ->label('CNPJ / CPF')
                     ->searchable()
-                    ->copyable(),
+                    ->copyable()
+                    ->formatStateUsing(function ($state) {
+                        $doc = preg_replace('/\D/', '', $state);
+                        if (strlen($doc) <= 11) {
+                            return substr($doc, 0, 3) . '.***.***-' . substr($doc, -2);
+                        }
+                        return $state; // CNPJ display raw or formatted
+                    }),
 
                 Tables\Columns\TextColumn::make('fone')
                     ->label('Contato')
