@@ -50,15 +50,16 @@ class ManageTerminals extends Page implements HasForms
                     ->schema([
                         Select::make('empresa_id')
                             ->label('Empresa')
-                            ->placeholder('Todas as Empresas')
-                            ->options(Company::pluck('razao', 'codigo'))
+                            ->placeholder('Digite para buscar...')
+                            ->getSearchResultsUsing(fn(string $search) => Company::where('razao', 'like', "%{$search}%")->orWhere('cnpj', 'like', "%{$search}%")->limit(50)->pluck('razao', 'codigo'))
+                            ->getOptionLabelUsing(fn($value) => Company::find($value)?->razao)
                             ->searchable()
-                            ->preload()
                             ->live(),
                         Select::make('software_id')
                             ->label('Software')
-                            ->placeholder('Todos os Softwares')
-                            ->options(Software::pluck('nome_software', 'id'))
+                            ->placeholder('Selecione...')
+                            ->options(Software::pluck('nome_software', 'id')) // Software usually few, can keep options or optimize
+                            ->searchable()
                             ->live(),
                     ]),
             ])
@@ -67,6 +68,13 @@ class ManageTerminals extends Page implements HasForms
 
     public function getViewData(): array
     {
+        // Se nenhum filtro estiver aplicado, retorna lista vazia para performance
+        if (empty($this->filters['empresa_id']) && empty($this->filters['software_id'])) {
+            return [
+                'licencas' => collect(),
+            ];
+        }
+
         $query = License::with(['software', 'company'])
             ->whereIn('status', ['ativo', 'suspenso']);
 
@@ -79,9 +87,7 @@ class ManageTerminals extends Page implements HasForms
             $query->where('software_id', $this->filters['software_id']);
         }
 
-        // Se for usuário comum (não admin), restringe ao próprio user
-        // OBS: Ajuste essa lógica conforme sua autenticação (Users vs Admins)
-        // Exemplo: if (!auth()->user()->is_admin) { $query->where('empresa_codigo', auth()->user()->empresa_codigo); }
+        // Se for usuário comum ... (same comment)
 
         $licencas = $query->orderByDesc('data_criacao')->get();
 
