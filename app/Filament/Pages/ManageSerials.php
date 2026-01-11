@@ -73,22 +73,23 @@ class ManageSerials extends Page implements HasForms, HasTable
                     ->schema([
                         Select::make('empresa_id')
                             ->label('Empresa')
-                            ->placeholder('Selecione uma empresa...')
-                            ->options(Company::pluck('razao', 'codigo'))
+                            ->placeholder('Digite para buscar...')
+                            ->getSearchResultsUsing(fn(string $search) => Company::where('razao', 'like', "%{$search}%")->orWhere('cnpj', 'like', "%{$search}%")->limit(50)->pluck('razao', 'codigo'))
+                            ->getOptionLabelUsing(fn($value) => Company::find($value)?->razao)
                             ->searchable()
-                            ->preload()
                             ->required(),
                         Select::make('software_id')
                             ->label('Software')
                             ->placeholder('Selecione um software...')
                             ->options(Software::pluck('nome_software', 'id'))
+                            ->searchable()
                             ->required(),
                         Select::make('cnpj_revenda')
                             ->label('Revenda (Opcional)')
-                            ->placeholder('Selecione a revenda vinculada...')
-                            ->options(Company::whereHas('users', fn($q) => $q->where('acesso', 2))->pluck('razao', 'cnpj'))
-                            ->searchable()
-                            ->preload(),
+                            ->placeholder('Digite para buscar revenda...')
+                            ->getSearchResultsUsing(fn(string $search) => Company::whereHas('users', fn($q) => $q->where('acesso', 2))->where(fn($q) => $q->where('razao', 'like', "%{$search}%")->orWhere('cnpj', 'like', "%{$search}%"))->limit(50)->pluck('razao', 'cnpj'))
+                            ->getOptionLabelUsing(fn($value) => Company::where('cnpj', $value)->first()?->razao)
+                            ->searchable(),
                         Grid::make(2)->schema([
                             TextInput::make('validade_dias')
                                 ->label('Validade (dias)')
@@ -147,9 +148,9 @@ class ManageSerials extends Page implements HasForms, HasTable
                     Select::make('empresa_cod')
                         ->label('Empresa')
                         ->placeholder('Digite para pesquisar uma empresa e ver o histórico...')
-                        ->options(Company::pluck('razao', 'codigo'))
+                        ->getSearchResultsUsing(fn(string $search) => Company::where('razao', 'like', "%{$search}%")->orWhere('cnpj', 'like', "%{$search}%")->limit(50)->pluck('razao', 'codigo'))
+                        ->getOptionLabelUsing(fn($value) => Company::find($value)?->razao)
                         ->searchable()
-                        ->preload()
                         ->live(debounce: 500)
                         ->afterStateUpdated(function () {
                             $this->resetTable();
