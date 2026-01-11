@@ -12,6 +12,7 @@ use Filament\Forms\Components\Section;
 use Filament\Notifications\Notification;
 use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
+use Filament\Support\RawJs;
 
 class MyCompany extends Page implements HasForms
 {
@@ -70,12 +71,14 @@ class MyCompany extends Page implements HasForms
                                     ->columnSpanFull(),
 
                                 TextInput::make('cnpj')
-                                    ->label('CNPJ (Somente Números)')
-                                    ->disabled(fn() => !empty(Auth::user()->cnpj) && strlen(preg_replace('/\D/', '', Auth::user()->cnpj)) == 14)
-                                    ->helperText('Para alterar o CNPJ, entre em contato com o suporte.')
+                                    ->label('CNPJ / CPF')
+                                    ->disabled(fn() => !empty(Auth::user()->cnpj) && in_array(strlen(preg_replace('/\D/', '', Auth::user()->cnpj)), [11, 14]))
+                                    ->helperText('Para alterar, entre em contato com o suporte.')
                                     ->dehydrated()
                                     ->required()
-                                    ->mask('99.999.999/9999-99'),
+                                    ->mask(RawJs::make(<<<'JS'
+                                        $input.length > 14 ? '99.999.999/9999-99' : '999.999.999-99'
+                                    JS)),
 
                                 TextInput::make('fone')
                                     ->label('Telefone / WhatsApp')
