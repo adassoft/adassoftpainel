@@ -106,6 +106,29 @@ class SendOnboardingMessageJob implements ShouldQueue
                 $subjectEmail = "Como estão as coisas com o {$appName}?";
                 $bodyEmail = "Olá {$firstName},\n\nFaz 15 dias que oficializamos nossa parceria.\n\nGostaríamos de saber se está tudo funcionando perfeitamente e se você precisa de algum auxílio adicional.\n\nConte sempre conosco!\n\nAtenciosamente,\nEquipe {$appName}";
                 break;
+
+            case 'payment_received':
+                $messageWa = "Olá *{$firstName}*! 🤑\n\nRecebemos a confirmação do seu pagamento! Muito obrigado.\n\nEm instantes sua licença será liberada/renovada. Aguarde só um pouquinho...";
+                $subjectEmail = "Pagamento Confirmado - {$appName}";
+                $bodyEmail = "Olá {$firstName},\n\nRecebemos a confirmação do seu pagamento. Obrigado pela confiança!\n\nSua licença está sendo processada e será liberada automaticamente em alguns instantes.\n\nAtenciosamente,\nEquipe {$appName}";
+                break;
+
+            case 'license_released':
+                // Extrai dados da licença se passados, senão tenta buscar
+                // O Job serializa models, então se passarmos license... mas o job aceita User.
+                // Vou buscar a licença mais recente ativa do usuário.
+                $license = \App\Models\License::where('empresa_codigo', $this->user->empresa_id ?? 0)
+                    ->where('status', 'Ativo')
+                    ->orderByDesc('data_expiracao')
+                    ->first();
+
+                $validade = $license ? $license->data_expiracao->format('d/m/Y') : 'recém liberada';
+
+                $messageWa = "Tudo pronto, *{$firstName}*! ✅\n\nSua licença foi liberada com sucesso!\n\n📅 *Validade:* {$validade}\n\nAgora é só aproveitar. Qualquer dúvida, estamos aqui!";
+
+                $subjectEmail = "Sua Licença foi Liberada! - {$appName}";
+                $bodyEmail = "Olá {$firstName},\n\nTudo pronto! Sua licença foi liberada com sucesso.\n\nValidade: {$validade}\n\nVocê já pode acessar o sistema normalmente.\n\nQualquer dúvida, entre em contato.\n\nAtenciosamente,\nEquipe {$appName}";
+                break;
         }
 
         // 1. Enviar WhatsApp

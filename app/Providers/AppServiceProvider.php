@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\DownloadVersion::observe(\App\Observers\DownloadVersionObserver::class);
         \App\Models\User::observe(\App\Observers\OnboardingObserver::class);
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
+        \App\Models\License::observe(\App\Observers\LicenseObserver::class);
 
         // Carrega Configuração de E-mail do Banco de Dados
         try {

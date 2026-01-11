@@ -38,8 +38,11 @@ class OrderObserver
                 $wasPaid = true;
 
             if ($isPaid && !$wasPaid) {
-                // Dispara job pós-compra (15 dias)
                 if ($order->user) {
+                    // 1. Mensagem de Pagamento Recebido (Imediato)
+                    SendOnboardingMessageJob::dispatch($order->user, 'payment_received');
+
+                    // 2. Dispara job pós-compra (15 dias)
                     SendOnboardingMessageJob::dispatch($order->user, 'post_purchase_15d')->delay(now()->addDays(15));
                 }
             }
