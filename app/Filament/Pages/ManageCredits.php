@@ -136,14 +136,14 @@ class ManageCredits extends Page implements HasTable
                 ->form([
                     Select::make('cnpj_revenda')
                         ->label('Revenda')
-                        ->options(
-                            Company::where('status', 'Ativo')
-                                ->where(fn($q) => $q->whereHas('users', fn($u) => $u->where('acesso', 2))
-                                    ->orWhere('revenda_padrao', true))
-                                ->pluck('razao', 'cnpj')
-                        )
+                        ->getSearchResultsUsing(fn(string $search) => Company::where('status', 'Ativo')
+                            ->where(fn($q) => $q->whereHas('users', fn($u) => $u->where('acesso', 2))
+                                ->orWhere('revenda_padrao', true))
+                            ->where(fn($q) => $q->where('razao', 'like', "%{$search}%")->orWhere('cnpj', 'like', "%{$search}%"))
+                            ->limit(50)
+                            ->pluck('razao', 'cnpj'))
+                        ->getOptionLabelUsing(fn($value) => Company::where('cnpj', $value)->first()?->razao)
                         ->searchable()
-                        ->preload()
                         ->required(),
 
                     Select::make('tipo')
