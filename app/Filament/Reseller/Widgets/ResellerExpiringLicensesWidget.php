@@ -50,6 +50,12 @@ class ResellerExpiringLicensesWidget extends BaseWidget
                     ->label('Software')
                     ->badge(),
 
+                Tables\Columns\TextColumn::make('data_ativacao')
+                    ->label('Início')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->color('gray'),
+
                 Tables\Columns\TextColumn::make('data_expiracao')
                     ->label('Vencimento')
                     ->date('d/m/Y')
