@@ -99,7 +99,7 @@ class ImportLegacyLicenses extends Command
         $startDate = $this->parseDate($data[15] ?? null);
         $endDate = $this->parseDate($data[16] ?? null);
         $isActive = ($data[5] ?? '0') == '0';
-        $status = $isActive; // true/false
+        $status = $isActive ? 'ativo' : 'suspenso';
 
         // Verifica se já existe para não duplicar
         $exists = License::where('empresa_codigo', $user->empresa_id)
@@ -110,7 +110,6 @@ class ImportLegacyLicenses extends Command
             return;
 
         // Busca CNPJ da Revenda Padrão
-        // Definido fixo conforme solicitação do usuário
         $defaultResellerCnpj = '04733736000120';
 
         // Busca Software para gerar Serial correto
@@ -120,10 +119,12 @@ class ImportLegacyLicenses extends Command
         if ($software) {
             try {
                 $company = \App\Models\Company::where('codigo', $user->empresa_id)->first();
-                $licenseService = new \App\Services\LicenseService();
-                $serial = $licenseService->generateSerial($company, $software);
+                if ($company) {
+                    $licenseService = new \App\Services\LicenseService();
+                    $serial = $licenseService->generateSerial($company, $software);
+                }
             } catch (\Exception $e) {
-                // Fallback se falhar (ex: CNPJ duplicado na geração de hash ou lock)
+                // Fallback se falhar
             }
         }
 
