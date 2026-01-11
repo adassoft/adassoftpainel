@@ -4,19 +4,13 @@
     <div class="space-y-6">
         @livewire(\App\Filament\Widgets\DashboardStatsOverview::class)
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            @livewire(\App\Filament\Widgets\RevenueChart::class)
-            @livewire(\App\Filament\Widgets\GeographicDistributionChart::class)
-        </div>
+        @livewire(\App\Filament\Widgets\RevenueChart::class)
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-1">
-                @livewire(\App\Filament\Widgets\TopSoftwaresChart::class)
-            </div>
-            <div class="lg:col-span-3">
-                @livewire(\App\Filament\Widgets\ExpiringLicensesWidget::class)
-            </div>
-        </div>
+        @livewire(\App\Filament\Widgets\GeographicDistributionChart::class)
+
+        @livewire(\App\Filament\Widgets\TopSoftwaresChart::class)
+
+        @livewire(\App\Filament\Widgets\ExpiringLicensesWidget::class)
 
         @livewire(\App\Filament\Widgets\DashboardNews::class)
     </div>
