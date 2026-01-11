@@ -89,6 +89,7 @@ class ImportLegacyLicenses extends Command
                 'razao' => $razao,
                 'email' => $email,
                 'fone1' => $user->celular ?? '',
+                'cnpj_representante' => '04733736000120',
             ]);
             $user->empresa_id = $company->codigo;
             $user->save();
@@ -132,7 +133,7 @@ class ImportLegacyLicenses extends Command
             $serial = strtoupper(Str::random(20));
         }
 
-        License::create([
+        $license = License::create([
             'empresa_codigo' => $user->empresa_id,
             'cnpj_revenda' => $defaultResellerCnpj,
             'software_id' => $softwareId,
@@ -145,6 +146,20 @@ class ImportLegacyLicenses extends Command
             'serial_atual' => $serial,
             'observacoes' => 'Importado do Legado',
         ]);
+
+        // Registrar no Histórico
+        \App\Models\SerialHistory::firstOrCreate(
+            ['serial_gerado' => $serial],
+            [
+                'empresa_codigo' => $user->empresa_id,
+                'software_id' => $softwareId,
+                'data_geracao' => $startDate,
+                'validade_licenca' => $endDate,
+                'terminais_permitidos' => $machines,
+                'ativo' => $isActive,
+                'observacoes' => json_encode(['origem' => 'importacao_legado']),
+            ]
+        );
     }
 
     private function parseDate($dateStr)
