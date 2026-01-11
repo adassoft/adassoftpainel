@@ -27,7 +27,9 @@ class CompanyResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('cnpj_representante', auth()->user()->cnpj);
+            ->whereHas('licenses', function (Builder $query) {
+                $query->where('cnpj_revenda', auth()->user()->cnpj);
+            });
     }
 
     public static function form(Form $form): Form

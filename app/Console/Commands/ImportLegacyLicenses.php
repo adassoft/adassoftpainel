@@ -89,7 +89,6 @@ class ImportLegacyLicenses extends Command
                 'razao' => $razao,
                 'email' => $email,
                 'fone1' => $user->celular ?? '',
-                'cnpj_representante' => '04733736000120',
             ]);
             $user->empresa_id = $company->codigo;
             $user->save();
