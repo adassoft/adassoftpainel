@@ -13,6 +13,7 @@ class TopSoftwaresChart extends ChartWidget
     protected static ?int $sort = 3;
 
     protected static ?string $maxHeight = '300px';
+    protected int|string|array $columnSpan = 'full';
 
     protected function getData(): array
     {
