@@ -33,11 +33,12 @@ class OnboardingObserver
         SendOnboardingMessageJob::dispatch($user, 'welcome')->delay(now()->addSeconds(10));
 
         // 2. Check-in Dia seguinte (24h depois)
-        SendOnboardingMessageJob::dispatch($user, 'checkin_day1')->delay(now()->addDay()->addHours(9)); // +1 dia, as 9h da manha? 
-        // Se eu fizer delay(now()->addDay()), vai ser na mesma hora do cadastro no dia seguinte. OK.
-        // Se eu quiser as 9h, complexidade aumenta. Vamos manter +24h simples ou ajustar.
-        // O user disse "no dia seguinte".
-        // Vamos usar +24h.
         SendOnboardingMessageJob::dispatch($user, 'checkin_day1')->delay(now()->addDay());
+
+        // 3. Dicas (3 dias depois)
+        SendOnboardingMessageJob::dispatch($user, 'tips_day3')->delay(now()->addDays(3));
+
+        // 4. Fechamento (6 dias depois - Véspera do fim de 7 dias)
+        SendOnboardingMessageJob::dispatch($user, 'closing_day6')->delay(now()->addDays(6));
     }
 }

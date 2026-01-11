@@ -36,9 +36,22 @@ class SendOnboardingMessageJob implements ShouldQueue
      */
     public function handle(WhatsappService $whatsappService): void
     {
-        // Se o usuário não estiver ativo, aborta?
+        // Se o usuário não estiver ativo, aborta
         if ($this->user->status !== 'Ativo') {
             return;
+        }
+
+        // VERIFICAÇÃO DE CONVERSÃO (Para mensagens de TRIAL)
+        if (in_array($this->stage, ['checkin_day1', 'tips_day3', 'closing_day6'])) {
+            // Se já comprou (tem pedido pago), cancela envio de mensagens de trial
+            $hasPaidOrder = \App\Models\Order::where('user_id', $this->user->id)
+                ->whereIn('status', ['paid', 'confirmed'])
+                ->exists();
+
+            if ($hasPaidOrder) {
+                Log::info("Onboarding message ({$this->stage}) skipped for User {$this->user->id} because they already converted.");
+                return;
+            }
         }
 
         $config = $whatsappService->loadConfig();
@@ -56,25 +69,43 @@ class SendOnboardingMessageJob implements ShouldQueue
         $messageWa = '';
         $subjectEmail = '';
         $bodyEmail = '';
+        $firstName = explode(' ', $this->user->nome)[0];
 
         switch ($this->stage) {
             case 'welcome':
-                $firstName = explode(' ', $this->user->nome)[0];
                 $messageWa = "Olá *{$firstName}*! Seja muito bem-vindo(a) ao *{$appName}*! 🚀\nEstamos muito felizes em ter você conosco.\n\nQualquer dúvida que tiver durante seus testes, pode chamar aqui. Estamos à disposição para ajudar você a tirar o máximo proveito do sistema.\n\nAbraços,\nEquipe {$appName}";
 
                 $subjectEmail = "Bem-vindo ao {$appName}!";
                 $bodyEmail = "Olá {$firstName},\n\nSeja muito bem-vindo ao {$appName}!\n\nEstamos felizes por sua escolha. Nossos sistemas foram desenvolvidos para facilitar sua gestão.\n\nLembre-se: estamos à inteira disposição para qualquer dúvida. Responda este e-mail ou nos chame no WhatsApp.\n\nAtenciosamente,\nEquipe {$appName}";
                 break;
 
-            case 'checkin_day1':
-                $firstName = explode(' ', $this->user->nome)[0];
+            case 'checkin_day1': // Dia 1
                 $messageWa = "Oi *{$firstName}*, tudo bem?\n\nPassando rapidinho para saber se conseguiu acessar o sistema e se precisa de alguma ajuda nesse início?\n\nQualquer dificuldade, é só falar! 😉";
 
                 $subjectEmail = "Tudo certo com o {$appName}?";
                 $bodyEmail = "Olá {$firstName},\n\nComo foi seu primeiro dia com o {$appName}?\n\nSe tiver alguma dificuldade ou dúvida, por favor, não hesite em nos contatar. Queremos garantir que sua experiência seja excelente.\n\nAtenciosamente,\nEquipe {$appName}";
                 break;
 
-            // Futuro: day3, etc.
+            case 'tips_day3': // Dia 3
+                $messageWa = "Olá *{$firstName}*! 👋\n\nSó para lembrar que o sistema tem vários recursos que podem facilitar seu dia a dia.\nJá explorou todas as abas?\n\nSe precisar de um treinamento rápido ou dica, estamos por aqui!";
+
+                $subjectEmail = "Dicas para aproveitar o {$appName}";
+                $bodyEmail = "Olá {$firstName},\n\nEsperamos que esteja gostando do sistema.\n\nVocê sabia que temos vídeos e tutoriais que podem ajudar? Se precisar de algo específico, é só responder este e-mail.\n\nAtenciosamente,\nEquipe {$appName}";
+                break;
+
+            case 'closing_day6': // Dia 6 (Véspera do fim, se 7 dias)
+                $messageWa = "Oi *{$firstName}*!\n\nSeu período de teste gratuito do {$appName} está quase acabando. ⏳\n\nO que achou da experiência? Vamos garantir sua licença oficial para não perder o acesso?\n\nMe avise se tiver alguma dúvida sobre os planos!";
+
+                $subjectEmail = "Seu teste do {$appName} está acabando";
+                $bodyEmail = "Olá {$firstName},\n\nSeu período de avaliação termina em breve.\n\nPara continuar aproveitando todos os benefícios sem interrupção, confirme sua assinatura hoje mesmo.\n\nSe tiver dúvidas sobre valores ou formas de pagamento, estamos à disposição.\n\nAtenciosamente,\nEquipe {$appName}";
+                break;
+
+            case 'post_purchase_15d': // 15 dias após compra
+                $messageWa = "Olá *{$firstName}*! Tudo bem? 😃\n\nPassaram-se 15 dias desde que você ativou sua licença.\nEstá tudo correndo bem? Precisando de algum ajuste ou suporte, conta com a gente!\n\nSucesso!";
+
+                $subjectEmail = "Como estão as coisas com o {$appName}?";
+                $bodyEmail = "Olá {$firstName},\n\nFaz 15 dias que oficializamos nossa parceria.\n\nGostaríamos de saber se está tudo funcionando perfeitamente e se você precisa de algum auxílio adicional.\n\nConte sempre conosco!\n\nAtenciosamente,\nEquipe {$appName}";
+                break;
         }
 
         // 1. Enviar WhatsApp
