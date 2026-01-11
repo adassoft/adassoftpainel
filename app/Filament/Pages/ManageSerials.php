@@ -320,7 +320,7 @@ class ManageSerials extends Page implements HasForms, HasTable
             return;
         }
 
-        $history = SerialHistory::where('serial_gerado', $serial)->latest()->first();
+        $history = SerialHistory::where('serial_gerado', $serial)->latest('data_geracao')->first();
 
         if ($history) {
             $this->validationResult = 'valid';

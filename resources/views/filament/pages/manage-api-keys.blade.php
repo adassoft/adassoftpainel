@@ -1,8 +1,8 @@
 <x-filament-panels::page>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-6">
 
         <!-- Coluna Esquerda: Formulário de Criação -->
-        <div class="lg:col-span-1">
+        <div>
             <x-filament::section icon="heroicon-o-plus-circle">
                 <x-slot name="heading">Criar nova API key</x-slot>
 
@@ -20,8 +20,8 @@
                     <div class="relative">
                         <code
                             class="block w-full p-2 text-xs font-mono bg-white dark:bg-black rounded border border-yellow-200 dark:border-yellow-800 break-all select-all">
-                                {{ $generatedKey }}
-                            </code>
+                                    {{ $generatedKey }}
+                                </code>
                     </div>
                     <p class="mt-2 text-xs text-yellow-700 dark:text-yellow-300">
                         Copie agora. Ela não será exibida novamente.
@@ -31,7 +31,7 @@
         </div>
 
         <!-- Coluna Direita: Tabela de Chaves -->
-        <div class="lg:col-span-2">
+        <div>
             <x-filament::section>
                 <x-slot name="heading">
                     <div class="flex justify-between items-center">
