@@ -45,7 +45,11 @@ class LicenseResource extends Resource
                             ->disabled(),
                         Forms\Components\DatePicker::make('data_expiracao')
                             ->label('Nova Validade')
-                            ->required(),
+                            ->required()
+                            ->hidden(fn(Forms\Get $get) => $get('vitalicia')),
+                        Forms\Components\Toggle::make('vitalicia')
+                            ->label('Licença Vitalícia')
+                            ->live(),
                     ])
             ]);
     }
@@ -73,9 +77,9 @@ class LicenseResource extends Resource
 
                 Tables\Columns\TextColumn::make('data_expiracao')
                     ->label('Validade')
-                    ->date('d/m/Y')
+                    ->formatStateUsing(fn(License $record) => $record->vitalicia ? 'VITALÍCIA' : ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '-'))
                     ->sortable()
-                    ->color(fn(License $record) => \Carbon\Carbon::parse($record->data_expiracao)->isPast() ? 'danger' : (\Carbon\Carbon::parse($record->data_expiracao)->diffInDays(now()) <= 15 ? 'warning' : 'success'))
+                    ->color(fn(License $record) => $record->vitalicia ? 'success' : (\Carbon\Carbon::parse($record->data_expiracao)->isPast() ? 'danger' : (\Carbon\Carbon::parse($record->data_expiracao)->diffInDays(now()) <= 15 ? 'warning' : 'success')))
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('terminais')

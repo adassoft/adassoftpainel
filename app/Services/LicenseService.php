@@ -216,7 +216,10 @@ class LicenseService
             return ['valido' => false, 'erro' => 'Licença suspensa ou cancelada'];
         }
 
-        if ($license->data_expiracao && \Carbon\Carbon::parse($license->data_expiracao)->isPast()) {
+        // Se for vitalicia, ignora verificação de data
+        if ($license->vitalicia) {
+            // OK
+        } elseif ($license->data_expiracao && \Carbon\Carbon::parse($license->data_expiracao)->isPast()) {
             return [
                 'valido' => false,
                 'erro' => 'Licença expirada',
@@ -232,7 +235,8 @@ class LicenseService
             'data_inicio' => ($license->data_ultima_renovacao ?? $license->data_ativacao ?? $license->data_criacao)?->format('Y-m-d'),
             'data_expiracao' => $license->data_expiracao ? $license->data_expiracao->format('Y-m-d') : null,
             'terminais_permitidos' => $license->terminais_permitidos,
-            'terminais_utilizados' => $license->terminais_utilizados
+            'terminais_utilizados' => $license->terminais_utilizados,
+            'vitalicia' => (bool) $license->vitalicia ?? false,
         ];
     }
 

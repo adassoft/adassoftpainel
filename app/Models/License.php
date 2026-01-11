@@ -24,6 +24,7 @@ class License extends Model
         'terminais_utilizados',
         'terminais_permitidos',
         'status',
+        'vitalicia',
         'observacoes',
     ];
 
@@ -32,6 +33,7 @@ class License extends Model
         'data_ativacao' => 'datetime',
         'data_expiracao' => 'datetime',
         'data_ultima_renovacao' => 'datetime',
+        'vitalicia' => 'boolean',
     ];
 
     protected $appends = ['software_imagem', 'nome_software', 'resumo_terminais'];

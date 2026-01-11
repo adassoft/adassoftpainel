@@ -157,9 +157,9 @@ class LicenseResource extends Resource
                                 ->alignment('end'),
 
                             Tables\Columns\TextColumn::make('data_expiracao')
-                                ->date('d/m/Y')
+                                ->formatStateUsing(fn(License $record) => $record->vitalicia ? 'VITALÍCIA' : ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '-'))
                                 ->weight(\Filament\Support\Enums\FontWeight::Bold)
-                                ->color(fn($state) => $state < now()->addDays(7) ? 'danger' : 'success')
+                                ->color(fn(License $record) => $record->vitalicia ? 'success' : ($record->data_expiracao < now()->addDays(7) ? 'danger' : 'success'))
                                 ->size(Tables\Columns\TextColumn\TextColumnSize::Medium)
                                 ->alignment('end'),
                         ])->space(0),
@@ -183,6 +183,7 @@ class LicenseResource extends Resource
                     ->button()
                     ->extraAttributes(['class' => 'w-full justify-start mb-2'])
                     ->requiresConfirmation()
+                    ->visible(fn(License $record) => !$record->vitalicia)
                     ->modalHeading('Renovar Licença')
                     ->modalDescription('Você será redirecionado para a tela de pagamento. Deseja continuar?')
                     ->action(function ($record) {
