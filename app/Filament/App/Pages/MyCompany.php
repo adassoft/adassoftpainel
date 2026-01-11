@@ -157,6 +157,9 @@ class MyCompany extends Page implements HasForms
             return;
         }
 
+        // Garante que salvamos apenas números
+        $data['cnpj'] = $cnpjLimpo;
+
         // Update or Create
         $company = Company::where('cnpj', $cnpjLimpo)->first();
 
@@ -164,7 +167,6 @@ class MyCompany extends Page implements HasForms
             $company->update($data);
         } else {
             // Create
-            $data['cnpj'] = $cnpjLimpo;
             $data['data'] = now();
             $data['status'] = 'Ativo';
 
