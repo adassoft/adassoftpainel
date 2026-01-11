@@ -92,7 +92,13 @@ class LicenseResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('company.razao')
                     ->label('Cliente')
-                    ->description(fn(License $record) => $record->company?->cnpj)
+                    ->description(function (License $record) {
+                        $desc = $record->company?->cnpj ?? '';
+                        if ($record->revenda) {
+                            $desc .= " | Rev: {$record->revenda->razao}";
+                        }
+                        return $desc;
+                    })
                     ->searchable()
                     ->sortable(),
 

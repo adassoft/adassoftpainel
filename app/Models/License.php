@@ -43,6 +43,11 @@ class License extends Model
         return $this->belongsTo(Company::class, 'empresa_codigo', 'codigo');
     }
 
+    public function revenda()
+    {
+        return $this->belongsTo(Company::class, 'cnpj_revenda', 'cnpj');
+    }
+
     public function software()
     {
         return $this->belongsTo(Software::class, 'software_id');
