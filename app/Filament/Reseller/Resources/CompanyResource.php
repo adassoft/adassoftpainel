@@ -171,7 +171,8 @@ class CompanyResource extends Resource
 
                 Tables\Columns\TextColumn::make('fone')
                     ->label('Contato')
-                    ->description(fn(Company $record) => $record->email)
+                    ->getStateUsing(fn(Company $record) => $record->fone ?: ($record->email ?: '-'))
+                    ->description(fn(Company $record) => $record->fone && $record->email ? $record->email : null)
                     ->searchable(['fone', 'email']),
 
                 Tables\Columns\TextColumn::make('localizacao')
