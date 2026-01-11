@@ -79,11 +79,9 @@ class ImportLegacyUsers extends Command
             return; // Pula sem email válido
         }
 
-        $exists = User::where('email', $email)->exists();
-        if ($exists) {
-            $this->warn("Email já existe: $email");
-            return;
-        }
+        $phone = $data[6] ?? null; // PHONE
+        $cidade = trim($data[8] ?? ''); // CITY
+        $uf = trim($data[10] ?? ''); // STAT (State)
 
         $firstName = $data[2] ?? '';
         $lastName = $data[3] ?? '';
@@ -91,20 +89,69 @@ class ImportLegacyUsers extends Command
         if (empty($fullName))
             $fullName = 'Usuário Importado';
 
-        $phone = $data[6] ?? null; // PHONE
+        $user = User::where('email', $email)->first();
 
-        // Criação do usuário
-        User::create([
-            'name' => $fullName,
-            'email' => $email,
-            'password' => Hash::make(Str::random(16)), // Senha aleatória
-            'celular' => $phone,
-            'pending_profile_completion' => true,
-            'acesso' => 3, // 3 = Cliente (Conforme informado)
-            'status' => 'Ativo',
-            // Poderíamos salvar outros dados em JSON se necessário
-        ]);
+        if (!$user) {
+            // Criação do usuário se não existir
+            $user = User::create([
+                'name' => $fullName,
+                'email' => $email,
+                'password' => Hash::make(Str::random(16)),
+                'celular' => $phone,
+                'pending_profile_completion' => true,
+                'acesso' => 3,
+                'status' => 'Ativo',
+            ]);
+            $this->info("Usuário criado: $email");
+        } else {
+            // Se existir, garantimos que os dados básicos estão atualizados se necessário?
+            // Por enquanto focamos na empresa.
+        }
 
-        $this->info("Importado: $email");
+        // Lógica de Empresa (Company)
+        // O legado tinha endereço no usuário, mas no sistema novo fica na Empresa.
+        // Vamos criar ou atualizar a empresa vinculada.
+
+        $company = null;
+        if ($user->empresa_id) {
+            $company = \App\Models\Company::where('codigo', $user->empresa_id)->first();
+        }
+
+        // Se não achou pelo ID, tenta pelo email (caso tenha sido criado isolado)
+        if (!$company) {
+            $company = \App\Models\Company::where('email', $email)->first();
+        }
+
+        if (!$company) {
+            // Cria nova empresa
+            $razao = substr($user->name, 0, 48) . ' (Importado)';
+            $company = \App\Models\Company::create([
+                'codigo' => \App\Models\Company::max('codigo') + 1,
+                'razao' => $razao,
+                'email' => $email,
+                'fone1' => $phone,
+                'cidade' => $cidade,
+                'uf' => substr($uf, 0, 2),
+            ]);
+
+            // Vincula ao usuário
+            $user->empresa_id = $company->codigo;
+            $user->save();
+            $this->info("Empresa criada para: $email");
+        } else {
+            // Atualiza endereço se estiver vazio na empresa existente
+            $updateData = [];
+            if (empty($company->cidade) && !empty($cidade)) {
+                $updateData['cidade'] = $cidade;
+            }
+            if (empty($company->uf) && !empty($uf)) {
+                $updateData['uf'] = substr($uf, 0, 2);
+            }
+
+            if (!empty($updateData)) {
+                $company->update($updateData);
+                $this->info("Endereço atualizado para empresa de: $email");
+            }
+        }
     }
 }
