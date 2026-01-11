@@ -82,6 +82,8 @@ class ImportLegacyUsers extends Command
         $phone = $data[6] ?? null; // PHONE
         $cidade = trim($data[8] ?? ''); // CITY
         $uf = trim($data[10] ?? ''); // STAT (State)
+        $endereco = trim($data[7] ?? ''); // STREET
+        $cep = trim($data[9] ?? ''); // ZIP
 
         $firstName = $data[2] ?? '';
         $lastName = $data[3] ?? '';
@@ -122,35 +124,50 @@ class ImportLegacyUsers extends Command
             $company = \App\Models\Company::where('email', $email)->first();
         }
 
+        $companyName = trim($data[4] ?? ''); // COMPANY name from CSV
+        if (empty($companyName)) {
+            $companyName = substr($fullName, 0, 48) . ' (Importado)';
+        }
+
         if (!$company) {
             // Cria nova empresa
-            $razao = substr($user->name, 0, 48) . ' (Importado)';
             $company = \App\Models\Company::create([
                 'codigo' => \App\Models\Company::max('codigo') + 1,
-                'razao' => $razao,
+                'razao' => $companyName,
                 'email' => $email,
-                'fone1' => $phone,
+                'fone' => $phone, // Note: Model uses 'fone', ImportLegacyLicenses used 'fone1'. Model fillable says 'fone'.
+                'endereco' => $endereco,
+                'cep' => $cep,
                 'cidade' => $cidade,
                 'uf' => substr($uf, 0, 2),
+                'data' => now(),
             ]);
 
             // Vincula ao usuário
             $user->empresa_id = $company->codigo;
             $user->save();
-            $this->info("Empresa criada para: $email");
+            $this->info("Empresa criada para: $email ($companyName)");
         } else {
-            // Atualiza endereço se estiver vazio na empresa existente
+            // Atualiza dados da empresa existente
             $updateData = [];
-            if (empty($company->cidade) && !empty($cidade)) {
+            if (empty($company->cidade) && !empty($cidade))
                 $updateData['cidade'] = $cidade;
-            }
-            if (empty($company->uf) && !empty($uf)) {
+            if (empty($company->uf) && !empty($uf))
                 $updateData['uf'] = substr($uf, 0, 2);
+            if (empty($company->endereco) && !empty($endereco))
+                $updateData['endereco'] = $endereco;
+            if (empty($company->cep) && !empty($cep))
+                $updateData['cep'] = $cep;
+
+            // Se o nome atual tiver "(Importado)" ou estivermos sobrescrevendo,
+            // podemos atualizar? Vamos atualizar se o CSV tiver um nome explicito.
+            if (!empty($data[4]) && $company->razao !== $companyName) {
+                $updateData['razao'] = $companyName;
             }
 
             if (!empty($updateData)) {
                 $company->update($updateData);
-                $this->info("Endereço atualizado para empresa de: $email");
+                $this->info("Dados atualizados para empresa de: $email");
             }
         }
     }
