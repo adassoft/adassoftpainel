@@ -32,14 +32,21 @@ class LicenseResource extends Resource
         if (!$user)
             return parent::getEloquentQuery()->whereRaw('1=0');
 
-        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
-        $company = \App\Models\Company::where('cnpj', $cnpjLimpo)->first();
-
-        if (!$company) {
-            return parent::getEloquentQuery()->whereRaw('1=0');
+        // 1. Try direct relationship (Best)
+        if ($user->empresa_id) {
+            return parent::getEloquentQuery()->where('empresa_codigo', $user->empresa_id);
         }
 
-        return parent::getEloquentQuery()->where('empresa_codigo', $company->codigo);
+        // 2. Fallback to CNPJ matching
+        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj ?? '');
+        if (!empty($cnpjLimpo)) {
+            $company = \App\Models\Company::where('cnpj', $cnpjLimpo)->first();
+            if ($company) {
+                return parent::getEloquentQuery()->where('empresa_codigo', $company->codigo);
+            }
+        }
+
+        return parent::getEloquentQuery()->whereRaw('1=0');
     }
 
     public static function form(Form $form): Form
