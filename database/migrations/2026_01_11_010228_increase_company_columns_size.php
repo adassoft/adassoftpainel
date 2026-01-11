@@ -11,10 +11,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('empresa', function (Blueprint $table) {
-            $table->string('razao', 150)->change();
-            $table->string('endereco', 150)->change();
-            $table->string('cidade', 100)->change();
-            $table->string('bairro', 100)->change();
+            $table->string('razao', 255)->change();
+            $table->string('endereco', 255)->change();
+            $table->string('cidade', 255)->change();
+            $table->string('bairro', 255)->change();
         });
     }
 
