@@ -10,7 +10,7 @@ class TopSoftwaresChart extends ChartWidget
 {
     protected static ?string $heading = 'Distribuição de Licenças por Software';
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
 
     protected static ?string $maxHeight = '300px';
     protected int|string|array $columnSpan = 'full';
