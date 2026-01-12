@@ -198,7 +198,11 @@ trait LegacyLicenseGenerator
     public function gerarLicencaCompleta($empresaCodigo, $softwareId, $validadeDias = 30, $nTerminais = 1)
     {
         $empresa = Company::where('codigo', $empresaCodigo)->firstOrFail();
-        $software = Software::where('id', $softwareId)->firstOrFail();
+        $software = Software::where('id', $softwareId)->first();
+
+        if (!$software) {
+            throw new Exception("Software não encontrado no banco de dados (ID: {$softwareId}). Verifique se o cadastro do software está ativo.");
+        }
 
         $validadeSolicitada = max(1, (int) $validadeDias);
         $saldoRemanescenteDias = 0;
