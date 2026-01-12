@@ -21,7 +21,7 @@
                 <x-heroicon-m-building-office class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
                     <span class="font-bold text-gray-700 dark:text-gray-200">Razão Social:</span>
-                    <span>{{ \App\Models\Company::where('cnpj', $record->user->cnpj ?? '')->value('razao') ?? 'N/A' }}</span>
+                    <span>{{ $record->user->empresa->razao ?? 'N/A' }}</span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
