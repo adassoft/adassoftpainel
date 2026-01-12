@@ -339,10 +339,25 @@ trait LegacyLicenseGenerator
             ]);
         }
 
-        $cnpjLimpo = preg_replace('/\D/', '', $pedido->cnpj);
-        $clienteEmpresa = Company::where('cnpj', $cnpjLimpo)->orWhere('cnpj', $pedido->cnpj)->first();
+        // 1. Tentar via Licença vinculada (Renovação)
+        $clienteEmpresa = null;
+        if (!empty($pedido->licenca_id)) {
+            $licenca = License::find($pedido->licenca_id);
+            if ($licenca && $licenca->company) {
+                $clienteEmpresa = $licenca->company;
+            }
+        }
+
+        // 2. Fallback via Usuário do Pedido (Compra Nova)
+        if (!$clienteEmpresa && $pedido->user && $pedido->user->empresa) {
+            $clienteEmpresa = $pedido->user->empresa;
+        }
+
+        // 3. (Legacy) Se ainda não achou e por acaso tiver CNPJ na tabela (mas parece que não tem)
+        // Ignoramos $pedido->cnpj pois a coluna não existe no schema atual.
+
         if (!$clienteEmpresa) {
-            throw new Exception("Empresa cliente não encontrada para CNPJ: {$pedido->cnpj}");
+            throw new Exception("Empresa cliente não encontrada. Verifique se o pedido tem vínculo com Usuário/Empresa ou Licença válida.");
         }
 
         $diasValidade = ($pedido->recorrencia ?? 1) * 30;
