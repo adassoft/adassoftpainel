@@ -101,10 +101,10 @@ class LicenseResource extends Resource
                     ->sortable()
                     ->color(fn(License $record) => match (true) {
                         (bool) $record->vitalicia => 'success',
-                        !$record->data_expiracao => 'gray',
-                        $record->data_expiracao->isPast() => 'danger',
-                        $record->data_expiracao->diffInDays(now()) <= 15 => 'warning',
-                        default => 'success',
+                        !$record->data_expiracao => 'gray', // Sem data
+                        $record->data_expiracao->isPast() => 'danger', // Vencido (Vermelho)
+                        $record->data_expiracao->lte(now()->addDays(15)) => 'warning', // Vence em <= 15 dias (Laranja)
+                        default => 'success', // Válido (Verde)
                     })
                     ->weight(\Filament\Support\Enums\FontWeight::Bold),
 
