@@ -221,6 +221,43 @@ class CompanyResource extends Resource
                     ->color('primary')
                     ->extraAttributes(['class' => 'force-btn-height'])
                     ->tooltip('Editar Cliente'),
+
+                Tables\Actions\Action::make('impersonate')
+                    ->label('')
+                    ->icon('heroicon-m-arrow-right-end-on-rectangle')
+                    ->button()
+                    ->color('gray')
+                    ->tooltip('Acessar Painel do Cliente')
+                    ->extraAttributes(['class' => 'force-btn-height'])
+                    ->action(function (Company $record) {
+                        // Busca o primeiro usuário desta empresa
+                        $user = $record->users()->first();
+
+                        if (!$user) {
+                            $user = \App\Models\User::where('cnpj', $record->cnpj)->first();
+                        }
+
+                        if (!$user) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Erro')
+                                ->body('Nenhum usuário encontrado para esta empresa.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // Salva ID do admin para poder voltar depois (se implementar a volta)
+                        session()->put('impersonator_id', auth()->id());
+
+                        // Loga como o cliente
+                        auth()->login($user);
+
+                        // Redireciona
+                        return redirect('/app');
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Acessar como Cliente')
+                    ->modalDescription('Você será desconectado da sua conta atual e entrará como este cliente. Deseja continuar?'),
             ])
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([
