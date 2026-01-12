@@ -27,8 +27,7 @@ class Order extends Model
         'payment_url',
         'paid_at',
         'recorrencia',
-        'due_date',
-        'software_id',
+        'due_date'
     ];
 
     public function user()

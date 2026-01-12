@@ -359,7 +359,8 @@ trait LegacyLicenseGenerator
 
         $diasValidade = ($pedido->recorrencia ?? 1) * 30;
 
-        $softwareId = $pedido->software_id ?? $pedido->plan?->software_id;
+        // Prioriza o software do PLANO, pois todo pedido tem plano. Fallback para direto se houver.
+        $softwareId = $pedido->plan?->software_id ?? $pedido->software_id;
 
         $resultado = $this->gerarLicencaCompleta(
             $clienteEmpresa->codigo,
