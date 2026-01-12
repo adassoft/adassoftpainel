@@ -230,17 +230,29 @@ class CompanyResource extends Resource
                     ->tooltip('Acessar Painel do Cliente')
                     ->extraAttributes(['class' => 'force-btn-height'])
                     ->action(function (Company $record) {
-                        // Busca o primeiro usuário desta empresa
-                        $user = $record->users()->first();
+                        // 1. Tenta buscar por empresa_id (Vínculo direto e seguro)
+                        $user = \App\Models\User::where('empresa_id', $record->codigo)->first();
 
+                        // 2. Se falhar, tenta buscar pelo CNPJ (Sanitizado para ignorar formatação)
+                        if (!$user && !empty($record->cnpj)) {
+                            $cnpjClean = preg_replace('/\D/', '', $record->cnpj);
+                            if (!empty($cnpjClean)) {
+                                $user = \App\Models\User::where(function ($q) use ($cnpjClean) {
+                                    $q->where('cnpj', $cnpjClean)
+                                        ->orWhereRaw("REGEXP_REPLACE(cnpj, '[^0-9]', '') = ?", [$cnpjClean]);
+                                })->first();
+                            }
+                        }
+
+                        // 3. Fallback para relacionamento antigo
                         if (!$user) {
-                            $user = \App\Models\User::where('cnpj', $record->cnpj)->first();
+                            $user = $record->users()->first();
                         }
 
                         if (!$user) {
                             \Filament\Notifications\Notification::make()
                                 ->title('Erro')
-                                ->body('Nenhum usuário encontrado para esta empresa.')
+                                ->body('Nenhum usuário encontrado para esta empresa (Verifique o vínculo).')
                                 ->danger()
                                 ->send();
                             return;
