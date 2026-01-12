@@ -27,8 +27,12 @@
             <div class="flex items-center gap-3">
                 <x-heroicon-m-identification class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
-                    <span class="font-bold text-gray-700 dark:text-gray-200">CNPJ:</span>
-                    <span>{{ $record->user->cnpj ?? 'N/A' }}</span>
+                    <span class="font-bold text-gray-700 dark:text-gray-200">
+                        {{ $record->user->empresa ? 'CNPJ:' : 'CPF:' }}
+                    </span>
+                    <span>
+                        {{ $record->user->empresa->cnpj ?? $record->user->cpf ?? $record->user->cnpj ?? 'N/A' }}
+                    </span>
                 </div>
             </div>
         </div>
