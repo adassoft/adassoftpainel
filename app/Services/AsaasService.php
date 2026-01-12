@@ -55,7 +55,19 @@ class AsaasService
                 ]);
 
             if ($response->successful() && count($response->json()['data']) > 0) {
-                return $response->json()['data'][0]['id'];
+                $asaasCustomer = $response->json()['data'][0];
+                $customerId = $asaasCustomer['id'];
+
+                // Atualiza os dados no Asaas para garantir que estão sincronizados com o banco local
+                // Isso corrige casos onde um CNPJ antigo tinha outro nome/email no Asaas
+                Http::withHeader('access_token', $this->token)
+                    ->post($this->baseUrl . "/customers/{$customerId}", [
+                        'name' => $user->nome,
+                        'email' => $user->email,
+                        'mobilePhone' => $user->empresa?->fone ?? $user->telefone ?? null,
+                    ]);
+
+                return $customerId;
             }
 
             // Se não encontrar, cria novo
