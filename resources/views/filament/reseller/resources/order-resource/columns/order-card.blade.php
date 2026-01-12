@@ -39,14 +39,14 @@
                 <x-heroicon-m-cube class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
                     <span class="font-bold text-gray-700 dark:text-gray-200">Software:</span>
-                    <span>{{ $record->software->nome_software ?? 'Não identificado' }}</span>
+                    <span>{{ $record->plan->software->nome_software ?? 'Não identificado' }}</span>
                 </div>
             </div>
             <div class="flex items-start gap-3">
                 <x-heroicon-m-square-3-stack-3d class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
                     <span class="font-bold text-gray-700 dark:text-gray-200">Plano:</span>
-                    <span>{{ $record->plano->nome_plano ?? 'Padrão' }}</span>
+                    <span>{{ $record->plan->nome_plano ?? 'Padrão' }}</span>
                 </div>
             </div>
         </div>
