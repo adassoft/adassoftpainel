@@ -359,10 +359,7 @@ trait LegacyLicenseGenerator
 
         $diasValidade = ($pedido->recorrencia ?? 1) * 30;
 
-        $softwareId = $pedido->software_id;
-        if (empty($softwareId) && $pedido->plano_id) {
-            $softwareId = \App\Models\Plano::find($pedido->plano_id)->software_id ?? null;
-        }
+        $softwareId = $pedido->software_id ?? $pedido->plan?->software_id;
 
         $resultado = $this->gerarLicencaCompleta(
             $clienteEmpresa->codigo,
