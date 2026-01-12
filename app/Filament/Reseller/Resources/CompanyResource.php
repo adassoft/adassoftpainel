@@ -269,12 +269,14 @@ class CompanyResource extends Resource
 
                         // Salva ID do admin para poder voltar depois (se implementar a volta)
                         session()->put('impersonator_id', auth()->id());
+                        session()->save();
 
                         // Loga como o cliente
                         auth()->login($user);
+                        session()->regenerate();
 
                         // Redireciona
-                        return redirect('/app');
+                        return redirect()->to('/app');
                     })
                     ->requiresConfirmation()
                     ->modalHeading('Acessar como Cliente')
