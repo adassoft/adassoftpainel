@@ -191,6 +191,11 @@ class ValidationController extends Controller
             throw new Exception('Credenciais inválidas');
         }
 
+        // Verifica Status do Usuário
+        if (in_array(strtolower($user->status), ['bloqueado', 'inativo', 'blocked', 'inactive'])) {
+            throw new Exception('Usuário bloqueado ou inativo. Entre em contato com o suporte.');
+        }
+
         $company = Company::where('cnpj', $user->cnpj)->first();
         if (!$company) {
             throw new Exception('Empresa não encontrada para o usuário');
@@ -560,6 +565,10 @@ class ValidationController extends Controller
             $user = User::find($userId);
             if (!$user)
                 throw new Exception('Usuário não encontrado.');
+
+            if (in_array(strtolower($user->status), ['bloqueado', 'inativo'])) {
+                throw new Exception('Usuário bloqueado.');
+            }
 
             // Criação do Pedido (Dados Iniciais)
             $codTransacao = 'ORD-' . strtoupper(uniqid());
