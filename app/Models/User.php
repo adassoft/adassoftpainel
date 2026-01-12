@@ -45,6 +45,7 @@ class User extends Authenticatable implements FilamentUser
         'acesso',
         'status',
         'cnpj',
+        'asaas_customer_id', // Novo Asaas ID
         'empresa_id', // Novo campo FK
         'foto',
         'uf',

@@ -47,8 +47,26 @@ class AsaasService
             return 'cus_simulado_' . $user->id;
         }
 
+        // 1. Tenta usar o ID já salvo no banco (vínculo seguro)
+        if (!empty($user->asaas_customer_id)) {
+            // Atualiza para garantir dados frescos
+            try {
+                Http::withHeader('access_token', $this->token)
+                    ->post($this->baseUrl . "/customers/{$user->asaas_customer_id}", [
+                        'name' => $user->nome,
+                        'email' => $user->email,
+                        'mobilePhone' => $user->empresa?->fone ?? $user->telefone ?? null,
+                        'cpfCnpj' => $user->cnpj // Garante que CNPJ também esteja sync (se mudou)
+                    ]);
+            } catch (\Exception $e) {
+                // Ignora falha na atualização para não travar venda, mas loga
+                Log::warning('Falha ao atualizar cliente Asaas via ID cacheado: ' . $e->getMessage());
+            }
+            return $user->asaas_customer_id;
+        }
+
         try {
-            // Tenta buscar primeiro pelo CPF/CNPJ
+            // 2. Se não tem ID, Busca pelo CNPJ
             $response = Http::withHeader('access_token', $this->token)
                 ->get($this->baseUrl . '/customers', [
                     'cpfCnpj' => $user->cnpj
@@ -58,14 +76,16 @@ class AsaasService
                 $asaasCustomer = $response->json()['data'][0];
                 $customerId = $asaasCustomer['id'];
 
-                // Atualiza os dados no Asaas para garantir que estão sincronizados com o banco local
-                // Isso corrige casos onde um CNPJ antigo tinha outro nome/email no Asaas
+                // Atualiza Asaas
                 Http::withHeader('access_token', $this->token)
                     ->post($this->baseUrl . "/customers/{$customerId}", [
                         'name' => $user->nome,
                         'email' => $user->email,
                         'mobilePhone' => $user->empresa?->fone ?? $user->telefone ?? null,
                     ]);
+
+                // Salva o ID no usuário para não precisar buscar na próxima
+                $user->update(['asaas_customer_id' => $customerId]);
 
                 return $customerId;
             }
@@ -84,7 +104,10 @@ class AsaasService
                 throw new \Exception('Erro na integração de pagamento: ' . ($response->json()['errors'][0]['description'] ?? 'Erro desconhecido'));
             }
 
-            return $response->json()['id'];
+            $customerId = $response->json()['id'];
+            $user->update(['asaas_customer_id' => $customerId]);
+
+            return $customerId;
         } catch (\Exception $e) {
             Log::error('Exceção Asaas Customer: ' . $e->getMessage());
             // Em dev, se falhar conexão, retorna mock para não travar
