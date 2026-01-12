@@ -21,14 +21,14 @@
                 <x-heroicon-m-building-office class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
                     <span class="font-bold text-gray-700 dark:text-gray-200">Razão Social:</span>
-                    <span>{{ \App\Models\Company::where('cnpj', $record->cnpj)->value('razao') ?? 'N/A' }}</span>
+                    <span>{{ \App\Models\Company::where('cnpj', $record->user->cnpj ?? '')->value('razao') ?? 'N/A' }}</span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
                 <x-heroicon-m-identification class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
                     <span class="font-bold text-gray-700 dark:text-gray-200">CNPJ:</span>
-                    <span>{{ $record->cnpj }}</span>
+                    <span>{{ $record->user->cnpj ?? 'N/A' }}</span>
                 </div>
             </div>
         </div>
@@ -76,7 +76,10 @@
             <x-heroicon-m-arrow-path class="w-5 h-5 text-gray-400 shrink-0" />
             <div>
                 <span class="font-bold text-gray-700 dark:text-gray-200">Ciclo:</span>
-                <span>{{ $record->recorrencia }} {{ $record->recorrencia == 1 ? 'Mês' : 'Meses' }}</span>
+                @php
+                    $recorrencia = $record->recorrencia ?? $record->plan->recorrencia ?? '';
+                @endphp
+                <span>{{ $recorrencia }} {{ $recorrencia == 1 ? 'Mês' : 'Meses' }}</span>
             </div>
         </div>
 
