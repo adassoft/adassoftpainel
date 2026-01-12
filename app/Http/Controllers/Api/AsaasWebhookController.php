@@ -171,27 +171,47 @@ class AsaasWebhookController extends Controller
                                 // === NOVA LICENÇA ===
                                 Log::info("Criando Nova Licença para Empresa: {$empresa->razao}");
 
-                                // Verifica se já existe licença ativa para este software e empresa para evitar duplicidade acidental
-                                $existe = \App\Models\License::where('empresa_codigo', $empresa->codigo)
+                                // Verifica se já existe licença para este software e empresa
+                                $existingLicense = \App\Models\License::where('empresa_codigo', $empresa->codigo)
                                     ->where('software_id', $plano->software_id)
-                                    ->exists();
+                                    ->first();
 
-                                if (!$existe) {
-                                    \App\Models\License::create([
+                                if ($existingLicense) {
+                                    // === RENOVAÇÃO AUTOMÁTICA DE LICENÇA EXISTENTE ===
+                                    Log::info("Licença existente encontrada (ID {$existingLicense->id}). Processando renovação.");
+
+                                    $dataRef = $existingLicense->data_expiracao > now() ? $existingLicense->data_expiracao : now();
+                                    $novaData = \Carbon\Carbon::parse($dataRef)->addDays($validadeDias);
+
+                                    $existingLicense->update([
+                                        'data_expiracao' => $novaData,
+                                        'data_ultima_renovacao' => now(),
+                                        'status' => 'ativo' // Ensure case compatibility with other checks
+                                    ]);
+
+                                    // Vincular o pedido à licença existente para futuro
+                                    $order->update(['licenca_id' => $existingLicense->id]);
+
+                                    Log::info("Licença existente #{$existingLicense->id} renovada até {$novaData->format('d/m/Y')}.");
+                                } else {
+                                    // === CRIAÇÃO DE NOVA LICENÇA ===
+                                    $newLicense = \App\Models\License::create([
                                         'empresa_codigo' => $empresa->codigo,
-                                        'cnpj_revenda' => $order->cnpj_revenda, // Revenda que vendeu
+                                        'cnpj_revenda' => $order->cnpj_revenda,
                                         'software_id' => $plano->software_id,
-                                        'serial_atual' => strtoupper(\Illuminate\Support\Str::random(20)), // Serial Simbólico
+                                        'serial_atual' => strtoupper(\Illuminate\Support\Str::random(20)),
                                         'data_criacao' => now(),
                                         'data_ativacao' => now(),
                                         'data_expiracao' => now()->addDays($validadeDias),
                                         'data_ultima_renovacao' => now(),
-                                        'terminais_permitidos' => 1, // Default. Futuro: pegar do plano
-                                        'status' => 'Ativo'
+                                        'terminais_permitidos' => 1,
+                                        'status' => 'ativo'
                                     ]);
-                                    Log::info("Nova licença criada com sucesso.");
-                                } else {
-                                    Log::warning("Tentativa de criar licença duplicada para Software {$plano->software_id} na Empresa {$empresa->codigo}. Ignorado.");
+
+                                    // Atualiza pedido
+                                    $order->update(['licenca_id' => $newLicense->id]);
+
+                                    Log::info("Nova licença criada com sucesso. ID: {$newLicense->id}");
                                 }
                             }
                         } else {
