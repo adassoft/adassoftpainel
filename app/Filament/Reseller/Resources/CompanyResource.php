@@ -174,6 +174,17 @@ class CompanyResource extends Resource
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
+                    ->getStateUsing(function (Company $record) {
+                        // Se houver usuário bloqueado vinculado a esta empresa, mostramos como Bloqueado
+                        if (
+                            $record->users()->where(function ($q) {
+                            $q->where('status', 'Bloqueado')->orWhere('status', 'bloqueado');
+                        })->exists()
+                        ) {
+                            return 'Bloqueado';
+                        }
+                        return $record->status;
+                    })
                     ->color(fn(string $state): string => match ($state) {
                         'Ativo' => 'success',
                         'Inativo' => 'gray',
