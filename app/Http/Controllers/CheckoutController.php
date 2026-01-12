@@ -70,7 +70,15 @@ class CheckoutController extends Controller
             $config = ResellerBranding::getConfig();
             $cnpjRep = $config && $config->user ? $config->user->cnpj : null;
 
-            Empresa::firstOrCreate(
+            // Verificar se já existe empresa com este e-mail (evitar duplicação se CNPJ mudou)
+            $existingCompany = Empresa::where('email', $request->email)->first();
+            if ($existingCompany && $existingCompany->cnpj !== $cnpjLimpo) {
+                // E-mail existe em outra empresa. Bloquear ou avisar.
+                // Idealmente pedimos login.
+                return back()->with('error_register', 'Este e-mail já está cadastrado em outra empresa/CNPJ. Faça login.');
+            }
+
+            $empresa = Empresa::firstOrCreate(
                 ['cnpj' => $cnpjLimpo],
                 [
                     'razao' => $request->razao ?? $request->nome, // Usa Razão se informado, senão Nome

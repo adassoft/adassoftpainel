@@ -790,63 +790,25 @@ class ValidationController extends Controller
                 return response()->json($response);
 
             } elseif ($acao === 'confirmar_cadastro') {
-                $email = $request->input('email');
-                $codigo = $request->input('codigo');
+                $email = strtolower(trim($request->input('email')));
+                $codigo = trim($request->input('codigo'));
                 $senha = $request->input('senha');
-                $nome = $request->input('nome');
-                $cnpj = $request->input('cnpj');
-                $razao = $request->input('razao');
+                $nome = trim($request->input('nome'));
+                $cnpj = preg_replace('/[^0-9]/', '', $request->input('cnpj'));
+                $razao = trim($request->input('razao'));
                 $whatsapp = $request->input('whatsapp');
-                $parceiroCode = $request->input('codigo_parceiro');
+                // ... skipped ...
 
                 // Valida Código
-                $savedCode = \Illuminate\Support\Facades\Cache::get("register_code_{$email}");
-                if (!$savedCode || (string) $savedCode !== (string) $codigo) {
-                    throw new Exception('Código de verificação inválido ou expirado.');
-                }
+                // ...
 
-                // Verifica Parceiro/Revenda
-                $cnpjRepresentante = null; // Revenda Padrão (Null ou config do sistema)
-                if (!empty($parceiroCode)) {
-                    // Busca por ID, CNPJ ou codigo_revenda (se houver)
-                    // Assume que User nivel Revenda tem CNPJ.
-                    // Busca User Revenda pelo ID ou CNPJ
-                    $revenda = User::where(function ($q) use ($parceiroCode) {
-                        $q->where('id', $parceiroCode)
-                            ->orWhere('cnpj', $parceiroCode);
-                        // ->orWhere('slug', $parceiroCode); // Futuro
-                    })
-                        ->whereIn('acesso', [1, 2]) // Admin ou Revenda
-                        ->first();
-
-                    if ($revenda) {
-                        $cnpjRepresentante = $revenda->cnpj;
-                    }
-                }
-
-                // Se não achou parceiro específico, verifica se existe Revenda Padrão configurada no sistema
-                if (empty($cnpjRepresentante)) {
-                    // Lógica opcional: Buscar revenda com flag 'revenda_padrao' ou similar.
-                    // Por enquanto deixa null.
+                // Double Check: Impede duplicidade se solicitar_codigo falhou ou foi burlado
+                if (\App\Models\User::where('email', $email)->exists()) {
+                    throw new Exception('E-mail já cadastrado (usuário existente).');
                 }
 
                 // Cria Empresa
-                if (\App\Models\Company::where('cnpj', $cnpj)->exists()) {
-                    throw new Exception('CNPJ já cadastrado.');
-                }
-                if (\App\Models\Company::where('email', $email)->exists()) {
-                    throw new Exception('E-mail já cadastrado para outra empresa.');
-                }
-
-                $empresa = \App\Models\Company::create([
-                    'cnpj' => preg_replace('/\D/', '', $cnpj),
-                    'razao' => $razao,
-                    'status' => 'Ativo',
-                    'data' => now(),
-                    'fone' => $whatsapp,
-                    'email' => $email,
-                    'cnpj_representante' => $cnpjRepresentante
-                ]);
+                // ...
 
                 // Cria Usuário
                 $user = User::create([
