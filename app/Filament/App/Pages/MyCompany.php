@@ -193,17 +193,39 @@ class MyCompany extends Page implements HasForms
         $data['cnpj'] = $cnpjLimpo;
 
         // Update or Create
-        $company = Company::where('cnpj', $cnpjLimpo)->first();
+        // Update logic: Find the company LINKED to the user, not by the new CNPJ
+        // Priority: FK (empresa_id) -> Legacy (cnpj)
+        $company = null;
+        if ($user->empresa_id) {
+            $company = Company::where('codigo', $user->empresa_id)->first();
+        } elseif ($user->cnpj) {
+            $currentCnpjUser = preg_replace('/\D/', '', $user->cnpj);
+            $company = Company::where('cnpj', $currentCnpjUser)->first();
+        }
 
         if ($company) {
+            // Update existing company (even if CNPJ changed)
             $company->update($data);
         } else {
-            // Create
+            // Only create if user has NO company linked at all
+            // But wait, check if the NEW CNPJ is already taken by someone else?
+            $checkTaken = Company::where('cnpj', $cnpjLimpo)->first();
+            if ($checkTaken) {
+                // If taken, we can't create. We should link? Or Error?
+                // Assuming Error for "My Company" context to avoid hijacking
+                Notification::make()->danger()->title('Erro')->body('Este CNPJ já está cadastrado para outra empresa.')->send();
+                return;
+            }
+
             $data['data'] = now();
             $data['status'] = 'Ativo';
+            $company = Company::create($data); // Create and assign to variable
+        }
 
-            // Tratamento de campos padrão se necessário
-            Company::create($data);
+        // Update User Link (New ID or New CNPJ)
+        if ($user->empresa_id === null && $company) {
+            $user->empresa_id = $company->codigo;
+            $user->save();
         }
 
         // Garante vinculo
