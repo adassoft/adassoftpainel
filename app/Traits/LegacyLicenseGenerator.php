@@ -221,17 +221,21 @@ trait LegacyLicenseGenerator
         $validadeTotalDias = $validadeSolicitada + $saldoRemanescenteDias;
         $dataValidade = now()->addDays($validadeTotalDias)->format('Y-m-d');
 
-        // Gerar Serial (Lógica Legada baseada em CNPJ/Data para validação offline/Delphi)
-        // OBS: Se o software exigir serial hash novo, deve-se criar uma flag no banco. 
-        // Por padrão, voltamos ao legado pois "Super Carnê" e outros parecem ser antigos.
+        // Gerar Serial Seguro (Hash Aleatório único)
+        // O usuário confirmou que prefere a lógica nova segura, não a legada determinística.
 
-        $serialGerado = $this->gerarChaveEmpresa($empresa->cnpj, $dataValidade, $nTerminais, $softwareId);
-
-        // O legado não tem verificação de duplicidade de HASH pois é determinístico (CNPJ+Data).
-        // Se a data muda, o serial muda.
+        $serialGerado = null;
+        for ($tentativa = 0; $tentativa < 5; $tentativa++) {
+            $novoSerial = $this->gerarSerialSeguro($empresa->toArray(), $software->toArray());
+            // Verifica duplicidade no DB
+            if (!$this->serialJaExiste($novoSerial)) {
+                $serialGerado = $novoSerial;
+                break;
+            }
+        }
 
         if (!$serialGerado)
-            throw new Exception('Não foi possível calcular o serial legado.');
+            throw new Exception('Não foi possível gerar um serial único (Time-out na geração de entropia).');
 
         // Inativar anteriores
         $antigas = SerialHistory::where('empresa_codigo', $empresaCodigo)
