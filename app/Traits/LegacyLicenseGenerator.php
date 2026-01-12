@@ -339,7 +339,8 @@ trait LegacyLicenseGenerator
             ]);
         }
 
-        $clienteEmpresa = Company::where('cnpj', $pedido->cnpj)->first();
+        $cnpjLimpo = preg_replace('/\D/', '', $pedido->cnpj);
+        $clienteEmpresa = Company::where('cnpj', $cnpjLimpo)->orWhere('cnpj', $pedido->cnpj)->first();
         if (!$clienteEmpresa) {
             throw new Exception("Empresa cliente não encontrada para CNPJ: {$pedido->cnpj}");
         }
