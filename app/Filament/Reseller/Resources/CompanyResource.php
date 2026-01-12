@@ -152,7 +152,15 @@ class CompanyResource extends Resource
 
                 Tables\Columns\TextColumn::make('cnpj')
                     ->label('CNPJ / CPF')
-                    ->searchable()
+                    ->searchable(query: function (\Illuminate\Database\Eloquent\Builder $query, string $search): \Illuminate\Database\Eloquent\Builder {
+                        $cleaned = preg_replace('/[^0-9]/', '', $search);
+                        return $query->where(function ($q) use ($search, $cleaned) {
+                            $q->where('cnpj', 'like', "%{$search}%");
+                            if (!empty($cleaned)) {
+                                $q->orWhere('cnpj', 'like', "%{$cleaned}%");
+                            }
+                        });
+                    })
                     ->copyable()
                     ->formatStateUsing(function ($state) {
                         $doc = preg_replace('/\D/', '', $state);
