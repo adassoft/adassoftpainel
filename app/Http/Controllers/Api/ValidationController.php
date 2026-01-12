@@ -825,6 +825,9 @@ class ValidationController extends Controller
                 if (\App\Models\Company::where('cnpj', $cnpj)->exists()) {
                     throw new Exception('CNPJ já cadastrado.');
                 }
+                if (\App\Models\Company::where('email', $email)->exists()) {
+                    throw new Exception('E-mail já cadastrado para outra empresa.');
+                }
 
                 $empresa = \App\Models\Company::create([
                     'cnpj' => preg_replace('/\D/', '', $cnpj),

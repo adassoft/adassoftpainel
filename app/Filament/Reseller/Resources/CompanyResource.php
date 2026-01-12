@@ -51,17 +51,18 @@ class CompanyResource extends Resource
                                     ->label('CNPJ / CPF')
                                     ->required()
                                     ->maxLength(14)
+                                    ->unique(table: 'empresa', column: 'cnpj', ignoreRecord: true)
                                     ->helperText('Apenas números')
                                     ->extraInputAttributes(['oninput' => "this.value = this.value.replace(/[^0-9]/g, '')"])
                                     ->prefixIcon('heroicon-m-identification')
                                     ->rule(new \App\Rules\CpfCnpj())
                                     ->suffixAction(
                                         Forms\Components\Actions\Action::make('buscar_cnpj')
+                                            // ... existing action content ...
                                             ->icon('heroicon-m-magnifying-glass')
                                             ->tooltip('Consultar CNPJ na Receita')
                                             ->action(function ($state, Forms\Set $set) {
                                                 $cnpj = preg_replace('/[^0-9]/', '', $state);
-
                                                 if (strlen($cnpj) !== 14) {
                                                     \Filament\Notifications\Notification::make()
                                                         ->title('Atenção')
@@ -70,38 +71,24 @@ class CompanyResource extends Resource
                                                         ->send();
                                                     return;
                                                 }
-
                                                 try {
                                                     $response = \Illuminate\Support\Facades\Http::get("https://brasilapi.com.br/api/cnpj/v1/{$cnpj}");
-
                                                     if ($response->successful()) {
                                                         $data = $response->json();
-
                                                         $set('razao', $data['razao_social'] ?? $data['nome_fantasia'] ?? '');
                                                         $set('email', $data['email'] ?? '');
-                                                        // Tenta pegar o primeiro telefone
                                                         $set('fone', $data['ddd_telefone_1'] ?? $data['ddd_telefone_2'] ?? '');
                                                         $set('cidade', $data['municipio'] ?? '');
                                                         $set('uf', $data['uf'] ?? '');
-
-                                                        \Filament\Notifications\Notification::make()
-                                                            ->title('Sucesso')
-                                                            ->body('Dados da empresa carregados com sucesso!')
-                                                            ->success()
-                                                            ->send();
+                                                        \Filament\Notifications\Notification::make()->title('Sucesso')->body('Dados da empresa carregados com sucesso!')->success()->send();
                                                     } else {
                                                         throw new \Exception('CNPJ não encontrado ou serviço indisponível.');
                                                     }
                                                 } catch (\Exception $e) {
-                                                    \Filament\Notifications\Notification::make()
-                                                        ->title('Erro na Consulta')
-                                                        ->body('Não foi possível buscar os dados: ' . $e->getMessage())
-                                                        ->danger()
-                                                        ->send();
+                                                    \Filament\Notifications\Notification::make()->title('Erro na Consulta')->body('Não foi possível buscar os dados: ' . $e->getMessage())->danger()->send();
                                                 }
                                             })
-                                    )
-                                ,
+                                    ),
 
                                 Forms\Components\TextInput::make('fone')
                                     ->label('Telefone/WhatsApp')
@@ -111,6 +98,7 @@ class CompanyResource extends Resource
                                 Forms\Components\TextInput::make('email')
                                     ->label('Email de Contato')
                                     ->email()
+                                    ->unique(table: 'empresa', column: 'email', ignoreRecord: true)
                                     ->prefixIcon('heroicon-m-envelope')
                                     ->columnSpanFull(),
                             ])

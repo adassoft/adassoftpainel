@@ -45,11 +45,13 @@ class CompanyResource extends Resource
                                     ->label('CNPJ')
                                     ->mask('99.999.999/9999-99')
                                     ->required()
+                                    ->unique(table: 'empresa', column: 'cnpj', ignoreRecord: true)
                                     ->maxLength(20),
 
                                 Forms\Components\TextInput::make('email')
                                     ->label('E-mail')
                                     ->email()
+                                    ->unique(table: 'empresa', column: 'email', ignoreRecord: true)
                                     ->prefixIcon('heroicon-m-envelope')
                                     ->maxLength(120),
 
