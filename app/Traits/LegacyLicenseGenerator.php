@@ -358,7 +358,7 @@ trait LegacyLicenseGenerator
         $pedido->update([
             'status_entrega' => 'entregue',
             'serial_gerado' => $resultado['serial'],
-            'situacao' => 'pago'
+            'status' => 'pago' // Mudei para 'status'. Se o enum for 'paid' avisar.
         ]);
 
         return $resultado;

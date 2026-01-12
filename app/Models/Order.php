@@ -28,7 +28,7 @@ class Order extends Model
         'paid_at',
         'recorrencia',
         'due_date',
-        'situacao',
+        // 'situacao', // Removido, usar 'status'
         'status_entrega',
         'serial_gerado',
         'condicao',
