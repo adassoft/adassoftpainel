@@ -1,6 +1,6 @@
 @php
     $record = $getRecord();
-    $status = strtolower($record->situacao);
+    $status = strtolower($record->status ?? '');
     $statusEntrega = strtolower($record->status_entrega ?? '');
 @endphp
 
@@ -67,7 +67,7 @@
                 <span class="font-bold text-gray-700 dark:text-gray-200">Transação:</span>
             </div>
             <div class="pl-8 text-gray-500 font-mono text-xs break-all">
-                {{ $record->cod_transacao }}
+                {{ $record->external_reference ?? $record->asaas_payment_id ?? '-' }}
             </div>
         </div>
 
@@ -102,7 +102,7 @@
                     @elseif($status === 'cancelado') bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400
                     @else bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400
                     @endif">
-                    {{ ucwords(str_replace('_', ' ', $record->situacao)) }}
+                    {{ ucwords(str_replace('_', ' ', $record->status ?? 'Pendente')) }}
                 </span>
             </div>
         </div>
