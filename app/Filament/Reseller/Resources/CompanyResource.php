@@ -230,8 +230,11 @@ class CompanyResource extends Resource
                     ->tooltip('Acessar Painel do Cliente')
                     ->extraAttributes(['class' => 'force-btn-height'])
                     ->action(function (Company $record) {
-                        // 1. Tenta buscar por empresa_id (Vínculo direto e seguro)
-                        $user = \App\Models\User::where('empresa_id', $record->codigo)->first();
+                        // 1. Tenta buscar por chaves estrangeiras de ID (empresa_id, empresa_codigo, etc)
+                        $user = \App\Models\User::where('empresa_id', $record->codigo)
+                            ->orWhere('empresa', $record->codigo) // Legado comum
+                            ->orWhere('id_empresa', $record->codigo)
+                            ->first();
 
                         // 2. Se falhar, tenta buscar pelo CNPJ (Sanitizado para ignorar formatação)
                         if (!$user && !empty($record->cnpj)) {
