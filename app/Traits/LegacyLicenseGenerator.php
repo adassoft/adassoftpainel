@@ -323,20 +323,28 @@ trait LegacyLicenseGenerator
         $resellerCompany = Company::where('cnpj', $pedido->cnpj_revenda)->lockForUpdate()->firstOrFail();
 
         $valor = (float) $pedido->valor;
-        if ($resellerCompany->saldo < $valor) {
-            throw new Exception("Saldo insuficiente na carteira da revenda para liberar este pedido. Necessário: R$ " . number_format($valor, 2, ',', '.'));
+        // Verifica se JÁ houve débito para este pedido (evitar duplicidade em reprocessamentos)
+        $jaDebitou = CreditHistory::where('empresa_cnpj', $pedido->cnpj_revenda)
+            ->where('descricao', 'like', "%Pedido #{$pedido->id}%")
+            ->where('tipo', 'saida')
+            ->exists();
+
+        if (!$jaDebitou) {
+            if ($resellerCompany->saldo < $valor) {
+                throw new Exception("Saldo insuficiente na carteira da revenda para liberar este pedido. Necessário: R$ " . number_format($valor, 2, ',', '.'));
+            }
+
+            $resellerCompany->decrement('saldo', $valor);
+
+            CreditHistory::create([
+                'empresa_cnpj' => $pedido->cnpj_revenda,
+                'usuario_id' => Auth::id() ?? 0,
+                'tipo' => 'saida',
+                'valor' => $valor,
+                'descricao' => "Liberação de Pedido #{$pedido->id} - Cliente: {$pedido->cnpj}",
+                'data_movimento' => now()
+            ]);
         }
-
-        $resellerCompany->decrement('saldo', $valor);
-
-        CreditHistory::create([
-            'empresa_cnpj' => $pedido->cnpj_revenda,
-            'usuario_id' => Auth::id() ?? 0,
-            'tipo' => 'saida',
-            'valor' => $valor,
-            'descricao' => "Liberação de Pedido #{$pedido->id} - Cliente: {$pedido->cnpj}",
-            'data_movimento' => now()
-        ]);
 
         $clienteEmpresa = Company::where('cnpj', $pedido->cnpj)->first();
         if (!$clienteEmpresa) {
