@@ -246,6 +246,15 @@ class CompanyResource extends Resource
                             return;
                         }
 
+                        if (!$user->canAccessPanel(\Filament\Facades\Filament::getPanel('app'))) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Acesso Negado')
+                                ->body("O usuário desta empresa está com status '{$user->status}' e não pode acessar o painel.")
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
                         // Salva ID do admin para poder voltar depois (se implementar a volta)
                         session()->put('impersonator_id', auth()->id());
 

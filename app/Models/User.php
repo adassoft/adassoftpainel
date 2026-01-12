@@ -95,7 +95,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        if ($this->status !== 'Ativo') {
+        if (strtolower($this->status) !== 'ativo') {
             return false;
         }
 
