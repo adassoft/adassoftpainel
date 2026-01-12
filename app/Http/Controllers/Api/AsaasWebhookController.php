@@ -172,8 +172,10 @@ class AsaasWebhookController extends Controller
                                 Log::info("Criando Nova Licença para Empresa: {$empresa->razao}");
 
                                 // Verifica se já existe licença para este software e empresa
+                                // Pega a mais recente (ordena por expiração decrescente)
                                 $existingLicense = \App\Models\License::where('empresa_codigo', $empresa->codigo)
                                     ->where('software_id', $plano->software_id)
+                                    ->orderBy('data_expiracao', 'desc')
                                     ->first();
 
                                 if ($existingLicense) {
