@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
 use Filament\Support\RawJs;
+use Filament\Forms\Set;
 
 class MyCompany extends Page implements HasForms
 {
@@ -74,12 +75,43 @@ class MyCompany extends Page implements HasForms
                                 TextInput::make('cnpj')
                                     ->label('CNPJ / CPF')
                                     ->disabled(fn() => !empty(Auth::user()->cnpj) && in_array(strlen(preg_replace('/\D/', '', Auth::user()->cnpj)), [11, 14]))
-                                    ->helperText('Para alterar, entre em contato com o suporte.')
+                                    ->helperText('Digite o CNPJ para buscar os dados automaticamente.')
                                     ->dehydrated()
                                     ->required()
                                     ->mask(RawJs::make(<<<'JS'
                                         $input.length > 14 ? '99.999.999/9999-99' : '999.999.999-99'
-                                    JS)),
+                                    JS))
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Set $set) {
+                                        $cnpj = preg_replace('/[^0-9]/', '', $state);
+
+                                        // Apenas para CNPJ (14 dígitos)
+                                        if (strlen($cnpj) !== 14) {
+                                            return;
+                                        }
+
+                                        try {
+                                            $response = \Illuminate\Support\Facades\Http::get("https://brasilapi.com.br/api/cnpj/v1/{$cnpj}");
+                                            if ($response->successful()) {
+                                                $data = $response->json();
+                                                $set('razao', $data['razao_social'] ?? $data['nome_fantasia'] ?? '');
+                                                // $set('email', $data['email'] ?? ''); // Opcional: não sobrescrever email se ja tiver
+                                                $set('fone', $data['ddd_telefone_1'] ?? $data['ddd_telefone_2'] ?? '');
+                                                $set('cidade', $data['municipio'] ?? '');
+                                                $set('uf', $data['uf'] ?? '');
+                                                $set('bairro', $data['bairro'] ?? '');
+                                                $set('cep', $data['cep'] ?? '');
+
+                                                \Filament\Notifications\Notification::make()
+                                                    ->title('Dados Encontrados')
+                                                    ->body("Empresa: " . ($data['nome_fantasia'] ?? $data['razao_social']))
+                                                    ->success()
+                                                    ->send();
+                                            }
+                                        } catch (\Exception $e) {
+                                            // Silently fail or minimal notification if needed
+                                        }
+                                    }),
 
                                 TextInput::make('fone')
                                     ->label('Telefone / WhatsApp')
