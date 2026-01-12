@@ -1,6 +1,6 @@
 @php
     $record = $getRecord();
-    $status = strtolower($record->situacao);
+    $status = strtolower($record->status ?? '');
     $statusEntrega = strtolower($record->status_entrega ?? '');
 @endphp
 
@@ -27,7 +27,7 @@
                 <x-heroicon-m-building-office class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
                     <span class="font-bold text-gray-700 dark:text-gray-200">Razão Social:</span>
-                    <span>{{ \App\Models\Company::where('cnpj', preg_replace('/\D/', '', $record->cnpj))->value('razao') ?? 'Consumidor Final' }}</span>
+                    <span>{{ $record->user->empresa->razao ?? 'Consumidor Final' }}</span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -67,8 +67,8 @@
                 <x-heroicon-m-qr-code class="w-5 h-5 text-gray-400 shrink-0" />
                 <span class="font-bold text-gray-700 dark:text-gray-200">Transação:</span>
             </div>
-            <div class="pl-8 text-gray-500 font-mono text-xs break-all truncate" title="{{ $record->cod_transacao }}">
-                {{ $record->cod_transacao }}
+            <div class="pl-8 text-gray-500 font-mono text-xs break-all truncate" title="{{ $record->external_reference ?? $record->asaas_payment_id }}">
+                {{ $record->external_reference ?? $record->asaas_payment_id ?? '-' }}
             </div>
         </div>
 
@@ -96,11 +96,19 @@
             <div class="flex items-center gap-2">
                 <span class="font-bold text-gray-700 dark:text-gray-200">Status:</span>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide
-                    @if(in_array($status, ['pago', 'aprovado'])) bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400
-                    @elseif($status === 'cancelado') bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400
+                    @if(in_array($status, ['pago', 'paid', 'approved', 'completed'])) bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400
+                    @elseif(in_array($status, ['cancelado', 'cancelled', 'refused'])) bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400
                     @else bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400
                     @endif">
-                    {{ ucwords(str_replace('_', ' ', $record->situacao)) }}
+                    @php
+                        $statusLabel = match($status) {
+                            'pago', 'paid', 'approved', 'completed' => 'Pago',
+                            'cancelado', 'cancelled', 'refused' => 'Cancelado',
+                            'pendente', 'pending' => 'Pendente',
+                            default => $record->status ?? 'Pendente'
+                        };
+                    @endphp
+                    {{ ucfirst($statusLabel) }}
                 </span>
             </div>
         </div>

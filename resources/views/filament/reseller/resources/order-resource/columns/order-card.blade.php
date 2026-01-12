@@ -98,11 +98,19 @@
             <div class="flex items-center gap-2">
                 <span class="font-bold text-gray-700 dark:text-gray-200">Status:</span>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide
-                    @if($status === 'pago') bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400
-                    @elseif($status === 'cancelado') bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400
+                    @if(in_array($status, ['pago', 'paid', 'approved', 'completed'])) bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400
+                    @elseif(in_array($status, ['cancelado', 'cancelled', 'refused'])) bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400
                     @else bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400
                     @endif">
-                    {{ ucwords(str_replace('_', ' ', $record->status ?? 'Pendente')) }}
+                    @php
+                        $statusLabel = match ($status) {
+                            'pago', 'paid', 'approved', 'completed' => 'Pago',
+                            'cancelado', 'cancelled', 'refused' => 'Cancelado',
+                            'pendente', 'pending' => 'Pendente',
+                            default => $record->status ?? 'Pendente'
+                        };
+                    @endphp
+                    {{ ucfirst($statusLabel) }}
                 </span>
             </div>
         </div>

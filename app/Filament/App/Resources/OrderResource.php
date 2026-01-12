@@ -58,7 +58,7 @@ class OrderResource extends Resource
                     ->label('Pagar PIX')
                     ->icon('heroicon-o-qr-code')
                     ->color('success')
-                    ->visible(fn(Order $record) => in_array(strtoupper($record->situacao), ['PENDENTE', 'AGUARDANDO']))
+                    ->visible(fn(Order $record) => in_array(strtolower($record->status), ['pendente', 'pending', 'aguardando']))
                     ->modalHeading('Efetuar Pagamento')
                     ->modalContent(function (Order $record) {
                         try {
@@ -115,7 +115,7 @@ class OrderResource extends Resource
                             }
 
                             // Verifica ou Cria Cobrança
-                            $payResp = \Illuminate\Support\Facades\Http::withHeaders($headers)->get("$baseUrl/payments", ['externalReference' => $record->cod_transacao]);
+                            $payResp = \Illuminate\Support\Facades\Http::withHeaders($headers)->get("$baseUrl/payments", ['externalReference' => $record->external_reference]);
                             $paymentId = $payResp->json('data.0.id');
 
                             if (!$paymentId) {
@@ -124,7 +124,7 @@ class OrderResource extends Resource
                                     'billingType' => 'PIX',
                                     'value' => $record->valor,
                                     'dueDate' => \Carbon\Carbon::parse($record->data)->addDays(1)->format('Y-m-d'),
-                                    'externalReference' => $record->cod_transacao,
+                                    'externalReference' => $record->external_reference,
                                     'description' => "Pedido #{$record->id} - Licença de Software"
                                 ]);
 
@@ -160,8 +160,8 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn(Order $record) => in_array(strtoupper($record->situacao), ['PENDENTE', 'AGUARDANDO']))
-                    ->action(fn(Order $record) => $record->update(['situacao' => 'cancelado'])),
+                    ->visible(fn(Order $record) => in_array(strtolower($record->status), ['pendente', 'pending', 'aguardando']))
+                    ->action(fn(Order $record) => $record->update(['status' => 'cancelado'])),
             ])
             ->bulkActions([
                 //
