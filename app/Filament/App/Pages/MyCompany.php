@@ -191,6 +191,12 @@ class MyCompany extends Page implements HasForms
 
         // Garante que salvamos apenas números
         $data['cnpj'] = $cnpjLimpo;
+        if (isset($data['fone'])) {
+            $data['fone'] = preg_replace('/\D/', '', $data['fone']);
+        }
+        if (isset($data['cep'])) {
+            $data['cep'] = preg_replace('/\D/', '', $data['cep']);
+        }
 
         // Update or Create
         // Update logic: Find the company LINKED to the user, not by the new CNPJ
@@ -225,12 +231,6 @@ class MyCompany extends Page implements HasForms
         // Update User Link (New ID or New CNPJ)
         if ($user->empresa_id === null && $company) {
             $user->empresa_id = $company->codigo;
-            $user->save();
-        }
-
-        // Garante vinculo
-        if ($user->cnpj !== $cnpjLimpo) {
-            $user->cnpj = $cnpjLimpo;
             $user->save();
         }
 

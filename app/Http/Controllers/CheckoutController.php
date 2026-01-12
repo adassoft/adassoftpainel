@@ -82,7 +82,7 @@ class CheckoutController extends Controller
                 ['cnpj' => $cnpjLimpo],
                 [
                     'razao' => $request->razao ?? $request->nome, // Usa Razão se informado, senão Nome
-                    'fone' => $request->fone ?? '',
+                    'fone' => preg_replace('/\D/', '', $request->fone ?? ''),
                     'cidade' => $request->cidade ?? 'Cadastro Rápido',
                     'uf' => $request->uf,
                     'email' => $request->email,
