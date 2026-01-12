@@ -115,6 +115,11 @@ class CheckoutController extends Controller
         $plan = Plano::findOrFail($planId);
         $user = auth()->user();
 
+        if (empty($user->cnpj) || strlen(preg_replace('/\D/', '', $user->cnpj)) !== 14) {
+            return redirect()->route('filament.app.pages.my-company')
+                ->with('error', 'Por favor, complete/corrija seu CNPJ em "Minha Empresa" antes de prosseguir com a compra.');
+        }
+
         // 1. Identificar Revenda e Contexto (Renovação vs Novo)
         $licenseId = $request->input('license_id');
         $cnpjRevenda = null;
@@ -223,6 +228,11 @@ class CheckoutController extends Controller
 
         $download = \App\Models\Download::findOrFail($id);
         $user = Auth::user();
+
+        if (empty($user->cnpj) || strlen(preg_replace('/\D/', '', $user->cnpj)) !== 14) {
+            return redirect()->route('filament.app.pages.my-company')
+                ->with('error', 'Por favor, complete/corrija seu CNPJ em "Minha Empresa" antes de prosseguir com a compra.');
+        }
 
         // Evitar duplicidade de pendentes (Opcional, mas boa prática)
         // Por simplificação, vamos gerar um novo sempre.
