@@ -67,13 +67,17 @@ class LicenseResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('company.razao')
                     ->label('Cliente')
-                    ->description(fn(License $record) => (function ($doc) {
+                    ->description(fn(License $record) => new \Illuminate\Support\HtmlString((function ($doc) use ($record) {
                         $doc = preg_replace('/\D/', '', $doc ?? '');
+                        $masked = $record->company?->cnpj ?? '-';
                         if (strlen($doc) <= 11 && strlen($doc) > 0) {
-                            return substr($doc, 0, 3) . '.***.***-' . substr($doc, -2);
+                            $masked = substr($doc, 0, 3) . '.***.***-' . substr($doc, -2);
                         }
-                        return $record->company?->cnpj ?? '-';
-                    })($record->company?->cnpj))
+
+                        $idDisplay = $record->company?->codigo ? "ID: {$record->company->codigo}" : '';
+
+                        return $masked . ($idDisplay ? "<br><span style='font-size: 0.8em; opacity: 0.8;'>{$idDisplay}</span>" : "");
+                    })($record->company?->cnpj)))
                     ->searchable()
                     ->sortable(),
 
