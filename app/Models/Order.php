@@ -27,7 +27,13 @@ class Order extends Model
         'payment_url',
         'paid_at',
         'recorrencia',
-        'due_date'
+        'due_date',
+        'situacao',
+        'status_entrega',
+        'serial_gerado',
+        'condicao',
+        'forma_pagamento',
+        'cod_transacao'
     ];
 
     public function user()
