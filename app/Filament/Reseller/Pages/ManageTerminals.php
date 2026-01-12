@@ -65,6 +65,13 @@ class ManageTerminals extends Page implements HasForms
 
     public function getViewData(): array
     {
+        // Se nenhum filtro estiver aplicado, retorna lista vazia para performance (Igual Admin)
+        if (empty($this->filters['empresa_id']) && empty($this->filters['software_id'])) {
+            return [
+                'licencas' => collect(),
+            ];
+        }
+
         $userCnpj = auth()->user()->cnpj;
         if (!$userCnpj) {
             $userCnpj = auth()->user()->empresa?->cnpj;
