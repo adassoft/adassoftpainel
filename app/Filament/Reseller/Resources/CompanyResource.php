@@ -139,7 +139,7 @@ class CompanyResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                Tables\Columns\TextColumn::make('codigo')
                     ->label('ID')
                     ->sortable()
                     ->searchable()
