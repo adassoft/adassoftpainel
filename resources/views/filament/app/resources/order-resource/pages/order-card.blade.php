@@ -33,8 +33,25 @@
             <div class="flex items-center gap-3">
                 <x-heroicon-m-identification class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
-                    <span class="font-bold text-gray-700 dark:text-gray-200">CNPJ:</span>
-                    <span>{{ $record->cnpj }}</span>
+                    @php
+                        $docValue = preg_replace('/\D/', '', $record->cnpj ?? $record->user->cnpj ?? '');
+                        $docLabel = strlen($docValue) > 11 ? 'CNPJ:' : 'CPF:';
+                        $docFormatted = $docValue;
+                        if (strlen($docValue) <= 11 && strlen($docValue) > 0) {
+                            // Mask CPF: 123.***.***-99
+                            $docFormatted = substr($docValue, 0, 3) . '.***.***-' . substr($docValue, -2);
+                        } elseif (strlen($docValue) > 11) {
+                            // Format CNPJ: 12.345.678/0001-90 (Public)
+                            $docFormatted = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $docValue);
+                        } else {
+                            $docFormatted = 'N/A';
+                        }
+                    @endphp
+                    {{ $docLabel }}
+                    </span>
+                    <span>
+                        {{ $docFormatted }}
+                    </span>
                 </div>
             </div>
         </div>
@@ -67,7 +84,8 @@
                 <x-heroicon-m-qr-code class="w-5 h-5 text-gray-400 shrink-0" />
                 <span class="font-bold text-gray-700 dark:text-gray-200">Transação:</span>
             </div>
-            <div class="pl-8 text-gray-500 font-mono text-xs break-all truncate" title="{{ $record->external_reference ?? $record->asaas_payment_id }}">
+            <div class="pl-8 text-gray-500 font-mono text-xs break-all truncate"
+                title="{{ $record->external_reference ?? $record->asaas_payment_id }}">
                 {{ $record->external_reference ?? $record->asaas_payment_id ?? '-' }}
             </div>
         </div>
@@ -101,7 +119,7 @@
                     @else bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400
                     @endif">
                     @php
-                        $statusLabel = match($status) {
+                        $statusLabel = match ($status) {
                             'pago', 'paid', 'approved', 'completed' => 'Pago',
                             'cancelado', 'cancelled', 'refused' => 'Cancelado',
                             'pendente', 'pending' => 'Pendente',

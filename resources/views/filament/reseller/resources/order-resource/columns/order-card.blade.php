@@ -27,11 +27,24 @@
             <div class="flex items-center gap-3">
                 <x-heroicon-m-identification class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
-                    <span class="font-bold text-gray-700 dark:text-gray-200">
-                        {{ $record->user->empresa ? 'CNPJ:' : 'CPF:' }}
+                    @php
+                        $docValue = preg_replace('/\D/', '', $record->user->empresa->cnpj ?? $record->user->cpf ?? $record->user->cnpj ?? '');
+                        $docLabel = strlen($docValue) > 11 ? 'CNPJ:' : 'CPF:';
+                        $docFormatted = $docValue;
+                        if (strlen($docValue) <= 11 && strlen($docValue) > 0) {
+                            // Mask CPF: 123.***.***-99
+                            $docFormatted = substr($docValue, 0, 3) . '.***.***-' . substr($docValue, -2);
+                        } elseif (strlen($docValue) > 11) {
+                            // Format CNPJ: 12.345.678/0001-90 (Public)
+                            $docFormatted = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $docValue);
+                        } else {
+                            $docFormatted = 'N/A';
+                        }
+                    @endphp
+                    {{ $docLabel }}
                     </span>
                     <span>
-                        {{ $record->user->empresa->cnpj ?? $record->user->cpf ?? $record->user->cnpj ?? 'N/A' }}
+                        {{ $docFormatted }}
                     </span>
                 </div>
             </div>
