@@ -125,8 +125,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('login')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
-                    ->searchable()
-                    ->description(fn(User $record) => "Hash: " . \Illuminate\Support\Str::limit($record->senha, 15) . "..."),
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('acesso')
                     ->badge()
                     ->formatStateUsing(fn(string $state): string => match ($state) {
