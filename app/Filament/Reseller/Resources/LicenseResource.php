@@ -75,8 +75,17 @@ class LicenseResource extends Resource
                         }
 
                         $idDisplay = $record->company?->codigo ? "ID: {$record->company->codigo}" : '';
+                        $emailDisplay = $record->company?->email ? "{$record->company->email}" : '';
 
-                        return $masked . ($idDisplay ? "<br><span style='font-size: 0.8em; opacity: 0.8;'>{$idDisplay}</span>" : "");
+                        $extraInfo = [];
+                        if ($idDisplay)
+                            $extraInfo[] = $idDisplay;
+                        if ($emailDisplay)
+                            $extraInfo[] = $emailDisplay;
+
+                        $extraHtml = !empty($extraInfo) ? "<br><span style='font-size: 0.8em; opacity: 0.8;'>" . implode(' | ', $extraInfo) . "</span>" : "";
+
+                        return $masked . $extraHtml;
                     })($record->company?->cnpj)))
                     ->searchable()
                     ->sortable(),
