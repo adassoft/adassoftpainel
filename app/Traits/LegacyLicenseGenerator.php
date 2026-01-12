@@ -287,20 +287,7 @@ trait LegacyLicenseGenerator
         ]);
 
         // Atualizar Licenca Ativa (Upsert logic)
-        License::updateOrCreate(
-            ['empresa_codigo' => $empresaCodigo, 'software_id' => $softwareId],
-            [
-                'serial_atual' => $serialGerado,
-                'data_ativacao' => now(),
-                'data_expiracao' => $dataValidade,
-                'terminais_permitidos' => $nTerminais,
-                'status' => 'ativo',
-                // Legacy logic sets creation date on INSERT, Laravel handles timestamps if enabled, but this table has no timestamps standard
-                'data_criacao' => DB::raw('IFNULL(data_criacao, NOW())'),
-                // Wait, updateOrCreate merges. IFNULL might fail if it's evaluated in PHP.
-                // Better approach: find or new.
-            ]
-        );
+
         // Correcting Upsert timestamps logic:
         $licenca = License::firstOrNew(['empresa_codigo' => $empresaCodigo, 'software_id' => $softwareId]);
         if (!$licenca->exists) {
