@@ -815,7 +815,8 @@ class ValidationController extends Controller
                     'nome' => $nome,
                     'email' => $email,
                     'senha' => Hash::make($senha),
-                    'cnpj' => $empresa->cnpj, // Vinculo
+                    'empresa_id' => $empresa->codigo, // <-- Linked Correctly
+                    // 'cnpj' => $empresa->cnpj, // Legacy
                     'nivel' => 'CLIENTE',
                     'acesso' => 3, // 3 = Cliente
                     'status' => 'Ativo'

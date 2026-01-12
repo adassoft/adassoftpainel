@@ -100,7 +100,8 @@ class CheckoutController extends Controller
                 'email' => $request->email,
                 'login' => $request->email, // Login = Email
                 'senha' => Hash::make($request->password),
-                'cnpj' => $cnpjLimpo,
+                // 'cnpj' => $cnpjLimpo, // Legacy (can remove if field dropped, keeping for backup if column exists)
+                'empresa_id' => $empresa->codigo, // <-- Linked Correctly
                 'acesso' => 3,
                 'uf' => $request->uf,
                 'data' => now(),
@@ -123,7 +124,7 @@ class CheckoutController extends Controller
         $plan = Plano::findOrFail($planId);
         $user = auth()->user();
 
-        if (empty($user->cnpj) || strlen(preg_replace('/\D/', '', $user->cnpj)) !== 14) {
+        if (empty($user->empresa) || empty($user->empresa->cnpj) || strlen(preg_replace('/\D/', '', $user->empresa->cnpj)) !== 14) {
             return redirect()->route('filament.app.pages.my-company')
                 ->with('error', 'Por favor, complete/corrija seu CNPJ em "Minha Empresa" antes de prosseguir com a compra.');
         }
