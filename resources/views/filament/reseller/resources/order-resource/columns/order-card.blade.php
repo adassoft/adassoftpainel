@@ -13,7 +13,7 @@
     </div>
 
     {{-- Body --}}
-    <div class="flex-1 p-5 flex flex-col gap-3 text-sm text-gray-600 dark:text-gray-300">
+    <div class="flex-1 p-6 flex flex-col gap-3 text-sm text-gray-600 dark:text-gray-300">
 
         {{-- Cliente --}}
         <div class="flex flex-col gap-1">
@@ -32,17 +32,14 @@
                         $docLabel = strlen($docValue) > 11 ? 'CNPJ:' : 'CPF:';
                         $docFormatted = $docValue;
                         if (strlen($docValue) <= 11 && strlen($docValue) > 0) {
-                            // Mask CPF: 123.***.***-99
                             $docFormatted = substr($docValue, 0, 3) . '.***.***-' . substr($docValue, -2);
                         } elseif (strlen($docValue) > 11) {
-                            // Format CNPJ: 12.345.678/0001-90 (Public)
                             $docFormatted = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $docValue);
                         } else {
                             $docFormatted = 'N/A';
                         }
                     @endphp
-                    {{ $docLabel }}
-                    </span>
+                    <span class="font-bold text-gray-700 dark:text-gray-200">{{ $docLabel }}</span>
                     <span>
                         {{ $docFormatted }}
                     </span>
