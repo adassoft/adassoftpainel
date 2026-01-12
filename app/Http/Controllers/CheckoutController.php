@@ -187,7 +187,8 @@ class CheckoutController extends Controller
                 'status' => 'pending',
                 'valor' => $valorFinal,
                 'cnpj_revenda' => $cnpjRevenda,
-                'licenca_id' => $licenseId
+                'licenca_id' => $licenseId,
+                'recorrencia' => $plan->recorrencia // Snapshot da recorrência do plano
             ]);
 
             return view('checkout.pix', compact('plan', 'pixData'));
