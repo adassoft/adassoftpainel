@@ -31,6 +31,26 @@ Route::get('/checkout/download/{id}', [\App\Http\Controllers\CheckoutController:
 Route::post('/checkout/download/{id}/process', [\App\Http\Controllers\CheckoutController::class, 'processDownloadPix'])->name('checkout.download.process');
 Route::post('/checkout/auth', [\App\Http\Controllers\CheckoutController::class, 'authenticate'])->name('checkout.auth');
 
+Route::get('/checkout/success/{order}', function (\App\Models\Order $order) {
+    if (!auth()->check() || auth()->id() !== $order->user_id) {
+        return redirect()->route('login');
+    }
+
+    // Determina URL final (Painel ou Download)
+    $redirectUrl = route('filament.app.pages.dashboard');
+    if ($order->items->count() > 0) {
+        $item = $order->items->first();
+        $dl = \App\Models\Download::find($item->download_id);
+        if ($dl) {
+            $redirectUrl = route('downloads.show', $dl->slug ?? $dl->id);
+        }
+    } elseif ($order->recorrencia === 'CREDITO') {
+        $redirectUrl = route('filament.reseller.pages.my-wallet');
+    }
+
+    return view('checkout.success', compact('order', 'redirectUrl'));
+})->name('checkout.success');
+
 // Rota de Polling para verificar pagamento PIX (AJAX)
 Route::get('/checkout/status/{externalRef}', function ($externalRef) {
     if (!auth()->check())
@@ -38,31 +58,18 @@ Route::get('/checkout/status/{externalRef}', function ($externalRef) {
 
     $order = \App\Models\Order::where('external_reference', $externalRef)
         ->orWhere('asaas_payment_id', $externalRef)
-        ->orWhere('external_id', $externalRef) // Caso use external_id do legado
+        ->orWhere('external_id', $externalRef)
         ->first();
 
     if (!$order) {
         return response()->json(['status' => 'not_found'], 404);
     }
 
-    $isPaid = in_array(strtoupper($order->status), ['PAID', 'PAGO', 'COMPLETED', 'RECEIVED']);
+    $isPaid = in_array(strtoupper($order->status), ['PAID', 'PAGO', 'COMPLETED', 'RECEIVED']) ||
+        in_array(strtoupper($order->situacao ?? ''), ['PAGO', 'APROVADO']);
 
-    // Determina URL de redirecionamento
-    $redirect = route('home');
-    if ($order->items->count() > 0) {
-        $item = $order->items->first();
-        // Tenta pegar o slug ou o id do download
-        $dl = \App\Models\Download::find($item->download_id);
-        if ($dl) {
-            $redirect = route('downloads.show', $dl->slug ?? $dl->id);
-        }
-    } elseif ($order->plano_id) {
-        // Se for plano/assinatura
-        $redirect = route('filament.app.pages.dashboard'); // Redireciona para o painel
-    } elseif ($order->recorrencia === 'CREDITO') {
-        // Se for recarga de credito
-        $redirect = route('filament.reseller.pages.my-wallet');
-    }
+    // Agora redireciona sempre para a Success Page para disparar o Pixel
+    $redirect = route('checkout.success', $order->id);
 
     return response()->json([
         'status' => $order->status,
