@@ -139,6 +139,11 @@ class CompanyResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('razao')
                     ->label('Razão Social / Nome')
                     ->searchable()
