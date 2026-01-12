@@ -99,7 +99,13 @@ class LicenseResource extends Resource
                     ->label('Validade')
                     ->formatStateUsing(fn(License $record) => (bool) $record->vitalicia ? 'VITALÍCIA' : ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '-'))
                     ->sortable()
-                    ->color(fn(License $record) => (bool) $record->vitalicia ? 'success' : (\Carbon\Carbon::parse($record->data_expiracao)->isPast() ? 'danger' : (\Carbon\Carbon::parse($record->data_expiracao)->diffInDays(now()) <= 15 ? 'warning' : 'success')))
+                    ->color(fn(License $record) => match (true) {
+                        (bool) $record->vitalicia => 'success',
+                        !$record->data_expiracao => 'gray',
+                        $record->data_expiracao->isPast() => 'danger',
+                        $record->data_expiracao->diffInDays(now()) <= 15 => 'warning',
+                        default => 'success',
+                    })
                     ->weight(\Filament\Support\Enums\FontWeight::Bold),
 
                 Tables\Columns\TextColumn::make('terminais')

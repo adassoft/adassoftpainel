@@ -360,7 +360,8 @@ trait LegacyLicenseGenerator
             throw new Exception("Empresa cliente não encontrada. Verifique se o pedido tem vínculo com Usuário/Empresa ou Licença válida.");
         }
 
-        $diasValidade = ($pedido->recorrencia ?? 1) * 30;
+        $recorrencia = $pedido->recorrencia ?? $pedido->plan?->recorrencia ?? 1;
+        $diasValidade = $recorrencia * 30;
 
         // Prioriza o software do PLANO, pois todo pedido tem plano. Fallback para direto se houver.
         $softwareId = $pedido->plan?->software_id ?? $pedido->software_id;
