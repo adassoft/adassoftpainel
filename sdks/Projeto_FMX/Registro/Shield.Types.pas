@@ -39,6 +39,13 @@ type
     DataExpiracao: TDateTime;
 
     DiasRestantes: Integer;
+    UltimaVerificacao: TDateTime; 
+    
+    // [UPDATE] Atualização
+    UpdateAvailable: Boolean;
+    NovaVersao: string;
+    UpdateMessage: string;
+
     Status: TShieldStatus;
     Mensagem: string;
     AvisoMensagem: string;
@@ -101,9 +108,15 @@ begin
   DataInicio := 0;
   DataExpiracao := 0;
   DiasRestantes := 0;
+  UltimaVerificacao := 0;
   Status := stUnchecked;
   Mensagem := '';
   AvisoMensagem := '';
+  
+  UpdateAvailable := False;
+  NovaVersao := '';
+  UpdateMessage := '';
+  
   SetLength(Noticias, 0);
 end;
 

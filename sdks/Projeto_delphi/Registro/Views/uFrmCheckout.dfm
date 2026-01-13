@@ -10,11 +10,9 @@ object FrmCheckout: TFrmCheckout
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  PixelsPerInch = 96
   TextHeight = 13
   object pnlContainer: TPanel
     Left = 0
@@ -23,11 +21,13 @@ object FrmCheckout: TFrmCheckout
     Height = 450
     Align = alClient
     TabOrder = 0
+    ExplicitWidth = 398
+    ExplicitHeight = 442
     object lblTitle: TLabel
       Left = 1
       Top = 1
       Width = 398
-      Height = 25
+      Height = 23
       Align = alTop
       Alignment = taCenter
       Caption = 'Finalizar Pagamento'
@@ -37,11 +37,11 @@ object FrmCheckout: TFrmCheckout
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitWidth = 196
+      ExplicitWidth = 194
     end
     object lblValor: TLabel
       Left = 1
-      Top = 380
+      Top = 411
       Width = 398
       Height = 19
       Align = alBottom
@@ -53,11 +53,12 @@ object FrmCheckout: TFrmCheckout
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitWidth = 117
+      ExplicitTop = 380
+      ExplicitWidth = 116
     end
     object lblStatus: TLabel
       Left = 1
-      Top = 410
+      Top = 430
       Width = 398
       Height = 19
       Align = alBottom
@@ -69,7 +70,8 @@ object FrmCheckout: TFrmCheckout
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitWidth = 210
+      ExplicitTop = 410
+      ExplicitWidth = 212
     end
     object lblInstruction: TLabel
       Left = 24

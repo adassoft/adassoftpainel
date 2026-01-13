@@ -450,6 +450,28 @@ begin
   else
     FLicense.AvisoMensagem := '';
 
+  // [UPDATE] Check Nova Versão
+  if ValObj.GetValue('update') <> nil then
+  begin
+    var UpdateObj := ValObj.GetValue('update');
+    // Em Delphi 10.3+ GetValue pode retornar TJSONValue que precisa de cast seguro
+    if (UpdateObj <> nil) and (UpdateObj is TJSONObject) then
+    begin
+       var JUpd := TJSONObject(UpdateObj);
+       if JUpd.GetValue('disponivel') <> nil then
+          FLicense.UpdateAvailable := JUpd.GetValue<TJSONBool>('disponivel').AsBoolean;
+       
+       if FLicense.UpdateAvailable then
+       begin
+           if JUpd.GetValue('nova_versao') <> nil then
+              FLicense.NovaVersao := JUpd.GetValue('nova_versao').Value;
+           
+           if JUpd.GetValue('mensagem') <> nil then
+              FLicense.UpdateMessage := JUpd.GetValue('mensagem').Value;
+       end;
+    end;
+  end;
+
   // Parse Noticias
   if ValObj.GetValue('noticias') <> nil then
   begin

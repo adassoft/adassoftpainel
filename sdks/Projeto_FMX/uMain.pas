@@ -37,11 +37,11 @@ var
 begin
   // Configuração Exemplo - Substitua pelos seus dados reais
   Config := TShieldConfig.Create(
-    'https://painel.adassoft.com/api/v1/shield', // URL BASE
-    'SUA_API_KEY_AQUI',                          // API KEY
+    'https://adassoft.com/api/v1/adassoft', // URL BASE
+    '689a'+'97dd'+'741a6'+'8b75'+'e7fcd'+'17f11'+'13681'+'83058'+'6356f'+'8f0ae'+'b69a8'+'99b69'+'3c1b2b9',                          // API KEY
     1,                                           // Software ID
-    '1.0.0',                                     // Versão
-    'SEU_SEGREDO_OFFLINE'                        // Segredo Offline
+    '3.10.14',                                     // Versão
+    'edf82'+'ca9d5'+'317f6e'+'7d6d2'+'15f6aa'+'d9a863'+'45deec'+'9eba26'+'be999e'+'bd56e2'+'9408a23'                        // Segredo Offline
   );
   
   FShield := TShield.Create(Config);

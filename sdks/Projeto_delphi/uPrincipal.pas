@@ -320,12 +320,6 @@ end;
 procedure TForm1.Timer2Timer(Sender: TObject);
 begin
   Timer2.Enabled := False;
-  
-  // DEBUG FORÇADO
-  if MeuShield.License.UpdateAvailable then
-     ShowMessage('TIMER2: UpdateAvailable = TRUE. Versao: ' + MeuShield.License.NovaVersao)
-  else
-     ShowMessage('TIMER2: UpdateAvailable = FALSE');
 
   if MeuShield.License.AvisoMensagem <> '' then
   begin
@@ -354,16 +348,19 @@ begin
   for var I := 0 to High(MeuShield.License.Noticias) do
     if not MeuShield.License.Noticias[I].Lida then TemNaoLida := True;
     
-  // 4. Verifica Atualização Disponível
   if MeuShield.License.UpdateAvailable then
   begin
-      var MsgUpdate := 'Nova Versão Disponível: ' + MeuShield.License.NovaVersao;
-      if MeuShield.License.UpdateMessage <> '' then
-         MsgUpdate := MsgUpdate + sLineBreak + sLineBreak + MeuShield.License.UpdateMessage;
-         
-      MsgUpdate := MsgUpdate + sLineBreak + sLineBreak + 'Use o atualizador para instalar.';
+      // Usa a mensagem do servidor se houver, caso contrário monta uma padrão
+      var MsgUpdate := '';
       
-      // Exibe alerta (Pode usar um icone diferente ou form customizado no futuro)
+      if MeuShield.License.UpdateMessage <> '' then
+         MsgUpdate := MeuShield.License.UpdateMessage
+      else
+         MsgUpdate := 'Nova versão ' + MeuShield.License.NovaVersao + ' disponível.';
+         
+      MsgUpdate := MsgUpdate + sLineBreak + 'Use o atualizador.';
+      
+      // Exibe alerta
       TfrmAlert.Execute(MsgUpdate);
   end;
 

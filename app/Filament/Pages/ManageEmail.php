@@ -224,6 +224,15 @@ class ManageEmail extends Page implements HasForms
 
             $mailer->send($email);
 
+            // Log Manual do Teste
+            \App\Models\EmailLog::create([
+                'recipient' => $data['teste_destino'],
+                'subject' => $data['teste_assunto'],
+                'body' => $data['teste_mensagem'],
+                'status' => 'sent',
+                'sent_at' => now(),
+            ]);
+
             Notification::make()
                 ->title('Email de teste enviado com sucesso!')
                 ->success()

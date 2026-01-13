@@ -22,10 +22,11 @@ object frmCadastro: TfrmCadastro
     Color = 16744448
     ParentBackground = False
     TabOrder = 0
+    ExplicitWidth = 398
     object lblTitulo: TLabel
       Left = 16
       Top = 13
-      Width = 143
+      Width = 131
       Height = 16
       Caption = 'Cadastro de Usu'#225'rio'
       Font.Charset = DEFAULT_CHARSET
@@ -44,6 +45,8 @@ object frmCadastro: TfrmCadastro
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitTop = 471
+    ExplicitWidth = 398
     object btnCadastrar: TButton
       Left = 180
       Top = 6
@@ -80,59 +83,61 @@ object frmCadastro: TfrmCadastro
     Height = 438
     Align = alClient
     TabOrder = 2
+    ExplicitWidth = 398
+    ExplicitHeight = 430
     object Label1: TLabel
       Left = 20
       Top = 15
-      Width = 83
+      Width = 81
       Height = 13
       Caption = 'Nome Completo*'
     end
     object Label2: TLabel
       Left = 20
       Top = 65
-      Width = 37
+      Width = 34
       Height = 13
       Caption = 'E-mail*'
     end
     object Label3: TLabel
       Left = 20
       Top = 115
-      Width = 39
+      Width = 36
       Height = 13
       Caption = 'Senha*'
     end
     object Label4: TLabel
       Left = 20
       Top = 165
-      Width = 34
+      Width = 31
       Height = 13
       Caption = 'CNPJ*'
     end
     object Label5: TLabel
       Left = 20
       Top = 215
-      Width = 129
+      Width = 119
       Height = 13
       Caption = 'Raz'#227'o Social da Empresa'
     end
     object Label6: TLabel
       Left = 20
       Top = 265
-      Width = 51
+      Width = 50
       Height = 13
       Caption = 'WhatsApp'
     end
     object LabelParceiro: TLabel
       Left = 200
       Top = 265
-      Width = 125
+      Width = 117
       Height = 13
       Caption = 'C'#243'd. Parceiro (Opcional)'
     end
     object LabelCodigo: TLabel
       Left = 20
       Top = 325
-      Width = 196
+      Width = 199
       Height = 13
       Caption = 'C'#211'DIGO DE VERIFICA'#199#195'O (E-MAIL)*'
       Font.Charset = DEFAULT_CHARSET

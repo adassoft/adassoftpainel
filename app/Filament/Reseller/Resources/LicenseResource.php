@@ -87,7 +87,13 @@ class LicenseResource extends Resource
 
                         return $masked . $extraHtml;
                     })($record->company?->cnpj)))
-                    ->searchable()
+                    ->searchable(query: function (\Illuminate\Database\Eloquent\Builder $query, string $search): \Illuminate\Database\Eloquent\Builder {
+                        return $query->whereHas('company', function ($q) use ($search) {
+                            $q->where('razao', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('cnpj', 'like', "%{$search}%");
+                        });
+                    })
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('software.nome_software')
@@ -241,11 +247,30 @@ class LicenseResource extends Resource
                             $validadeAtual = \Carbon\Carbon::parse($record->data_expiracao);
                             $novaValidade = $validadeAtual->isFuture() ? $validadeAtual : now();
 
-                            $recorrencia = \Illuminate\Support\Str::slug($plano->recorrencia);
-                            if (str_contains($recorrencia, 'anual')) {
-                                $novaValidade->addYear();
+                            // Prioridade: Valor Numérico Inteiro (Meses)
+                            $mesesRecorrencia = (int) $plano->recorrencia;
+
+                            if ($mesesRecorrencia > 0) {
+                                $novaValidade->addMonths($mesesRecorrencia);
                             } else {
-                                $novaValidade->addMonth();
+                                // Fallback: Tenta extrair número da string ou analisar texto
+                                preg_match('/(\d+)/', $plano->recorrencia, $matches);
+                                $mesesExtract = isset($matches[1]) ? (int) $matches[1] : 0;
+
+                                if ($mesesExtract > 0) {
+                                    $novaValidade->addMonths($mesesExtract);
+                                } else {
+                                    $recorrenciaStr = \Illuminate\Support\Str::slug($plano->recorrencia);
+                                    if (str_contains($recorrenciaStr, 'anual')) {
+                                        $novaValidade->addYear();
+                                    } elseif (str_contains($recorrenciaStr, 'semestral')) {
+                                        $novaValidade->addMonths(6);
+                                    } elseif (str_contains($recorrenciaStr, 'trimestral')) {
+                                        $novaValidade->addMonths(3);
+                                    } else {
+                                        $novaValidade->addMonth();
+                                    }
+                                }
                             }
 
                             $record->update([

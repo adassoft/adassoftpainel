@@ -63,5 +63,11 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Exception $e) {
             // Silencioso em caso de erro de DB ou migração
         }
+
+        // Log de Emails
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Mail\Events\MessageSent::class,
+            \App\Listeners\LogEmailSent::class
+        );
     }
 }

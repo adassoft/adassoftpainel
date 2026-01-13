@@ -35,14 +35,14 @@ object frmRegistro: TfrmRegistro
     ParentBackground = False
     TabOrder = 0
     object lblInstalacaoID: TLabel
-      Left = 248
+      Left = 83
       Top = 13
-      Width = 236
+      Width = 401
       Height = 15
+      Cursor = crHandPoint
       Alignment = taRightJustify
       AutoSize = False
-      Caption = 'C'#243'digo da Instala'#231#227'o: ...'
-      Cursor = crHandPoint
+      Caption = 'Instala'#231#227'o: ...'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 33023
       Font.Height = -12

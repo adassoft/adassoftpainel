@@ -101,7 +101,7 @@ var
   Info: TLicenseInfo;
   Hoje: TDateTime;
 begin
-  lblInstalacaoID.Caption := 'Código da Instalação: ' + FShield.GetMachineFingerprint;
+  lblInstalacaoID.Caption := 'Instalação: ' + FShield.GetMachineFingerprint;
   Info := FShield.License;
   
   if Info.IsValid or (Info.Serial <> '') then
@@ -246,7 +246,7 @@ end;
 
 procedure TfrmRegistro.lblEsqueciSenhaClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', 'https://express.adassoft.com/forgot-password.html', nil, nil, SW_SHOWNORMAL);
+  ShellExecute(0, 'open', 'https://adassoft.com/app/password-reset/request', nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TfrmRegistro.lblCriarContaClick(Sender: TObject);
