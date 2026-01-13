@@ -51,8 +51,8 @@
 
     @if(!empty($seo->json_ld))
         <script type="application/ld+json">
-            {!! json_encode($seo->json_ld) !!}
-        </script>
+                {!! json_encode($seo->json_ld) !!}
+            </script>
     @endif
 
     <!-- Favicon -->
@@ -367,9 +367,22 @@
                         </li>
                     @endguest
                     @auth
+                        @php
+                            $user = auth()->user();
+                            $painelUrl = '/app';
+                            $painelLabel = 'Área do Cliente';
+
+                            if ($user->acesso == 1 || $user->email === 'admin@adassoft.com') {
+                                $painelUrl = '/admin';
+                                $painelLabel = 'Painel Admin';
+                            } elseif ($user->acesso == 2) {
+                                $painelUrl = '/reseller';
+                                $painelLabel = 'Painel Revenda';
+                            }
+                        @endphp
                         <li class="nav-item ml-lg-4">
-                            <a href="{{ url('/admin') }}" class="btn-login">
-                                <i class="fas fa-user-circle mr-1"></i> Painel
+                            <a href="{{ url($painelUrl) }}" class="btn-login">
+                                <i class="fas fa-user-circle mr-1"></i> {{ $painelLabel }}
                             </a>
                         </li>
                     @endauth
