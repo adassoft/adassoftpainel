@@ -124,12 +124,24 @@ class CheckoutController extends Controller
         $plan = Plano::findOrFail($planId);
         $user = auth()->user();
 
-        // Check for Company Relationship
         if (empty($user->empresa)) {
             // Self-Heal: Try to find company by legacy CNPJ
             $legacyCnpj = preg_replace('/\D/', '', $user->cnpj);
             if (!empty($legacyCnpj)) {
                 $company = \App\Models\Company::where('cnpj', $legacyCnpj)->first();
+
+                // If company doesn't exist but user has legacy data, create it transparently
+                if (!$company) {
+                    $company = \App\Models\Company::create([
+                        'cnpj' => $legacyCnpj,
+                        'razao' => $user->nome ?? 'Cliente sem Razão', // Fallback
+                        'email' => $user->email,
+                        'status' => 'Ativo',
+                        'data' => now(),
+                        'uf' => $user->uf ?? 'SP',
+                    ]);
+                }
+
                 if ($company) {
                     $user->empresa_id = $company->codigo;
                     $user->save();
@@ -139,7 +151,7 @@ class CheckoutController extends Controller
         }
 
         $cleanCnpj = empty($user->empresa?->cnpj) ? '' : preg_replace('/\D/', '', $user->empresa->cnpj);
-        
+
         // If still empty or invalid length
         if (empty($user->empresa) || empty($cleanCnpj) || !in_array(strlen($cleanCnpj), [11, 14])) {
             return redirect()->route('filament.app.pages.minha-empresa')
