@@ -127,26 +127,23 @@ class CheckoutController extends Controller
         if (empty($user->empresa)) {
             // Self-Heal: Try to find company by legacy CNPJ
             $legacyCnpj = preg_replace('/\D/', '', $user->cnpj);
+
+            \Illuminate\Support\Facades\Log::info('Checkout Self-Heal Attempt', ['legacy_clean' => $legacyCnpj]);
+
             if (!empty($legacyCnpj)) {
                 $company = \App\Models\Company::where('cnpj', $legacyCnpj)->first();
 
-                // If company doesn't exist but user has legacy data, create it transparently
-                if (!$company) {
-                    $company = \App\Models\Company::create([
-                        'cnpj' => $legacyCnpj,
-                        'razao' => $user->nome ?? 'Cliente sem Razão', // Fallback
-                        'email' => $user->email,
-                        'status' => 'Ativo',
-                        'data' => now(),
-                        'uf' => $user->uf ?? 'SP',
-                    ]);
-                }
-
+                // Link ONLY if company exists
                 if ($company) {
                     $user->empresa_id = $company->codigo;
                     $user->save();
-                    $user->load('empresa'); // Reload relationship
+                    $user->load('empresa');
+                    \Illuminate\Support\Facades\Log::info('Checkout Self-Heal: Linked user ' . $user->id . ' to company ' . $company->codigo);
+                } else {
+                    \Illuminate\Support\Facades\Log::warning('Checkout Self-Heal: Company NOT found for legacy CNPJ ' . $legacyCnpj);
                 }
+            } else {
+                \Illuminate\Support\Facades\Log::info('Checkout Self-Heal: No legacy CNPJ found on user ' . $user->id);
             }
         }
 
