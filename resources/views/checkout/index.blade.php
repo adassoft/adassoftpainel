@@ -76,7 +76,20 @@
                                 <i class="fas fa-check-circle mr-3 text-xl"></i>
                                 <div>
                                     <p class="font-bold">Identificado como {{ auth()->user()->nome }}</p>
-                                    <p class="text-sm">{{ auth()->user()->email }} ({{ auth()->user()->cnpj }})</p>
+                                    @php
+                                        $doc = auth()->user()->cnpj; // Pode ser CPF ou CNPJ
+                                        $cleanDoc = preg_replace('/\D/', '', $doc);
+                                        $displayDoc = $doc;
+
+                                        if (strlen($cleanDoc) === 11) {
+                                            // CPF: 123.***.***-99
+                                            $displayDoc = substr($cleanDoc, 0, 3) . '.***.***-' . substr($cleanDoc, -2);
+                                        } elseif (strlen($cleanDoc) === 14) {
+                                            // CNPJ: 12.345.678/0001-90 (Formatado)
+                                            $displayDoc = vsprintf('%d%d.%d%d%d.%d%d%d/%d%d%d%d-%d%d', str_split($cleanDoc));
+                                        }
+                                    @endphp
+                                    <p class="text-sm">{{ auth()->user()->email }} ({{ $displayDoc }})</p>
                                 </div>
                             </div>
 
