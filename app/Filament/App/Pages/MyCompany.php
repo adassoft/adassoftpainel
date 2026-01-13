@@ -48,6 +48,12 @@ class MyCompany extends Page implements HasForms
 
         if ($company) {
             $this->form->fill($company->toArray());
+
+            // Self-Heal: Link user to company if not linked yet
+            if ($user->empresa_id !== $company->codigo) {
+                $user->empresa_id = $company->codigo;
+                $user->save();
+            }
         } else {
             // Preenche com dados do user se a empresa ainda não existe
             $this->form->fill([
