@@ -143,9 +143,9 @@ begin
   tmrAnimacao.Enabled := False;
   tmrAnimacao.OnTimer := tmrAnimacaoTimer;
   
-  // 6. Timer Heartbeat (Anti-Rollback Monitoring every 15 min)
+  // 6. Timer Heartbeat (Verificação a cada 3 Horas)
   tmrHeartbeat := TTimer.Create(Self);
-  tmrHeartbeat.Interval := 900000; // 15 Minutos
+  tmrHeartbeat.Interval := 10800000; // 3 Horas (3 * 60 * 60 * 1000)
   tmrHeartbeat.OnTimer := tmrHeartbeatTimer;
   tmrHeartbeat.Enabled := True;
 end;
@@ -348,6 +348,19 @@ begin
   for var I := 0 to High(MeuShield.License.Noticias) do
     if not MeuShield.License.Noticias[I].Lida then TemNaoLida := True;
     
+  // 4. Verifica Atualização Disponível
+  if MeuShield.License.UpdateAvailable then
+  begin
+      var MsgUpdate := 'Nova Versão Disponível: ' + MeuShield.License.NovaVersao;
+      if MeuShield.License.UpdateMessage <> '' then
+         MsgUpdate := MsgUpdate + sLineBreak + sLineBreak + MeuShield.License.UpdateMessage;
+         
+      MsgUpdate := MsgUpdate + sLineBreak + sLineBreak + 'Use o atualizador para instalar.';
+      
+      // Exibe alerta (Pode usar um icone diferente ou form customizado no futuro)
+      TfrmAlert.Execute(MsgUpdate);
+  end;
+
   if TemNaoLida then
     ToggleNewsPanel(True); // Abre
 end;

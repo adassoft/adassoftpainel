@@ -456,6 +456,14 @@ class ValidationController extends Controller
             $lic = \App\Models\License::with('software')->find($validacao['licenca_id']);
             if ($lic && $lic->software) {
                 $versaoServer = trim($lic->software->versao ?? '');
+
+                // [DEBUG LOG]
+                \Illuminate\Support\Facades\Log::info("CHECK UPDATE", [
+                    'client_version' => $versaoCliente,
+                    'server_version' => $versaoServer,
+                    'result_compare' => version_compare(trim($versaoCliente ?? ''), $versaoServer, '<')
+                ]);
+
                 // Usa version_compare do PHP (ex: 3.10.15 > 3.10.14)
                 if ($versaoCliente && !empty($versaoServer) && version_compare(trim($versaoCliente), $versaoServer, '<')) {
                     $updateInfo = [
