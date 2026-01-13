@@ -242,5 +242,10 @@ class MyCompany extends Page implements HasForms
         }
 
         Notification::make()->success()->title('Sucesso!')->body('Dados da empresa salvos.')->send();
-    }
+
+        // Redirect back if applicable
+        if (session()->has('return_to_checkout')) {
+            $url = session()->pull('return_to_checkout');
+            $this->redirect($url);
+        }
 }

@@ -151,6 +151,12 @@ class CheckoutController extends Controller
 
         // If still empty or invalid length
         if (empty($user->empresa) || empty($cleanCnpj) || !in_array(strlen($cleanCnpj), [11, 14])) {
+            // Remove Self-Healing logs/logic if desired, or keep as fallback. 
+            // User requested standard flow: Redirect to fill data, then return.
+
+            // Store return URL in session or pass as query param
+            session()->put('return_to_checkout', route('checkout.pix', $planId));
+
             return redirect()->route('filament.app.pages.minha-empresa')
                 ->with('error', 'Por favor, complete/corrija seu CPF/CNPJ em "Minha Empresa" antes de prosseguir com a compra.');
         }
