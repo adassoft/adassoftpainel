@@ -124,7 +124,23 @@ class CheckoutController extends Controller
         $plan = Plano::findOrFail($planId);
         $user = auth()->user();
 
+        // Check for Company Relationship
+        if (empty($user->empresa)) {
+            // Self-Heal: Try to find company by legacy CNPJ
+            $legacyCnpj = preg_replace('/\D/', '', $user->cnpj);
+            if (!empty($legacyCnpj)) {
+                $company = \App\Models\Company::where('cnpj', $legacyCnpj)->first();
+                if ($company) {
+                    $user->empresa_id = $company->codigo;
+                    $user->save();
+                    $user->load('empresa'); // Reload relationship
+                }
+            }
+        }
+
         $cleanCnpj = empty($user->empresa?->cnpj) ? '' : preg_replace('/\D/', '', $user->empresa->cnpj);
+        
+        // If still empty or invalid length
         if (empty($user->empresa) || empty($cleanCnpj) || !in_array(strlen($cleanCnpj), [11, 14])) {
             return redirect()->route('filament.app.pages.minha-empresa')
                 ->with('error', 'Por favor, complete/corrija seu CPF/CNPJ em "Minha Empresa" antes de prosseguir com a compra.');
