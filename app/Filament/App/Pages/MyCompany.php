@@ -248,4 +248,5 @@ class MyCompany extends Page implements HasForms
             $url = session()->pull('return_to_checkout');
             $this->redirect($url);
         }
+    }
 }
