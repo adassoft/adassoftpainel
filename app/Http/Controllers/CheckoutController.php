@@ -124,9 +124,10 @@ class CheckoutController extends Controller
         $plan = Plano::findOrFail($planId);
         $user = auth()->user();
 
-        if (empty($user->empresa) || empty($user->empresa->cnpj) || strlen(preg_replace('/\D/', '', $user->empresa->cnpj)) !== 14) {
-            return redirect()->route('filament.app.pages.my-company')
-                ->with('error', 'Por favor, complete/corrija seu CNPJ em "Minha Empresa" antes de prosseguir com a compra.');
+        $cleanCnpj = empty($user->empresa?->cnpj) ? '' : preg_replace('/\D/', '', $user->empresa->cnpj);
+        if (empty($user->empresa) || empty($cleanCnpj) || !in_array(strlen($cleanCnpj), [11, 14])) {
+            return redirect()->route('filament.app.pages.minha-empresa')
+                ->with('error', 'Por favor, complete/corrija seu CPF/CNPJ em "Minha Empresa" antes de prosseguir com a compra.');
         }
 
         // 1. Identificar Revenda e Contexto (Renovação vs Novo)
