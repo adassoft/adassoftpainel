@@ -61,13 +61,15 @@
                 </div>
 
                 <div class="bg-white dark:bg-gray-800/50 p-3 rounded-lg border border-green-100 dark:border-green-800/30">
-                    <span class="block text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Empresa
-                        (Código)</span>
-                    <strong class="text-gray-900 dark:text-white">{{ $result['empresa_codigo'] ?? '-' }}</strong>
+                    <span class="block text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Empresa /
+                        Cliente</span>
+                    <strong
+                        class="text-gray-900 dark:text-white">{{ $result['empresa_razao'] ?? $result['empresa_codigo'] ?? '-' }}</strong>
                 </div>
                 <div class="bg-white dark:bg-gray-800/50 p-3 rounded-lg border border-green-100 dark:border-green-800/30">
-                    <span class="block text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Software ID</span>
-                    <strong class="text-gray-900 dark:text-white">{{ $result['software_id'] ?? '-' }}</strong>
+                    <span class="block text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Software</span>
+                    <strong
+                        class="text-gray-900 dark:text-white">{{ $result['software_nome'] ?? $result['software_id'] ?? '-' }}</strong>
                 </div>
             </div>
 

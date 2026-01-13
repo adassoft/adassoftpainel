@@ -33,6 +33,20 @@ class ValidateToken extends Page
         try {
             $cleanToken = trim($this->tokenToValidate);
             $dados = $this->validarToken($cleanToken);
+
+            // Enrich Data
+            $empresaId = $dados['empresa_codigo'] ?? null;
+            $softwareId = $dados['software_id'] ?? null;
+
+            if ($empresaId) {
+                $dados['empresa_razao'] = \App\Models\Company::where('codigo', $empresaId)->value('razao') ?? "ID {$empresaId} (Não encontrada)";
+            }
+
+            if ($softwareId) {
+                $soft = \App\Models\Software::find($softwareId);
+                $dados['software_nome'] = $soft ? "{$soft->nome_software} (v{$soft->versao})" : "ID {$softwareId}";
+            }
+
             $this->result = $dados;
 
             Notification::make()
