@@ -171,6 +171,32 @@ trait LegacyLicenseGenerator
         return json_encode($conteudo, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
+    public function validarToken(string $tokenFull): array
+    {
+        $parts = explode('.', $tokenFull);
+        if (count($parts) !== 2) {
+            throw new Exception("Formato de token inválido. Esparado paylod.assinatura");
+        }
+
+        [$encoded, $assinatura] = $parts;
+
+        // Verificar Assinatura
+        $esperado = hash_hmac('sha256', $encoded, $this->getLicenseSecret());
+        if (!hash_equals($esperado, $assinatura)) {
+            throw new Exception("Assinatura inválida! O token pode ter sido adulterado.");
+        }
+
+        // Decodificar Base64URL
+        $json = base64_decode(strtr($encoded, '-_', '+/'));
+        $payload = json_decode($json, true);
+
+        if (!$payload) {
+            throw new Exception("Erro ao decodificar carga útil do token.");
+        }
+
+        return $payload;
+    }
+
     private function serialJaExiste($serial)
     {
         return SerialHistory::where('serial_gerado', $serial)->exists();

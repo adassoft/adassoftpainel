@@ -13,10 +13,14 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use App\Traits\LegacyLicenseGenerator;
 
 class ManageTerminals extends Page implements HasForms
 {
     use InteractsWithForms;
+    use LegacyLicenseGenerator;
+
+    public $tokenToValidate = '';
 
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
     protected static ?string $navigationLabel = 'Gerenciar Terminais';
@@ -33,6 +37,43 @@ class ManageTerminals extends Page implements HasForms
     public function mount()
     {
         $this->form->fill();
+    }
+
+    public function checkToken()
+    {
+        if (empty($this->tokenToValidate)) {
+            Notification::make()->title('Informe o token.')->warning()->send();
+            return;
+        }
+
+        try {
+            $dados = $this->validarToken($this->tokenToValidate);
+
+            // Format Information
+            $serial = $dados['serial'] ?? 'N/A';
+            $validade = isset($dados['validade']) ? date('d/m/Y', strtotime($dados['validade'])) : 'N/A';
+            $terminais = $dados['terminais'] ?? '?';
+
+            $msg = "Serial: {$serial}\nValidade: {$validade}\nTerminais Permitidos: {$terminais}";
+
+            if (isset($dados['emitido_em'])) {
+                $msg .= "\nEmitido em: " . date('d/m/Y H:i', strtotime($dados['emitido_em']));
+            }
+
+            Notification::make()
+                ->title('Token Válido e Autêntico!')
+                ->body($msg)
+                ->success()
+                ->persistent()
+                ->send();
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Token Inválido')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     public function form(Form $form): Form
