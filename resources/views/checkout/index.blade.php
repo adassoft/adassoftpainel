@@ -21,10 +21,12 @@
 
                         if ($imgPathRaw) {
                             if (filter_var($imgPathRaw, FILTER_VALIDATE_URL)) {
-                                $path = parse_url($imgPathRaw, PHP_URL_PATH);
-                                $displayPath = '/' . ltrim($path, '/');
+                                $displayPath = $imgPathRaw;
                             } else {
-                                $displayPath = '/' . ltrim($imgPathRaw, '/');
+                                // Remove leading slash if present to avoid double slash issues with Storage::url depending on driver
+                                // Actually Storage::url expects relative path.
+                                // If path is 'softwares/image.png', Storage::url returns '/storage/softwares/image.png' (if public disk).
+                                $displayPath = \Illuminate\Support\Facades\Storage::url($imgPathRaw);
                             }
                         }
 
