@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\EmailLogResource\Pages;
-use App\Filament\Resources\EmailLogResource\RelationManagers;
-use App\Models\EmailLog;
+use App\Filament\Resources\MessageLogResource\Pages;
+use App\Filament\Resources\MessageLogResource\RelationManagers;
+use App\Models\MessageLog;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,37 +13,46 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class EmailLogResource extends Resource
+class MessageLogResource extends Resource
 {
-    protected static ?string $model = EmailLog::class;
+    protected static ?string $model = MessageLog::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-envelope';
-    protected static ?string $navigationLabel = 'Logs de Email';
-    protected static ?string $modelLabel = 'Log de Email';
-    protected static ?string $pluralModelLabel = 'Logs de Email';
+    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    protected static ?string $navigationLabel = 'Logs de Mensagens';
+    protected static ?string $modelLabel = 'Log de Mensagem';
+    protected static ?string $pluralModelLabel = 'Logs de Mensagens';
     protected static ?string $navigationGroup = 'Configurações';
-    protected static ?int $navigationSort = 2; // After ManageEmail
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('channel')
+                    ->label('Canal')
+                    ->disabled(),
                 Forms\Components\TextInput::make('recipient')
-                    ->label('Destinatário'),
+                    ->label('Destinatário')
+                    ->disabled(),
                 Forms\Components\TextInput::make('subject')
-                    ->label('Assunto'),
+                    ->label('Assunto')
+                    ->disabled(),
                 Forms\Components\TextInput::make('status')
-                    ->label('Status'),
+                    ->label('Status')
+                    ->disabled(),
                 Forms\Components\DateTimePicker::make('sent_at')
-                    ->label('Enviado em'),
+                    ->label('Enviado em')
+                    ->disabled(),
                 Forms\Components\Textarea::make('body')
                     ->label('Conteúdo')
                     ->columnSpanFull()
-                    ->rows(10),
+                    ->rows(10)
+                    ->disabled(),
                 Forms\Components\Textarea::make('error_message')
                     ->label('Erro')
                     ->columnSpanFull()
-                    ->visible(fn($record) => $record && $record->status === 'failed'),
+                    ->visible(fn($record) => $record && $record->status === 'failed')
+                    ->disabled(),
             ]);
     }
 
@@ -55,13 +64,23 @@ class EmailLogResource extends Resource
                     ->label('Data/Hora')
                     ->dateTime('d/m/Y H:i:s')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('channel')
+                    ->label('Canal')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'email' => 'info',
+                        'whatsapp' => 'success',
+                        'sms' => 'primary',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('recipient')
                     ->label('Destinatário')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('subject')
                     ->label('Assunto')
                     ->searchable()
-                    ->limit(50),
+                    ->limit(30),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -74,7 +93,19 @@ class EmailLogResource extends Resource
             ])
             ->defaultSort('sent_at', 'desc')
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('channel')
+                    ->label('Canal')
+                    ->options([
+                        'email' => 'Email',
+                        'whatsapp' => 'WhatsApp',
+                        'sms' => 'SMS'
+                    ]),
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'sent' => 'Enviado',
+                        'failed' => 'Falha',
+                        'pending' => 'Pendente'
+                    ]),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -96,10 +127,8 @@ class EmailLogResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListEmailLogs::route('/'),
-            // 'create' => Pages\CreateEmailLog::route('/create'), // Read Only
-            'view' => Pages\ViewEmailLog::route('/{record}'),
-            // 'edit' => Pages\EditEmailLog::route('/{record}/edit'), // Read Only
+            'index' => Pages\ListMessageLogs::route('/'),
+            'view' => Pages\ViewMessageLog::route('/{record}'),
         ];
     }
 }

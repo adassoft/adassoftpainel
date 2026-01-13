@@ -68,71 +68,98 @@ class WhatsappService
 
     public function sendMessage(array $config, string $numero, string $mensagem): array
     {
-        $numero = $this->sanitizeNumber($numero);
+        $numeroSanitizado = $this->sanitizeNumber($numero); // Avoid override argument for logging purposes
         $provider = $config['provider'] ?? 'official';
 
+        // 1. Validations
         if (!($config['enabled'] ?? false)) {
             return ['success' => false, 'error' => 'WhatsApp desabilitado'];
         }
 
-        if (!$numero) {
+        if (!$numeroSanitizado) {
+            // Log Invalid Number attempt
+            \App\Models\MessageLog::create([
+                'channel' => 'whatsapp',
+                'recipient' => $numero, // Original input
+                'subject' => 'WhatsApp Message',
+                'body' => $mensagem,
+                'status' => 'failed',
+                'error_message' => 'Número inválido / Sanitização falhou',
+                'sent_at' => now()
+            ]);
             return ['success' => false, 'error' => 'Número inválido'];
         }
+
+        $result = ['success' => false, 'error' => 'Unknown error'];
 
         try {
             // --- EVOLUTION API ---
             if ($provider === 'evolution') {
                 if (empty($config['evolution_url']) || empty($config['evolution_token'])) {
-                    return ['success' => false, 'error' => 'Configuração Evolution incompleta'];
+                    $result = ['success' => false, 'error' => 'Configuração Evolution incompleta'];
+                } else {
+                    $instance = $config['evolution_instance'] ?? 'Adassoft';
+                    $baseUrl = rtrim($config['evolution_url'], '/');
+                    $url = "{$baseUrl}/message/sendText/{$instance}";
+
+                    $response = Http::withHeaders([
+                        'apikey' => $config['evolution_token'],
+                        'Content-Type' => 'application/json'
+                    ])->post($url, [
+                                'number' => $numeroSanitizado,
+                                'text' => $mensagem,
+                            ]);
+
+                    if ($response->successful()) {
+                        $result = ['success' => true, 'response' => $response->body()];
+                    } else {
+                        $result = ['success' => false, 'error' => 'Evo Error ' . $response->status() . ': ' . $response->body()];
+                    }
                 }
-
-                $instance = $config['evolution_instance'] ?? 'Adassoft';
-                $baseUrl = rtrim($config['evolution_url'], '/');
-                $url = "{$baseUrl}/message/sendText/{$instance}";
-
-                // Formato padrão da Evolution v2 (POST /message/sendText/{instance})
-                $response = Http::withHeaders([
-                    'apikey' => $config['evolution_token'],
-                    'Content-Type' => 'application/json'
-                ])->post($url, [
-                            'number' => $numero, // Evolution geralmente aceita '5511...' sem @s.whatsapp.net na v2
-                            'text' => $mensagem,
-                            // 'delay' => 1200, // opcional
+            }
+            // --- META CLOUD API (OFFICIAL) ---
+            elseif ($provider === 'official') { // Elseif explicit to avoid running if provider matched eval but failed config
+                if (empty($config['access_token']) || empty($config['phone_number_id'])) {
+                    $result = ['success' => false, 'error' => 'Configuração Cloud API incompleta'];
+                } else {
+                    $url = 'https://graph.facebook.com/v18.0/' . urlencode($config['phone_number_id']) . '/messages';
+                    $response = Http::withToken($config['access_token'])
+                        ->post($url, [
+                            'messaging_product' => 'whatsapp',
+                            'to' => $numeroSanitizado,
+                            'type' => 'text',
+                            'text' => [
+                                'preview_url' => false,
+                                'body' => $mensagem
+                            ]
                         ]);
 
-                if ($response->successful()) {
-                    return ['success' => true, 'response' => $response->body()];
+                    if ($response->successful()) {
+                        $result = ['success' => true, 'response' => $response->body()];
+                    } else {
+                        $result = ['success' => false, 'error' => ' Meta Error ' . $response->status() . ' - ' . $response->body()];
+                    }
                 }
-                return ['success' => false, 'error' => 'Evo Error ' . $response->status() . ': ' . $response->body()];
+            } else {
+                $result = ['success' => false, 'error' => 'Provider desconhecido'];
             }
-
-            // --- META CLOUD API (OFFICIAL) ---
-            if (empty($config['access_token']) || empty($config['phone_number_id'])) {
-                return ['success' => false, 'error' => 'Configuração Cloud API incompleta'];
-            }
-
-            $url = 'https://graph.facebook.com/v18.0/' . urlencode($config['phone_number_id']) . '/messages';
-
-            $response = Http::withToken($config['access_token'])
-                ->post($url, [
-                    'messaging_product' => 'whatsapp',
-                    'to' => $numero,
-                    'type' => 'text',
-                    'text' => [
-                        'preview_url' => false,
-                        'body' => $mensagem
-                    ]
-                ]);
-
-            if ($response->successful()) {
-                return ['success' => true, 'response' => $response->body()];
-            }
-
-            return ['success' => false, 'error' => ' Meta Error ' . $response->status() . ' - ' . $response->body()];
 
         } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
+            $result = ['success' => false, 'error' => $e->getMessage()];
         }
+
+        // 2. Log Result
+        \App\Models\MessageLog::create([
+            'channel' => 'whatsapp',
+            'recipient' => $numeroSanitizado,
+            'subject' => 'WhatsApp Message',
+            'body' => $mensagem,
+            'status' => $result['success'] ? 'sent' : 'failed',
+            'error_message' => $result['success'] ? null : ($result['error'] ?? 'Erro desconhecido'),
+            'sent_at' => now()
+        ]);
+
+        return $result;
     }
 }
 

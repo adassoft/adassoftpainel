@@ -30,7 +30,8 @@ class LogEmailSent
                 $recipients[] = $address->getAddress();
             }
 
-            \App\Models\EmailLog::create([
+            \App\Models\MessageLog::create([
+                'channel' => 'email',
                 'recipient' => implode(', ', $recipients),
                 'subject' => $message->getSubject(),
                 'body' => $message->getTextBody() ?? $message->getHtmlBody(), // Capture Text first or HTML

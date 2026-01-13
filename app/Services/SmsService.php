@@ -50,18 +50,26 @@ class SmsService
                 $config['param_phone'] ?? 'phone' => $numero,
                 $config['param_message'] ?? 'message' => $mensagem,
                 'key' => $config['api_key'] ?? '',
-                // Alguns usam Bearer token, podemos melhorar depois se precisar
             ]);
 
-            if ($response->successful()) {
-                return ['success' => true, 'response' => $response->body()];
-            } else {
-                Log::error("Erro envio SMS: " . $response->body());
-                return ['success' => false, 'error' => 'HTTP ' . $response->status()];
-            }
+            $success = $response->successful();
+            $result = $success ? ['success' => true, 'response' => $response->body()] : ['success' => false, 'error' => 'HTTP ' . $response->status()];
+
         } catch (\Exception $e) {
-            Log::error("Exceção envio SMS: " . $e->getMessage());
-            return ['success' => false, 'error' => $e->getMessage()];
+            $result = ['success' => false, 'error' => $e->getMessage()];
         }
+
+        // Log SMS
+        \App\Models\MessageLog::create([
+            'channel' => 'sms',
+            'recipient' => $numero,
+            'subject' => 'SMS Notification',
+            'body' => $mensagem,
+            'status' => $result['success'] ? 'sent' : 'failed',
+            'error_message' => $result['success'] ? null : ($result['error'] ?? 'Erro desconhecido'),
+            'sent_at' => now()
+        ]);
+
+        return $result;
     }
 }

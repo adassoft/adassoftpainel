@@ -225,7 +225,9 @@ class ManageEmail extends Page implements HasForms
             $mailer->send($email);
 
             // Log Manual do Teste
-            \App\Models\EmailLog::create([
+            // Log Manual do Teste
+            \App\Models\MessageLog::create([
+                'channel' => 'email',
                 'recipient' => $data['teste_destino'],
                 'subject' => $data['teste_assunto'],
                 'body' => $data['teste_mensagem'],
