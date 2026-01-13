@@ -476,8 +476,8 @@
                                 class="text-reset text-decoration-none hover-white">Central de Ajuda</a></li>
                         <li class="mb-2"><a href="{{ route('partners.index') }}"
                                 class="text-reset text-decoration-none hover-white">Seja Parceiro</a></li>
-                        <li class="mb-2"><a href="{{ url('/login') }}"
-                                class="text-reset text-decoration-none hover-white">Login</a></li>
+                        <li class="mb-2"><a href="{{ url('/app/login') }}"
+                                class="text-reset text-decoration-none hover-white">Área do Cliente</a></li>
                     </ul>
                 </div>
 
