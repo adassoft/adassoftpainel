@@ -38,45 +38,45 @@ class ManageNotifications extends Page implements HasForms
     {
         return $form
             ->schema([
-                Section::make('Notificações para cobranças antes do vencimento')
+                Section::make('Notificações de Vencimento (Licenças e Mensalidades)')
                     ->schema([
                         $this->makeNotificationRow(
                             'new_invoice',
-                            'Avisar criação de novas cobranças',
-                            'Esta mensagem será enviada quando você gerar novas cobranças.'
+                            'Avisar criação de novas assinaturas/licenças',
+                            'Esta mensagem será enviada quando uma nova licença ou assinatura for gerada.'
                         ),
 
                         $this->makeNotificationRow(
                             'invoice_changed',
-                            'Avisar alteração no valor ou data de vencimento',
-                            'Esta mensagem será enviada quando você alterar a data de vencimento ou o valor das cobranças.'
+                            'Avisar alteração de vencimento',
+                            'Esta mensagem será enviada se você alterar a data de expiração de uma licença manualmente.'
                         ),
 
                         $this->makeDaysBeforeRow(
                             'days_before_due',
-                            'Enviar cobranças %s dias antes do vencimento',
-                            'Esta mensagem será enviada quando faltar X dias para o vencimento das cobranças.'
+                            'Avisar vencimento %s dias antes',
+                            'Alerta antecipado avisando que a licença irá expirar em X dias.'
                         ),
 
                         $this->makeNotificationRow(
                             'due_date',
-                            'Enviar cobranças pendentes no dia do vencimento',
-                            'Esta mensagem será enviada na data de vencimento da cobrança caso o seu cliente ainda não a tenha pago.'
+                            'Avisar no dia do vencimento',
+                            'Mensagem enviada no dia exato que a licença expira.'
                         ),
 
                         $this->makeNotificationRow(
                             'digital_line',
-                            'Enviar linha digitável do boleto caso o cliente não o tenha impresso',
-                            'Esta mensagem será enviada na data de vencimento do boleto caso o seu cliente ainda não o tenha impresso.'
+                            'Enviar código PIX/Boleto pendente',
+                            'Caso haja pagamento pendente (Asaas), reenvia o código no dia do vencimento.'
                         ),
                     ]),
 
-                Section::make('Notificações para cobranças vencidas')
+                Section::make('Notificações de Atraso (Pós-Vencimento)')
                     ->schema([
                         $this->makeNotificationRow(
                             'overdue',
-                            'Avisar cobrança vencida',
-                            'Esta mensagem será enviada quando uma cobrança estiver vencida.'
+                            'Avisar licença expirada / vencida',
+                            'Mensagem enviada após a data de expiração da licença.'
                         ),
                     ])
             ])
