@@ -88,8 +88,22 @@
                                             // CNPJ: 12.345.678/0001-90 (Formatado)
                                             $displayDoc = vsprintf('%d%d.%d%d%d.%d%d%d/%d%d%d%d-%d%d', str_split($cleanDoc));
                                         }
+
+                                        // Email Masking: a***@domain.com
+                                        $email = auth()->user()->email;
+                                        $parts = explode('@', $email);
+                                        if (count($parts) == 2) {
+                                            $name = $parts[0];
+                                            $domain = $parts[1];
+                                            $visibleLen = min(3, strlen($name) - 1);
+                                            // Se nome for muito curto (ex: a@b.com), exibe 1 char. Se for 'joao', exibe 'joa***'
+                                            $visibleName = substr($name, 0, max(1, $visibleLen));
+                                            $displayEmail = $visibleName . '***@' . $domain;
+                                        } else {
+                                            $displayEmail = $email;
+                                        }
                                     @endphp
-                                    <p class="text-sm">{{ auth()->user()->email }} ({{ $displayDoc }})</p>
+                                    <p class="text-sm">{{ $displayEmail }} ({{ $displayDoc }})</p>
                                 </div>
                             </div>
 
