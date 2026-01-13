@@ -170,7 +170,7 @@ begin
     begin
       ShowMessage('Licenca necessaria para continuar.');
       Application.Terminate;
-    end;
+    end
   end;
   Timer2.Enabled := True;
 end;

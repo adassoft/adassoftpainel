@@ -320,6 +320,12 @@ end;
 procedure TForm1.Timer2Timer(Sender: TObject);
 begin
   Timer2.Enabled := False;
+  
+  // DEBUG FORÇADO
+  if MeuShield.License.UpdateAvailable then
+     ShowMessage('TIMER2: UpdateAvailable = TRUE. Versao: ' + MeuShield.License.NovaVersao)
+  else
+     ShowMessage('TIMER2: UpdateAvailable = FALSE');
 
   if MeuShield.License.AvisoMensagem <> '' then
   begin

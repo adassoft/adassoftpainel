@@ -449,7 +449,6 @@ class ValidationController extends Controller
 
 
         // --- CHECK DE ATUALIZAÇÃO ---
-        $updateInfo = null;
         $versaoCliente = $request->input('versao_software');
 
         if (!empty($validacao['licenca_id'])) {
@@ -466,7 +465,8 @@ class ValidationController extends Controller
 
                 // Usa version_compare do PHP (ex: 3.10.15 > 3.10.14)
                 if ($versaoCliente && !empty($versaoServer) && version_compare(trim($versaoCliente), $versaoServer, '<')) {
-                    $updateInfo = [
+                    // INJECT INSIDE VALIDACAO
+                    $validacao['update'] = [
                         'disponivel' => true,
                         'nova_versao' => $versaoServer,
                         'mensagem' => "A versão {$versaoServer} já está disponível.",
@@ -479,7 +479,6 @@ class ValidationController extends Controller
         return response()->json([
             'success' => true,
             'validacao' => $validacao,
-            'update' => $updateInfo,
             'timestamp' => now()->toDateTimeString()
         ]);
     }
