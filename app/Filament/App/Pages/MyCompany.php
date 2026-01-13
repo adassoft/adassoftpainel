@@ -64,7 +64,8 @@ class MyCompany extends Page implements HasForms
                 Section::make('⚠️ Atualização Necessária')
                     ->description('Devido à implantação do novo sistema de licenças, é necessário que seus dados cadastrais (CPF/CNPJ) estejam corretos e vinculados.')
                     ->schema([])
-                    ->color('warning')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->iconColor('warning')
                     ->collapsible(),
 
                 Section::make('Informações Cadastrais')
