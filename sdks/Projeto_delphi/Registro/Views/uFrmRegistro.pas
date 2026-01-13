@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.UITypes,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.UITypes, Vcl.Clipbrd,
   Shield.Core, Shield.Types;
 
 type
@@ -46,8 +46,10 @@ type
     procedure btnAtivarClick(Sender: TObject);
     procedure btnDesvincularClick(Sender: TObject);
     procedure lblEsqueciSenhaClick(Sender: TObject);
+
     procedure lblCriarContaClick(Sender: TObject);
     procedure btnComprarClick(Sender: TObject);
+    procedure lblInstalacaoIDClick(Sender: TObject);
   private
     FShield: TShield;
     procedure AtualizarUI;
@@ -87,6 +89,11 @@ begin
   lblEsqueciSenha.Cursor := crHandPoint;
   lblEsqueciSenha.Font.Style := [fsUnderline];
   lblEsqueciSenha.Font.Color := clBlue;
+  
+  lblInstalacaoID.Cursor := crHandPoint;
+  lblInstalacaoID.ShowHint := True;
+  lblInstalacaoID.Hint := 'Clique para copiar o código';
+  lblInstalacaoID.OnClick := lblInstalacaoIDClick;
 end;
 
 procedure TfrmRegistro.AtualizarUI;
@@ -249,6 +256,15 @@ begin
     FShield.CheckLicense;
     AtualizarUI;
   end;
+end;
+
+procedure TfrmRegistro.lblInstalacaoIDClick(Sender: TObject);
+var
+  Code: string;
+begin
+  Code := FShield.GetMachineFingerprint;
+  Clipboard.AsText := Code;
+  ShowMessage('Código de Instalação copiado para a área de transferência!' + #13#10 + Code);
 end;
 
 end.

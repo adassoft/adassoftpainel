@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.UITypes,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, System.UITypes, Vcl.Clipbrd,
   Shield.Core, Shield.Types;
 
 type
@@ -41,14 +41,15 @@ type
     LabelInfo: TLabel;
     LabelInfo2: TLabel;
     btnCriarConta: TButton;
-    Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure btnFecharClick(Sender: TObject);
     procedure btnAtivarClick(Sender: TObject);
     procedure btnDesvincularClick(Sender: TObject);
     procedure lblEsqueciSenhaClick(Sender: TObject);
+
     procedure lblCriarContaClick(Sender: TObject);
     procedure btnComprarClick(Sender: TObject);
+    procedure lblInstalacaoIDClick(Sender: TObject);
   private
     FShield: TShield;
     procedure AtualizarUI;
@@ -88,6 +89,11 @@ begin
   lblEsqueciSenha.Cursor := crHandPoint;
   lblEsqueciSenha.Font.Style := [fsUnderline];
   lblEsqueciSenha.Font.Color := clBlue;
+  
+  lblInstalacaoID.Cursor := crHandPoint;
+  lblInstalacaoID.ShowHint := True;
+  lblInstalacaoID.Hint := 'Clique para copiar o código';
+  lblInstalacaoID.OnClick := lblInstalacaoIDClick;
 end;
 
 procedure TfrmRegistro.AtualizarUI;
@@ -95,7 +101,7 @@ var
   Info: TLicenseInfo;
   Hoje: TDateTime;
 begin
-  lblInstalacaoID.Caption := 'Código da Instalação: ' + FShield.GetMachineFingerprint;
+  lblInstalacaoID.Caption := 'Instalação: ' + FShield.GetMachineFingerprint;
   Info := FShield.License;
   
   if Info.IsValid or (Info.Serial <> '') then
@@ -111,7 +117,6 @@ begin
     else
     begin
       lblStatusTexto.Caption := 'Status: EXPIRADO / INVÁLIDO (' + Info.Mensagem + ')';
-      Memo1.Lines.Add(Info.Mensagem);
       SetStatusColor(False);
     end;
     
@@ -241,7 +246,7 @@ end;
 
 procedure TfrmRegistro.lblEsqueciSenhaClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', 'https://express.adassoft.com/forgot-password.html', nil, nil, SW_SHOWNORMAL);
+  ShellExecute(0, 'open', 'https://adassoft.com/app/password-reset/request', nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TfrmRegistro.lblCriarContaClick(Sender: TObject);
@@ -251,6 +256,15 @@ begin
     FShield.CheckLicense;
     AtualizarUI;
   end;
+end;
+
+procedure TfrmRegistro.lblInstalacaoIDClick(Sender: TObject);
+var
+  Code: string;
+begin
+  Code := FShield.GetMachineFingerprint;
+  Clipboard.AsText := Code;
+  ShowMessage('Código de Instalação copiado para a área de transferência!' + #13#10 + Code);
 end;
 
 end.

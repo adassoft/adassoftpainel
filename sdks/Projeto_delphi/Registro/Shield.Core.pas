@@ -37,7 +37,11 @@ type
     // Renovação e Pagamento
     function GetAvailablePlans: TPlanArray;
     function CheckoutPlan(const PlanId: Integer): TPaymentInfo;
+
     function CheckPaymentStatus(const TransactionId: string): string;
+
+    // Heartbeat Monitor
+    procedure RegisterActivity;
     
     // Propriedades
     property License: TLicenseInfo read FLicense;
@@ -77,8 +81,58 @@ end;
 
 destructor TShield.Destroy;
 begin
+  if FIsInitialized then
+    SaveCache; // Salva estado ao fechar (Anti-Rollback)
+    
   FAPI.Free;
   inherited;
+end;
+
+procedure TShield.RegisterActivity;
+begin
+  // 1. Verificação Local (Anti-Rollback e Validade Básica)
+  if FLicense.Status = stValid then
+  begin
+    if (FLicense.DataExpiracao > 0) and (Now > FLicense.DataExpiracao) then
+    begin
+       FLicense.Status := stExpired;
+       FLicense.Mensagem := 'Licença expirada durante o uso.';
+    end
+    else
+    begin
+       FLicense.UltimaVerificacao := Now;
+    end;
+    SaveCache;
+  end;
+
+  // 2. Verificação Online Silenciosa (Heartbeat)
+  // Tenta conectar. Se conseguir e disser que está inválido, bloqueia.
+  // Se der erro de conexão, ignora e mantêm o cache local.
+  TThread.CreateAnonymousThread(procedure
+  begin
+    try
+      // CheckLicense interno já faz a chamada e atualiza FLicense.Status
+      // Precisamos tomar cuidado para não sobrescrever um status stValid local com stOfflineError
+      // Então vamos fazer uma chamada manual para não alterar o estado em caso de falha de rede
+      var TempShield: TShield;
+      var TempConfig: TShieldConfig;
+      
+      // Maneira simplificada: Usar o próprio CheckLicense, mas tratando exceções
+      // O CheckLicense atual já tem fallback para cache.
+      // Se ele retornar False, significa que ou expirou, ou foi bloqueado, ou o cache sumiu.
+      try
+         TThread.Synchronize(nil, procedure
+         begin
+            CheckLicense; // Chamada síncrona na thread principal para evitar conflito de memória
+         end);
+      except
+        // Ignora erros de conexão no heartbeat
+      end;
+      
+    except
+      // Engole exceções gerais de thread
+    end;
+  end).Start;
 end;
 
 function TShield.GetCachePath: string;
@@ -163,6 +217,34 @@ begin
                FLicense.Noticias[I].DataPublicacao := ISO8601ToDate(NItem.GetValue('data').Value);
          end;
       end;
+      
+      // Recupera Última Verificação (Anti-Rollback)
+      if Obj.GetValue('ultima_verificacao') <> nil then
+        FLicense.UltimaVerificacao := ISO8601ToDate(Obj.GetValue('ultima_verificacao').Value);
+
+      // [FIX] Validar Status OFFLINE baseado no Cache carregado e Anti-Tamper
+      if (FLicense.Serial <> '') and (FSession.Token <> '') then
+      begin
+        // 1. Verifica Validade Temporal
+        if (FLicense.DataExpiracao > 0) and (FLicense.DataExpiracao < Now) then
+        begin
+          FLicense.Status := stExpired;
+          FLicense.Mensagem := 'Licença expirada (Cache).';
+        end
+        // 2. Verifica Relógio Voltado (Anti-Tamper - 10 min tolerância)
+        else if (FLicense.UltimaVerificacao > 0) and (Now < (FLicense.UltimaVerificacao - (10.0 / 1440.0))) then
+        begin
+          FLicense.Status := stInvalid;
+          FLicense.Mensagem := 'Inconsistência de data rigorosa detectada. Horário do sistema retroagiu.';
+        end
+        else
+        begin
+          FLicense.Status := stValid;
+          // Se horário atual for maior, atualiza.
+          if Now > FLicense.UltimaVerificacao then
+             FLicense.UltimaVerificacao := Now;
+        end;
+      end;
 
     finally
       Obj.Free;
@@ -204,6 +286,10 @@ begin
       
     if FLicense.AvisoMensagem <> '' then
       Obj.AddPair('aviso_licenca', FLicense.AvisoMensagem);
+      
+    // Salva Anti-Tamper timestamp
+    if FLicense.UltimaVerificacao > 0 then
+      Obj.AddPair('ultima_verificacao', DateToISO8601(FLicense.UltimaVerificacao));
       
     // Salvar array de Noticias
     if Length(FLicense.Noticias) > 0 then
@@ -324,29 +410,56 @@ begin
       
     Payload.AddPair('codigo_instalacao', GetMachineFingerprint);
 
-    Resp := FAPI.PostRequest('validar_serial', Payload);
     try
-      if Resp.GetValue('validacao') <> nil then
-        ProcessApiResponse(Resp)
-      else 
-      begin
-         // Se nao veio validacao, verifica se tem erro explicito
-         if Resp.GetValue('error') <> nil then
-           FLicense.Mensagem := Resp.GetValue('error').Value
-         else if Resp.GetValue('mensagem') <> nil then
-           FLicense.Mensagem := Resp.GetValue('mensagem').Value
-         else if Resp.GetValue('message') <> nil then
-           FLicense.Mensagem := Resp.GetValue('message').Value;
-           
-         if FLicense.Mensagem <> '' then
-           FLicense.Status := stInvalid;  
-      end;
+      // Tenta Online
+      Resp := FAPI.PostRequest('validar_serial', Payload);
+      try
+        // Verifica se a API retornou erro explícito (ex: API Key Bloqueada, Software Inativo)
+        if (Resp.GetValue('error') <> nil) or 
+           ((Resp.GetValue('success') <> nil) and (Resp.GetValue('success') is TJSONBool) and not Resp.GetValue<TJSONBool>('success').AsBoolean) then
+        begin
+             // Se o servidor respondeu com ERRO, derruba a licença imediatamente.
+             FLicense.Status := stInvalid;
+             if Resp.GetValue('message') <> nil then
+                FLicense.Mensagem := Resp.GetValue('message').Value
+             else if Resp.GetValue('error') <> nil then
+                FLicense.Mensagem := Resp.GetValue('error').Value
+             else
+                FLicense.Mensagem := 'Licença ou Chave de Acesso bloqueada pelo servidor.';
+        end
+        else if Resp.GetValue('validacao') <> nil then
+        begin
+           // Resposta padrão de sucesso/validação
+           ProcessApiResponse(Resp);
+        end;
+          
+        Result := FLicense.IsValid;
         
-      Result := FLicense.IsValid;
-      SaveCache;
-    finally
-      Resp.Free;
+        if Result then
+           FLicense.UltimaVerificacao := Now;
+           
+        SaveCache;
+      finally
+        Resp.Free;
+      end;
+    except
+      on E: Exception do
+      begin
+        // [FIX] Falha de Rede -> Fallback para Cache Local
+        // Apenas se for erro de REDE (Exception). Erro de Lógica/Bloqueio (API Key) cai no if acima.
+        if FLicense.Status = stValid then
+        begin
+             // Mantém validade do cache
+        end
+        else
+        begin
+          FLicense.Status := stOfflineError;
+          FLicense.Mensagem := 'Sem conexão e sem licença válida em cache. (' + E.Message + ')';
+        end;
+      end;
     end;
+    
+    Result := FLicense.IsValid;
   finally
     Payload.Free;
   end;
@@ -449,6 +562,28 @@ begin
     FLicense.AvisoMensagem := ValObj.GetValue('aviso_licenca').Value
   else
     FLicense.AvisoMensagem := '';
+
+  // [UPDATE] Check Nova Versão
+  if ValObj.GetValue('update') <> nil then
+  begin
+    var UpdateObj := ValObj.GetValue('update');
+    // Em Delphi 10.3+ GetValue pode retornar TJSONValue que precisa de cast seguro
+    if (UpdateObj <> nil) and (UpdateObj is TJSONObject) then
+    begin
+       var JUpd := TJSONObject(UpdateObj);
+       if JUpd.GetValue('disponivel') <> nil then
+          FLicense.UpdateAvailable := JUpd.GetValue<TJSONBool>('disponivel').AsBoolean;
+       
+       if FLicense.UpdateAvailable then
+       begin
+           if JUpd.GetValue('nova_versao') <> nil then
+              FLicense.NovaVersao := JUpd.GetValue('nova_versao').Value;
+           
+           if JUpd.GetValue('mensagem') <> nil then
+              FLicense.UpdateMessage := JUpd.GetValue('mensagem').Value;
+       end;
+    end;
+  end;
 
   // Parse Noticias
   if ValObj.GetValue('noticias') <> nil then

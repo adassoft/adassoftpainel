@@ -194,7 +194,7 @@ class LicenseService
         return ['valido' => true, 'payload' => $payload];
     }
 
-    public function validateSerialFull(string $serial): array
+    public function validateSerialFull(string $serial, ?int $reqSoftwareId = null): array
     {
         // 1. Busca Histórico
         $history = SerialHistory::where('serial_gerado', $serial)->first();
@@ -210,6 +210,11 @@ class LicenseService
         $license = License::where('serial_atual', $serial)->first();
         if (!$license) {
             return ['valido' => false, 'erro' => 'Licença não vinculada a este serial'];
+        }
+
+        // Validação Cruzada: Serial x Software ID Solicitado (API Key Context)
+        if ($reqSoftwareId && (int) $license->software_id !== (int) $reqSoftwareId) {
+            return ['valido' => false, 'erro' => 'Este serial não pertence ao software que está solicitando a validação.'];
         }
 
         if ($license->status !== 'ativo') {

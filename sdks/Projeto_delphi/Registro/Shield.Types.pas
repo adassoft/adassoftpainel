@@ -39,6 +39,13 @@ type
     DataExpiracao: TDateTime;
 
     DiasRestantes: Integer;
+    UltimaVerificacao: TDateTime; // [ANTI-FRAUDE] Monitorar volta no tempo
+    
+    // [UPDATE] Atualização
+    UpdateAvailable: Boolean;
+    NovaVersao: string;
+    UpdateMessage: string;
+
     Status: TShieldStatus;
     Mensagem: string;
     AvisoMensagem: string;
@@ -104,6 +111,11 @@ begin
   Status := stUnchecked;
   Mensagem := '';
   AvisoMensagem := '';
+  
+  UpdateAvailable := False;
+  NovaVersao := '';
+  UpdateMessage := '';
+  
   SetLength(Noticias, 0);
 end;
 

@@ -42,12 +42,14 @@ object frmRegistro: TfrmRegistro
       Alignment = taRightJustify
       AutoSize = False
       Caption = 'C'#243'digo da Instala'#231#227'o: ...'
+      Cursor = crHandPoint
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 33023
       Font.Height = -12
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
+      OnClick = lblInstalacaoIDClick
     end
     object Label1: TLabel
       Left = 16

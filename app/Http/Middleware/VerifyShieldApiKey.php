@@ -51,6 +51,52 @@ class VerifyShieldApiKey
             ], 401);
         }
 
+        // Validação de Vínculo com Software (CRÍTICO)
+        $reqSoftwareId = $request->input('software_id');
+        if ($apiKeyRecord->software_id && $reqSoftwareId) {
+            if ((int) $apiKeyRecord->software_id !== (int) $reqSoftwareId) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Esta API Key não pertence ao software informado.',
+                    'code' => 'SOFTWARE_MISMATCH'
+                ], 403);
+            }
+        }
+
+        // Verifica se o Software em si está ativo (se houver software vinculado)
+        if ($apiKeyRecord->software) {
+            // 1. Status do Software
+            if (strtolower($apiKeyRecord->software->status ?? '') === 'inativo') {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'O software vinculado a esta chave foi descontinuado ou está inativo.',
+                    'code' => 'SOFTWARE_INACTIVE'
+                ], 403);
+            }
+
+            // 2. Validação RIGOROSA de Versão (REMOVIDO: Para permitir updates de patch/minor sem trocar Key)
+            /*
+            $reqVersao = $request->input('versao_software');
+            // Apenas valida se o client enviou a versão (para não quebrar chamadas antigas sem versão, se houver)
+            if ($reqVersao && !empty($apiKeyRecord->software->versao)) {
+                // Normaliza para comparação (trim)
+                $vCadastro = trim($apiKeyRecord->software->versao);
+                $vClient = trim($reqVersao);
+
+                // Compara Strings (Ex: '4.0' != '5.0')
+                if ($vCadastro !== $vClient) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => "Versão incompatível. A chave utilizada pertence à versão {$vCadastro}, mas o software é {$vClient}. Atualize sua chave ou software.",
+                        'code' => 'VERSION_MISMATCH',
+                        'expected' => $vCadastro,
+                        'received' => $vClient
+                    ], 403);
+                }
+            }
+            */
+        }
+
         // Atualizar métricas de uso (opcional, pode ser async)
         $apiKeyRecord->increment('use_count');
         $apiKeyRecord->update(['last_used_at' => now()]);

@@ -35,19 +35,21 @@ object frmRegistro: TfrmRegistro
     ParentBackground = False
     TabOrder = 0
     object lblInstalacaoID: TLabel
-      Left = 248
+      Left = 83
       Top = 13
-      Width = 236
+      Width = 401
       Height = 15
+      Cursor = crHandPoint
       Alignment = taRightJustify
       AutoSize = False
-      Caption = 'C'#243'digo da Instala'#231#227'o: ...'
+      Caption = 'Instala'#231#227'o: ...'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 33023
       Font.Height = -12
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
+      OnClick = lblInstalacaoIDClick
     end
     object Label1: TLabel
       Left = 16
@@ -228,10 +230,10 @@ object frmRegistro: TfrmRegistro
     TabOrder = 2
     Visible = False
     object lblStatusTexto: TLabel
-      Left = 8
-      Top = 38
-      Width = 476
-      Height = 18
+      Left = 144
+      Top = 46
+      Width = 249
+      Height = 17
       Alignment = taCenter
       AutoSize = False
       Caption = 'Status: ATIVO'
@@ -310,15 +312,6 @@ object frmRegistro: TfrmRegistro
       Width = 299
       Height = 15
       TabOrder = 2
-    end
-    object Memo1: TMemo
-      Left = 8
-      Top = 175
-      Width = 483
-      Height = 210
-      Lines.Strings = (
-        'Memo1')
-      TabOrder = 3
     end
   end
   object pnlFooter: TPanel

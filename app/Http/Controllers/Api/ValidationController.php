@@ -400,7 +400,9 @@ class ValidationController extends Controller
             throw new Exception('Serial é obrigatório.');
         }
 
-        $validacao = $this->licenseService->validateSerialFull($serial);
+        $softwareId = $request->input('software_id'); // Validado pelo Middleware
+
+        $validacao = $this->licenseService->validateSerialFull($serial, $softwareId);
 
         \Illuminate\Support\Facades\Log::info("DEBUG VALIDAR_SERIAL", [
             'serial' => $serial,
@@ -446,9 +448,30 @@ class ValidationController extends Controller
 
 
 
+        // --- CHECK DE ATUALIZAÇÃO ---
+        $updateInfo = null;
+        $versaoCliente = $request->input('versao_software');
+
+        if (!empty($validacao['licenca_id'])) {
+            $lic = \App\Models\License::with('software')->find($validacao['licenca_id']);
+            if ($lic && $lic->software) {
+                $versaoServer = trim($lic->software->versao ?? '');
+                // Usa version_compare do PHP (ex: 3.10.15 > 3.10.14)
+                if ($versaoCliente && !empty($versaoServer) && version_compare(trim($versaoCliente), $versaoServer, '<')) {
+                    $updateInfo = [
+                        'disponivel' => true,
+                        'nova_versao' => $versaoServer,
+                        'mensagem' => "A versão {$versaoServer} já está disponível.",
+                        'prioridade' => 'normal'
+                    ];
+                }
+            }
+        }
+
         return response()->json([
             'success' => true,
             'validacao' => $validacao,
+            'update' => $updateInfo,
             'timestamp' => now()->toDateTimeString()
         ]);
     }
