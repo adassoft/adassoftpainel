@@ -3,24 +3,8 @@
     <x-filament-panels::form>
         {{ $this->form }}
     </x-filament-panels::form>
-
-    <!-- Validar Token -->
-    <div class="mt-6 mb-2 p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Validar Token (Offline/Seguro)</label>
-        <div class="flex gap-2">
-            <input 
-                type="text" 
-                wire:model="tokenToValidate" 
-                placeholder="Cole o token completo aqui (ex: eyJ...)" 
-                class="flex-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-primary-500 sm:text-sm"
-            >
-            <x-filament::button wire:click="checkToken" icon="heroicon-m-check-badge">
-                Verificar
-            </x-filament::button>
-        </div>
-    </div>
     
-    <div class="space-y-6 mt-4">
+    <div class="space-y-6 mt-6">
         @forelse($licencas as $licenca)
             <div class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
                 <!-- Header do Card -->
