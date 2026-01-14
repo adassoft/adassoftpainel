@@ -33,11 +33,11 @@ class MessageCampaignResource extends Resource
                             ->label('Identificação da Campanha')
                             ->required()
                             ->maxLength(255),
-                        \Filament\Forms\Components\Textarea::make('message')
+                        \Filament\Forms\Components\RichEditor::make('message')
                             ->label('Conteúdo da Mensagem')
                             ->helperText('Variáveis disponíveis: {name}, {first_name}, {company}, {software}')
-                            ->rows(5)
-                            ->required(),
+                            ->required()
+                            ->columnSpanFull(),
                         \Filament\Forms\Components\CheckboxList::make('channels')
                             ->label('Canais de Envio')
                             ->options([

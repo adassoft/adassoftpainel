@@ -37,8 +37,23 @@ class SendCampaignMessageJob implements ShouldQueue
         ];
 
         // Mensagem Base
-        $messageBody = $this->campaign->message;
-        $formattedMessage = str_replace(array_keys($vars), array_values($vars), $messageBody);
+        $rawMessage = $this->campaign->message;
+
+        // Versão HTML (Para Email)
+        $htmlMessage = str_replace(array_keys($vars), array_values($vars), $rawMessage);
+
+        // Versão Texto (Para Zap/SMS) - Converter HTML em Texto
+        // Substitui quebras visuais por quebras reais
+        $textOnly = str_replace(['<br>', '<br/>', '<br />', '</p>'], "\n", $rawMessage);
+        // Remove todo o restante de tags
+        $textOnly = strip_tags($textOnly);
+        // Decodifica &nbsp; e outros
+        $textOnly = html_entity_decode($textOnly);
+        // Aplica variáveis
+        $textMessage = str_replace(array_keys($vars), array_values($vars), $textOnly);
+        // Remove excesso de linhas em branco do strip_tags
+        $textMessage = preg_replace("/\n\s*\n\s*\n/", "\n\n", $textMessage);
+        $textMessage = trim($textMessage);
 
         // Extrair Contatos
         $phone = $company->fone;
@@ -56,11 +71,11 @@ class SendCampaignMessageJob implements ShouldQueue
 
                 $waService = new \App\Services\WhatsappService();
                 $waConfig = $waService->loadConfig();
-                $waService->sendMessage($waConfig, $cleanPhone, $formattedMessage);
-                // Service already logs outcome
+                $waService->sendMessage($waConfig, $cleanPhone, $textMessage);
+                // Service logs outcome
             } catch (\Exception $e) {
                 // Log failure only if service threw exception outside its try-catch
-                $this->logMessage('whatsapp', $phone, $formattedMessage, 'failed', $e->getMessage());
+                $this->logMessage('whatsapp', $phone, $textMessage, 'failed', $e->getMessage());
             }
         }
 
@@ -74,42 +89,30 @@ class SendCampaignMessageJob implements ShouldQueue
 
                 $smsService = new \App\Services\SmsService();
                 $smsConfig = $smsService->loadConfig();
-                $smsService->sendSms($smsConfig, $cleanPhone, $formattedMessage);
-                // Service already logs outcome
+                $smsService->sendSms($smsConfig, $cleanPhone, $textMessage);
+                // Service logs outcome
             } catch (\Exception $e) {
-                $this->logMessage('sms', $phone, $formattedMessage, 'failed', $e->getMessage());
+                $this->logMessage('sms', $phone, $textMessage, 'failed', $e->getMessage());
             }
         }
 
         // --- Email ---
         if (in_array('email', $channels) && $email) {
             try {
-                \Illuminate\Support\Facades\Mail::raw($formattedMessage, function ($msg) use ($email) {
+                // Usa Mail::html para enviar conteúdo rico
+                \Illuminate\Support\Facades\Mail::html($htmlMessage, function ($msg) use ($email) {
                     $msg->to($email)
                         ->subject($this->campaign->title);
                 });
 
-                // Email doesn't log automatically unless event listener catches it.
-                // We have LogEmailSent listener, so it might duplicate if we log here?
-                // LogEmailSent logs the *event*.
-                // Let's rely on listener if it exists, or safe log here?
-                // To be consistent with "Campaign", let's trust the unified log system.
-                // But wait, the unified listener logs generic emails.
-                // It's safer to not log duplicate here if listener is active.
-                // Assuming listener is active:
-                // \App\Listeners\LogEmailSent IS active in AppServiceProvider.
-
             } catch (\Exception $e) {
-                $this->logMessage('email', $email, $formattedMessage, 'failed', $e->getMessage());
+                $this->logMessage('email', $email, $htmlMessage, 'failed', $e->getMessage());
             }
         }
 
         // Atualiza Contador
-        // Use increment safely
         $this->campaign->increment('processed_count');
 
-        // Checagem de Conclusão (apenas uma estimativa, pois jobs são assíncronos)
-        // Se processed >= total, marca como completo.
         if ($this->campaign->processed_count >= $this->campaign->total_targets) {
             $this->campaign->update(['status' => 'completed']);
         }
