@@ -7,7 +7,7 @@
             Soluções recomendadas para complementar seu portfólio.
         </x-slot>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @foreach($softwares as $sw)
                 <div
                     class="group relative flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 overflow-hidden h-full">
@@ -23,9 +23,13 @@
                     {{-- Image Area --}}
                     <div
                         class="h-48 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center relative overflow-hidden">
-                        @if($sw->imagem)
+                        @php
+                            // Prioritize imagem_destaque (Banner) over imagem (Icon)
+                            $imgSrc = $sw->imagem_destaque ?? $sw->imagem;
+                        @endphp
+
+                        @if($imgSrc)
                             @php
-                                $imgSrc = $sw->imagem;
                                 if (!filter_var($imgSrc, FILTER_VALIDATE_URL)) {
                                     $imgSrc = \Illuminate\Support\Facades\Storage::url($imgSrc);
                                 }
