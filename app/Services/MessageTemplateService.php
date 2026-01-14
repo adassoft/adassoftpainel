@@ -106,6 +106,35 @@ class MessageTemplateService
                 '{id}' => $model->id,
             ];
         } elseif ($model instanceof \App\Models\License) {
+
+            // Definição do LINK (Lógica de Revenda White-Label)
+            $link = 'https://painel.adassoft.com/meus-produtos'; // Default
+
+            if ($model->revenda) {
+                // Tenta encontrar a configuração desta revenda
+                // A revenda é uma Company. Precisamos achar um User dessa Company que tenha ResellerConfig.
+                // Geralmente o dono. Pegamos qualquer config ativa dessa empresa.
+                $resellerConfig = \App\Models\ResellerConfig::whereHas('user', function ($q) use ($model) {
+                    $q->where('empresa_id', $model->revenda->codigo);
+                })->where('ativo', true)->first();
+
+                if ($resellerConfig && !empty($resellerConfig->dominios)) {
+                    // Pega o primeiro domínio se for lista (ex: "site.com, painel.site.com")
+                    $domains = explode(',', $resellerConfig->dominios);
+                    $domain = trim($domains[0]);
+
+                    // Garante protocolo
+                    if (!str_starts_with($domain, 'http')) {
+                        $domain = 'https://' . $domain;
+                    }
+
+                    // Remove barra final se houver
+                    $domain = rtrim($domain, '/');
+
+                    $link = "{$domain}/meus-produtos";
+                }
+            }
+
             $vars = [
                 '{name}' => $model->company->razao ?? 'Cliente',
                 '{first_name}' => $model->company->razao ?? 'Cliente', // Na licença, name é empresa
@@ -114,7 +143,7 @@ class MessageTemplateService
                 // Licença não tem valor fixo fácil, talvez via Plano? Deixar vazio ou generico.
                 '{value}' => '-',
                 '{due_date}' => $model->data_expiracao ? $model->data_expiracao->format('d/m/Y') : 'N/A',
-                '{link}' => 'https://painel.adassoft.com/meus-produtos', // Link genérico para renovação
+                '{link}' => $link,
                 '{id}' => $model->id,
                 '{validity}' => $model->data_expiracao ? $model->data_expiracao->format('d/m/Y') : 'N/A',
             ];

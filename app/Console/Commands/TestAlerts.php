@@ -92,9 +92,14 @@ class TestAlerts extends Command
                 $msgWp = $templateService->getFormattedMessage('billing_overdue_whatsapp', $lic);
                 $msgEmail = $templateService->getFormattedMessage('billing_overdue_email_body', $lic);
 
+                // Extract Link for Debugging
+                preg_match('/https?:\/\/[^\s]+/', $msgEmail, $matches);
+                $generatedLink = $matches[0] ?? 'Not found in message';
+
                 $this->info(" -> License #{$lic->id} (Company: {$lic->company->razao})");
                 $this->info("    Phone: {$phone}");
                 $this->info("    Email: {$email}");
+                $this->info("    Generated Link: {$generatedLink}");
 
                 // WhatsApp Checks
                 if ($notifyOverdueWp) {
