@@ -302,6 +302,7 @@ begin
   Result := 'pending';
   Http := CreateClient;
   Payload := TJSONObject.Create;
+  ReqStream := nil;
   try
     if Token <> '' then
       Http.Request.CustomHeaders.Values['Authorization'] := 'Bearer ' + Token;
@@ -372,7 +373,7 @@ begin
   end;
 end;
 
-end;
+
     
 function TShieldAPI.CheckUpdate(const SoftwareId: Integer; const CurrentVersion: string): TJSONObject;
 var
