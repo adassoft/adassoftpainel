@@ -108,7 +108,7 @@ class MessageTemplateService
         } elseif ($model instanceof \App\Models\License) {
 
             // Definição do LINK (Lógica de Revenda White-Label)
-            $link = 'https://painel.adassoft.com/meus-produtos'; // Default
+            $link = 'https://painel.adassoft.com/app/licenses'; // Default
 
             if ($model->revenda) {
                 // Tenta encontrar a configuração desta revenda
@@ -131,7 +131,7 @@ class MessageTemplateService
                     // Remove barra final se houver
                     $domain = rtrim($domain, '/');
 
-                    $link = "{$domain}/meus-produtos";
+                    $link = "{$domain}/app/licenses";
                 }
             }
 
