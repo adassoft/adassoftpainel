@@ -104,7 +104,13 @@ class MessageCampaignResource extends Resource
                     }),
                 \Filament\Tables\Columns\TextColumn::make('channels')
                     ->label('Canais')
-                    ->formatStateUsing(fn($state) => implode(', ', array_map('ucfirst', $state ?? []))),
+                    ->formatStateUsing(function ($state) {
+                        if (is_string($state)) {
+                            $decoded = json_decode($state, true);
+                            $state = is_array($decoded) ? $decoded : [$state];
+                        }
+                        return implode(', ', array_map('ucfirst', $state ?? []));
+                    }),
                 \Filament\Tables\Columns\TextColumn::make('processed_count')
                     ->label('Envios')
                     ->formatStateUsing(fn($record) => "{$record->processed_count} / {$record->total_targets}"),
