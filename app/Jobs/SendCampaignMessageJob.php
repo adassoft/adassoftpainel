@@ -71,11 +71,10 @@ class SendCampaignMessageJob implements ShouldQueue
 
                 $waService = new \App\Services\WhatsappService();
                 $waConfig = $waService->loadConfig();
-                $waService->sendMessage($waConfig, $cleanPhone, $textMessage);
-                // Service logs outcome
+                $waService->sendMessage($waConfig, $cleanPhone, $textMessage, $this->campaign->id);
             } catch (\Exception $e) {
-                // Log failure only if service threw exception outside its try-catch
-                $this->logMessage('whatsapp', $phone, $textMessage, 'failed', $e->getMessage());
+                // Failures outside service (e.g. config load)
+                $this->createLog('whatsapp', $phone, $textMessage, 'failed', $e->getMessage());
             }
         }
 
@@ -89,10 +88,9 @@ class SendCampaignMessageJob implements ShouldQueue
 
                 $smsService = new \App\Services\SmsService();
                 $smsConfig = $smsService->loadConfig();
-                $smsService->sendSms($smsConfig, $cleanPhone, $textMessage);
-                // Service logs outcome
+                $smsService->sendSms($smsConfig, $cleanPhone, $textMessage, $this->campaign->id);
             } catch (\Exception $e) {
-                $this->logMessage('sms', $phone, $textMessage, 'failed', $e->getMessage());
+                $this->createLog('sms', $phone, $textMessage, 'failed', $e->getMessage());
             }
         }
 
@@ -105,8 +103,11 @@ class SendCampaignMessageJob implements ShouldQueue
                         ->subject($this->campaign->title);
                 });
 
+                // Log Email Success
+                $this->createLog('email', $email, $htmlMessage, 'sent');
+
             } catch (\Exception $e) {
-                $this->logMessage('email', $email, $htmlMessage, 'failed', $e->getMessage());
+                $this->createLog('email', $email, $htmlMessage, 'failed', $e->getMessage());
             }
         }
 
@@ -118,7 +119,7 @@ class SendCampaignMessageJob implements ShouldQueue
         }
     }
 
-    private function logMessage($channel, $recipient, $body, $status, $error = null)
+    private function createLog($channel, $recipient, $body, $status, $error = null)
     {
         \App\Models\MessageLog::create([
             'message_campaign_id' => $this->campaign->id,

@@ -66,7 +66,7 @@ class WhatsappService
         return '55' . $digits;
     }
 
-    public function sendMessage(array $config, string $numero, string $mensagem): array
+    public function sendMessage(array $config, string $numero, string $mensagem, ?int $campaignId = null): array
     {
         $numeroSanitizado = $this->sanitizeNumber($numero); // Avoid override argument for logging purposes
         $provider = $config['provider'] ?? 'official';
@@ -79,6 +79,7 @@ class WhatsappService
         if (!$numeroSanitizado) {
             // Log Invalid Number attempt
             \App\Models\MessageLog::create([
+                'message_campaign_id' => $campaignId,
                 'channel' => 'whatsapp',
                 'recipient' => $numero, // Original input
                 'subject' => 'WhatsApp Message',
@@ -150,6 +151,7 @@ class WhatsappService
 
         // 2. Log Result
         \App\Models\MessageLog::create([
+            'message_campaign_id' => $campaignId,
             'channel' => 'whatsapp',
             'recipient' => $numeroSanitizado,
             'subject' => 'WhatsApp Message',

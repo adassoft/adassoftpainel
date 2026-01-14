@@ -31,7 +31,7 @@ class SmsService
         return $defaults;
     }
 
-    public function sendSms(array $config, string $numero, string $mensagem): array
+    public function sendSms(array $config, string $numero, string $mensagem, ?int $campaignId = null): array
     {
         if (!($config['enabled'] ?? false)) {
             return ['success' => false, 'error' => 'SMS desabilitado.'];
@@ -61,6 +61,7 @@ class SmsService
 
         // Log SMS
         \App\Models\MessageLog::create([
+            'message_campaign_id' => $campaignId,
             'channel' => 'sms',
             'recipient' => $numero,
             'subject' => 'SMS Notification',
