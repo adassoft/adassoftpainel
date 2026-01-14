@@ -245,14 +245,23 @@ class LicenseResource extends Resource
                         $sw = $record->software;
                         if (!$sw)
                             return null;
+
+                        // Se tiver URL Externa explícita e não for repositório interno, usa ela
+                        if ($sw->url_download && !$sw->id_download_repo && !$sw->arquivo_software) {
+                            return $sw->url_download;
+                        }
+
+                        // Caso contrário, usa a rota do Controller que gerencia contador, permissão e path real
+                        // Prioriza o Repo de Download se vinculado
                         if ($sw->id_download_repo) {
                             $dl = \App\Models\Download::find($sw->id_download_repo);
-                            if ($dl && $dl->arquivo_path)
-                                return '/storage/' . $dl->arquivo_path;
+                            if ($dl) {
+                                return route('downloads.file', $dl->slug ?? $dl->id);
+                            }
                         }
-                        if ($sw->arquivo_software)
-                            return '/storage/' . $sw->arquivo_software;
-                        return $sw->url_download;
+
+                        // Fallback para slug do software (Controller trata legado)
+                        return route('downloads.file', $sw->slug ?? $sw->id);
                     })
                     ->visible(fn($record) => $record->software?->id_download_repo || $record->software?->arquivo_software || $record->software?->url_download)
                     ->openUrlInNewTab(),
