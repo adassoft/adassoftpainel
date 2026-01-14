@@ -92,7 +92,7 @@ class MyCompany extends Page implements HasForms
                                     ->dehydrated()
                                     ->required()
                                     ->mask(RawJs::make(<<<'JS'
-                                        $input.length > 14 ? '99.999.999/9999-99' : '999.999.999-99'
+                                        $input.replace(/\D/g, '').length > 11 ? '99.999.999/9999-99' : '999.999.999-99'
                                     JS))
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(function ($state, Set $set) {
