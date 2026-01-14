@@ -97,6 +97,25 @@ php artisan make:filament-user
 
 ---
 
+## ⚙️ Configuração de Filas (Queue Worker) - OBRIGATÓRIO
+
+Para que o envio de e-mails em massa e campanhas funcione, você precisa de um "trabalhador" processando os pedidos em segundo plano. Sem isso, os envios ficarão eternamente "Pending".
+
+### Como ativar no Easypanel:
+
+1. Vá nas configurações do seu **App**.
+2. Vá na aba **Processes** (ou Services).
+3. Provavelmente já existe o processo "Web". Clique em **Add Process** (ou +).
+4. Configure o novo processo assim:
+   - **Name**: `worker`
+   - **Command**: `php artisan queue:work --tries=3 --timeout=150`
+   - **Type**: `Background` (ou mantenha o padrão se não tiver opção)
+5. Salve e clique em **Deploy**.
+
+Isso fará com que o sistema processe as mensagens automaticamente.
+
+---
+
 ## ⚠️ Dica de Ouro: "Deploy que funciona de primeira"
 
 Para garantir que novos deploys funcionem sem intervenção manual:
