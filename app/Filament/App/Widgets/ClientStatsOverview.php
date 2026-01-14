@@ -18,10 +18,13 @@ class ClientStatsOverview extends BaseWidget
         if (!$user)
             return [];
 
-        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
-
-        // Busca a Company do usuário
-        $company = \App\Models\Company::where('cnpj', $cnpjLimpo)->first();
+        // Busca a Company do usuário (Priority: ID -> Legacy CNPJ)
+        if ($user->empresa_id) {
+            $company = \App\Models\Company::where('codigo', $user->empresa_id)->first();
+        } else {
+            $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+            $company = \App\Models\Company::where('cnpj', $cnpjLimpo)->first();
+        }
 
         if (!$company) {
             return [
