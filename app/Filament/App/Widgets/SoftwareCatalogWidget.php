@@ -41,7 +41,7 @@ class SoftwareCatalogWidget extends Widget
         // Tentativa de filtrar ativos, se a coluna existir (Baseado no migrate, não vi coluna status explicita, mas vou assumir)
         // Update: Vi no SoftwareResource que tem Select 'status'.
 
-        $softwares = $query->limit(6)->get(); // inRandomOrder() removido por enquanto para não bugar cache queries
+        $softwares = $query->with('plans')->limit(6)->get(); // inRandomOrder() removido por enquanto para não bugar cache queries
 
         return [
             'softwares' => $softwares,
