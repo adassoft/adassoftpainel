@@ -64,6 +64,11 @@ class MessageLogResource extends Resource
                     ->label('Data/Hora')
                     ->dateTime('d/m/Y H:i:s')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('campaign.title')
+                    ->label('Campanha')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
                 Tables\Columns\TextColumn::make('channel')
                     ->label('Canal')
                     ->badge()
