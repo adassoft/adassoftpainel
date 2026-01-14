@@ -36,15 +36,20 @@ class MyCompany extends Page implements HasForms
         if (!$user)
             return;
 
-        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
-        if (!$cnpjLimpo) {
-            $this->form->fill([
-                'email' => $user->email
-            ]);
-            return;
+        $company = null;
+
+        // 1. Try by ID (New Standard)
+        if ($user->empresa_id) {
+            $company = Company::where('codigo', $user->empresa_id)->first();
         }
 
-        $company = Company::where('cnpj', $cnpjLimpo)->first();
+        // 2. Fallback to CNPJ (Legacy)
+        if (!$company && $user->cnpj) {
+            $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+            if ($cnpjLimpo) {
+                $company = Company::where('cnpj', $cnpjLimpo)->first();
+            }
+        }
 
         if ($company) {
             $this->form->fill($company->toArray());
