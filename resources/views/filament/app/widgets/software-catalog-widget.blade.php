@@ -91,7 +91,7 @@
                             </div>
 
                             <a href="{{ route('product.show', $sw->id) }}"
-                                class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 text-center transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2">
+                                class="w-full py-3 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl shadow-lg shadow-primary-600/20 text-center transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2">
                                 Comprar
                             </a>
                         </div>
