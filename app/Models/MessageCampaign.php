@@ -30,4 +30,8 @@ class MessageCampaign extends Model
     {
         return $this->belongsTo(Software::class, 'target_software_id');
     }
+    public function messageLogs()
+    {
+        return $this->hasMany(MessageLog::class, 'message_campaign_id');
+    }
 }

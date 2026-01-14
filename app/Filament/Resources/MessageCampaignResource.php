@@ -163,7 +163,7 @@ class MessageCampaignResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\MessageLogsRelationManager::class,
         ];
     }
 

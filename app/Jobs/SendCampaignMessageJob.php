@@ -121,6 +121,7 @@ class SendCampaignMessageJob implements ShouldQueue
     private function logMessage($channel, $recipient, $body, $status, $error = null)
     {
         \App\Models\MessageLog::create([
+            'message_campaign_id' => $this->campaign->id,
             'channel' => $channel,
             'recipient' => $recipient,
             'subject' => $this->campaign->title,
