@@ -63,6 +63,12 @@ class TestAlerts extends Command
         $notifyOverdueWp = $prefs->shouldNotify('overdue', 'customer', 'whatsapp');
         $this->info("Notify Customer via WhatsApp (overdue): " . ($notifyOverdueWp ? 'YES' : 'NO'));
 
+        $notifyEmail = $prefs->shouldNotify('days_before_due', 'customer', 'email');
+        $this->info("Notify Customer via Email (days_before): " . ($notifyEmail ? 'YES' : 'NO'));
+
+        $notifyOverdueEmail = $prefs->shouldNotify('overdue', 'customer', 'email');
+        $this->info("Notify Customer via Email (overdue): " . ($notifyOverdueEmail ? 'YES' : 'NO'));
+
         $this->info("------------------------------------------------");
 
         if ($upcomingCount === 0 && $expiredCount === 0) {
@@ -81,16 +87,38 @@ class TestAlerts extends Command
 
             foreach ($licensesExpired as $lic) {
                 $phone = $lic->company->fone ?? 'N/A';
-                $msg = $templateService->getFormattedMessage('billing_overdue_whatsapp', $lic);
+                $email = $lic->company->email ?? 'N/A';
+
+                $msgWp = $templateService->getFormattedMessage('billing_overdue_whatsapp', $lic);
+                $msgEmail = $templateService->getFormattedMessage('billing_overdue_email_body', $lic);
 
                 $this->info(" -> License #{$lic->id} (Company: {$lic->company->razao})");
                 $this->info("    Phone: {$phone}");
-                $this->info("    Template 'billing_overdue_whatsapp' Content? " . (empty($msg) ? 'EMPTY (Message skipped)' : 'OK'));
+                $this->info("    Email: {$email}");
 
-                if (!$notifyOverdueWp)
-                    $this->warn("    SKIPPED: 'Overdue' notification preference is disabled.");
-                if (empty($phone) || $phone === 'N/A')
-                    $this->warn("    SKIPPED: Phone number missing.");
+                // WhatsApp Checks
+                if ($notifyOverdueWp) {
+                    if (empty($phone) || $phone === 'N/A')
+                        $this->warn("    [WhatsApp] SKIPPED: Phone number missing.");
+                    elseif (empty($msgWp))
+                        $this->warn("    [WhatsApp] SKIPPED: Template empty.");
+                    else
+                        $this->info("    [WhatsApp] Ready to send.");
+                } else {
+                    $this->warn("    [WhatsApp] Disabled in preferences.");
+                }
+
+                // Email Checks
+                if ($notifyOverdueEmail) {
+                    if (empty($email) || $email === 'N/A')
+                        $this->warn("    [Email] SKIPPED: Email address missing.");
+                    elseif (empty($msgEmail))
+                        $this->warn("    [Email] SKIPPED: Template empty.");
+                    else
+                        $this->info("    [Email] Ready to send.");
+                } else {
+                    $this->warn("    [Email] Disabled in preferences.");
+                }
             }
         }
 

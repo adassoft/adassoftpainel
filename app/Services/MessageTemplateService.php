@@ -18,6 +18,12 @@ class MessageTemplateService
             'billing_due_soon_sms' => "Adassoft: Fatura de {value} vence em {due_date}. Link: {link}",
             'billing_overdue_sms' => "Adassoft: Fatura vencida! Pague agora e evite bloqueio: {link}",
 
+            'billing_due_soon_email_subject' => "Aviso de Vencimento: Licença expira em breve",
+            'billing_due_soon_email_body' => "Olá {name},\n\nSua licença do {software} vencerá em {due_date}.\n\nPara evitar interrupção nos serviços, por favor realize a renovação.\n\nAcesse seu painel: {link}\n\nAtenciosamente,\nEquipe Adassoft",
+
+            'billing_overdue_email_subject' => "URGENTE: Licença Vencida - {software}",
+            'billing_overdue_email_body' => "Olá {name},\n\nVerificamos que sua licença do {software} venceu em {due_date}.\n\nPor favor, normalize sua situação para evitar o bloqueio do sistema.\n\nLink para regularização: {link}\n\nAtenciosamente,\nEquipe Adassoft",
+
             // Onboarding - Welcome
             'onboarding_welcome_whatsapp' => "Olá *{first_name}*! Seja muito bem-vindo(a) ao *{app_name}*! 🚀\nEstamos muito felizes em ter você conosco.\n\nQualquer dúvida que tiver durante seus testes, pode chamar aqui. Estamos à disposição para ajudar você a tirar o máximo proveito do sistema.\n\nAbraços,\nEquipe {app_name}",
             'onboarding_welcome_email_subject' => "Bem-vindo ao {app_name}!",
