@@ -71,7 +71,10 @@ fi
 # Reload PHP Process
 pkill -USR2 php-fpm 2>/dev/null || killall -USR2 php-fpm 2>/dev/null || true
 
-# --- 3. BANCO DE DADOS ---
+# --- 3. BANCO DE DADOS E AUTOLOAD ---
+echo "🎼 Otimizando Autoload..."
+composer dump-autoload -o
+
 echo "🗄️  Rodando Migrações..."
 php artisan migrate --force
 
