@@ -228,6 +228,7 @@ class ManageRegisterUser extends Page implements HasForms
                 'email' => $data['email'],
                 'senha' => Hash::make($data['senha']),
                 'cnpj' => $cnpjLimpo,
+                'empresa_id' => $empresa->codigo, // Link User to Company
                 'uf' => $data['uf_usuario'],
                 'acesso' => $data['acesso'],
                 'data' => now(),
