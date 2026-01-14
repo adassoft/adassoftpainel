@@ -37,5 +37,15 @@ Route::prefix('v1/adassoft')->middleware(['throttle:60,1', 'shield.auth'])->grou
     Route::post('/orders', [ValidationController::class, 'createOrder']);
     Route::post('/orders/status', [ValidationController::class, 'checkPaymentStatus']);
 
+    // Updates Automáticos (SDK)
+    Route::get('/updates/check', [\App\Http\Controllers\Api\UpdateController::class, 'check']);
+
     // Rotas legadas (removidas pois estamos começando do zero)
+});
+
+// Download Seguro de Updates (URL Assinada - Válida por X minutos)
+Route::prefix('v1/adassoft')->group(function () {
+    Route::get('/updates/download/{versionId}', [\App\Http\Controllers\Api\UpdateController::class, 'download'])
+        ->name('api.updates.download')
+        ->middleware('signed');
 });

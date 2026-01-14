@@ -76,6 +76,7 @@ class Software extends Model
         'arquivo_software', // Novo
         'tamanho_arquivo', // Novo
         'id_download_repo', // Novo
+        'id_update_repo', // Novo (Repo de Updates)
         'versao',
         'status',
         'disponivel_revenda',
@@ -93,5 +94,15 @@ class Software extends Model
     public function plans()
     {
         return $this->hasMany(Plano::class, 'software_id');
+    }
+
+    public function downloadRepository()
+    {
+        return $this->belongsTo(Download::class, 'id_download_repo');
+    }
+
+    public function updateRepository()
+    {
+        return $this->belongsTo(Download::class, 'id_update_repo');
     }
 }

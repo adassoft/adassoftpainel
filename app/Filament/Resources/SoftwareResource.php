@@ -114,10 +114,16 @@ class SoftwareResource extends Resource
                                                                 Tabs\Tab::make('Repositório Interno')
                                                                     ->schema([
                                                                         Select::make('id_download_repo')
-                                                                            ->label('Selecione um Arquivo do Gerenciador de Downloads')
+                                                                            ->label('Instalador Principal (Loja/Cliente)')
                                                                             ->options(\App\Models\Download::all()->pluck('titulo', 'id'))
                                                                             ->searchable()
-                                                                            ->helperText('Vincule um arquivo já cadastrado em "Gerenciador de Downloads".'),
+                                                                            ->helperText('Arquivo visível na loja e painel do cliente.'),
+
+                                                                        Select::make('id_update_repo')
+                                                                            ->label('Repositório de Updates (SDK/Updater)')
+                                                                            ->options(\App\Models\Download::all()->pluck('titulo', 'id'))
+                                                                            ->searchable()
+                                                                            ->helperText('Arquivo oculto usado apenas pelo sistema de atualização automática.'),
                                                                     ]),
                                                                 Tabs\Tab::make('Link Externo')
                                                                     ->schema([
