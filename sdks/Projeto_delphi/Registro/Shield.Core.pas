@@ -55,6 +55,9 @@ type
     // Cadastro (Novos métodos 2FA)
     function SolicitarCodigoCadastro(const Nome, Email, CNPJ, Razao: string): string;
     function ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const Parceiro: string = ''): Boolean;
+    
+    // Atualização
+    function CheckForUpdate(const CurrentVersion: string): TUpdateInfo;
   end;
 
 implementation
@@ -847,6 +850,49 @@ begin
     end;
   finally
     Payload.Free;
+  end;
+end;
+
+end;
+    
+function TShield.CheckForUpdate(const CurrentVersion: string): TUpdateInfo;
+var
+  Json: TJSONObject;
+begin
+  Result.UpdateAvailable := False;
+  Result.Version := CurrentVersion;
+  Result.DownloadURL := '';
+  Result.Changelog := '';
+  Result.Size := '';
+  Result.Mandatory := False;
+  Result.Hash := '';
+  
+  Json := FAPI.CheckUpdate(FConfig.SoftwareId, CurrentVersion);
+  try
+    if Json = nil then Exit;
+    
+    if (Json.GetValue('update_available') is TJSONTrue) then
+    begin
+       Result.UpdateAvailable := True;
+       if Json.GetValue('version') <> nil then
+         Result.Version := Json.GetValue('version').Value;
+       if Json.GetValue('url') <> nil then
+         Result.DownloadURL := Json.GetValue('url').Value;
+       if Json.GetValue('changelog') <> nil then
+         Result.Changelog := Json.GetValue('changelog').Value;
+       if Json.GetValue('size') <> nil then 
+         Result.Size := Json.GetValue('size').Value;
+         
+       if (Json.GetValue('mandatory') is TJSONTrue) then
+         Result.Mandatory := True
+       else
+         Result.Mandatory := False;
+         
+       if Json.GetValue('hash') <> nil then
+         Result.Hash := Json.GetValue('hash').Value;
+    end;
+  finally
+    Json.Free;
   end;
 end;
 

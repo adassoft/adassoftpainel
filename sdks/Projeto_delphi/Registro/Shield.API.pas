@@ -24,9 +24,12 @@ type
     function CheckPaymentStatus(const TransactionId: string; const Token: string): string;
     
     function RegisterUser(Payload: TJSONObject): TJSONObject;
+    function CheckUpdate(const SoftwareId: Integer; const CurrentVersion: string): TJSONObject;
   end;
 
 implementation
+
+
 
 { TShieldAPI }
 
@@ -365,6 +368,34 @@ begin
     end;
   finally
     ReqStream.Free;
+    Http.Free;
+  end;
+end;
+
+end;
+    
+function TShieldAPI.CheckUpdate(const SoftwareId: Integer; const CurrentVersion: string): TJSONObject;
+var
+  Http: TIdHTTP;
+  RespString, Url: string;
+begin
+  Http := CreateClient;
+  try
+    Url := FConfig.BaseUrl;
+    if Url[Length(Url)] = '/' then Delete(Url, Length(Url), 1);
+    Url := Url + '/updates/check';
+    
+    Url := Url + '?software_id=' + IntToStr(SoftwareId) + 
+                 '&current_version=' + TIdURI.ParamsEncode(CurrentVersion);
+
+    try
+      RespString := Http.Get(Url);
+      Result := TJSONObject.ParseJSONValue(RespString) as TJSONObject;
+      if Result = nil then raise Exception.Create('Invalid JSON from CheckUpdate');
+    except
+      on E: Exception do raise Exception.Create('CheckUpdate Error: ' + E.Message);
+    end;
+  finally
     Http.Free;
   end;
 end;

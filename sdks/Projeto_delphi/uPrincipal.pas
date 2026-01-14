@@ -348,20 +348,26 @@ begin
   for var I := 0 to High(MeuShield.License.Noticias) do
     if not MeuShield.License.Noticias[I].Lida then TemNaoLida := True;
     
-  if MeuShield.License.UpdateAvailable then
-  begin
-      // Usa a mensagem do servidor se houver, caso contrário monta uma padrão
-      var MsgUpdate := '';
-      
-      if MeuShield.License.UpdateMessage <> '' then
-         MsgUpdate := MeuShield.License.UpdateMessage
-      else
-         MsgUpdate := 'Nova versão ' + MeuShield.License.NovaVersao + ' disponível.';
-         
-      MsgUpdate := MsgUpdate + sLineBreak + 'Use o atualizador.';
-      
-      // Exibe alerta
-      TfrmAlert.Execute(MsgUpdate);
+  // [MODIFICADO] Verificação de Updates Baseada em Pacote (API Dedicada)
+  // Ignora o flag 'UpdateAvailable' antigo que vinha do CheckLicense, pois ele compara apenas versao cadastrada.
+  try
+    var UpdateInfo := MeuShield.CheckForUpdate(Config.SoftwareVersion);
+    if UpdateInfo.UpdateAvailable then
+    begin
+        var MsgUpdate := 'Nova atualização disponível: v' + UpdateInfo.Version;
+        
+        if UpdateInfo.Mandatory then
+          MsgUpdate := 'ATUALIZAÇÃO OBRIGATÓRIA: v' + UpdateInfo.Version;
+
+        MsgUpdate := MsgUpdate + sLineBreak + 'Use o aplicativo "Atualizador" para instalar.';
+        
+        if Trim(UpdateInfo.Changelog) <> '' then
+           MsgUpdate := MsgUpdate + sLineBreak + sLineBreak + 'Notas: ' + Copy(UpdateInfo.Changelog, 1, 100) + '...';
+        
+        TfrmAlert.Execute(MsgUpdate);
+    end;
+  except
+    // Falha silenciosa no check de update (timeout/rede) para não travar o fluxo
   end;
 
   if TemNaoLida then

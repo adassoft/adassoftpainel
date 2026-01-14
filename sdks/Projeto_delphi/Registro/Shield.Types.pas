@@ -80,6 +80,16 @@ type
     procedure Clear;
   end;
 
+  TUpdateInfo = record
+    UpdateAvailable: Boolean;
+    Version: string;
+    DownloadURL: string;
+    Changelog: string;
+    Size: string;
+    Mandatory: Boolean;
+    Hash: string;
+  end;
+
   TShieldCallback = reference to procedure(const Success: Boolean; const Msg: string);
 
 implementation
