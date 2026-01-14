@@ -72,7 +72,8 @@
                         <div class="mt-auto flex flex-col gap-4">
 
                             @php
-                                $minPrice = $sw->plans->min('valor');
+                                // Use 'preco_final' accessor to get reseller price
+                                $minPrice = $sw->plans->map(fn($p) => $p->preco_final)->min();
                             @endphp
 
                             <div class="flex items-end justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
