@@ -21,8 +21,13 @@ class SoftwareCatalogWidget extends Widget
         if (!$user)
             return ['softwares' => collect([])];
 
-        $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
-        $company = \App\Models\Company::where('cnpj', $cnpjLimpo)->first();
+        // Busca a Company do usuário (Priority: ID -> Legacy CNPJ)
+        if ($user->empresa_id) {
+            $company = \App\Models\Company::where('codigo', $user->empresa_id)->first();
+        } else {
+            $cnpjLimpo = preg_replace('/\D/', '', $user->cnpj);
+            $company = \App\Models\Company::where('cnpj', $cnpjLimpo)->first();
+        }
 
         // Softwares já licenciados
         $softwareIdsPossuidos = [];
@@ -33,13 +38,8 @@ class SoftwareCatalogWidget extends Widget
                 ->toArray();
         }
 
-        // Busca Softwares Sugeridos (Exclui possuídos)
-        // Se a tabela não tiver 'status', removeremos essa linha depois com base no erro.
-        // Mas assumimos 'ativo' ou similar.
-        $query = Software::whereNotIn('id', $softwareIdsPossuidos);
-
-        // Tentativa de filtrar ativos, se a coluna existir (Baseado no migrate, não vi coluna status explicita, mas vou assumir)
-        // Update: Vi no SoftwareResource que tem Select 'status'.
+        // Busca Softwares (Query Base)
+        $query = Software::query();
 
         // Filter by Reseller Active Plans
         $cnpjReseller = \App\Services\ResellerBranding::getCurrentCnpj();
@@ -53,10 +53,11 @@ class SoftwareCatalogWidget extends Widget
             });
         }
 
-        $softwares = $query->with('plans')->limit(6)->get(); // inRandomOrder() removido por enquanto para não bugar cache queries
+        $softwares = $query->with('plans')->limit(9)->get();
 
         return [
             'softwares' => $softwares,
+            'ownedIds' => $softwareIdsPossuidos,
         ];
     }
 }

@@ -90,10 +90,22 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('product.show', $sw->id) }}"
-                                class="w-full py-3 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl shadow-lg shadow-primary-600/20 text-center transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2">
-                                Comprar
-                            </a>
+                            @php
+                                $isOwned = in_array($sw->id, $ownedIds ?? []);
+                            @endphp
+
+                            @if($isOwned)
+                                <a href="{{ route('filament.app.resources.licenses.index') }}"
+                                    class="w-full py-3 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold rounded-xl shadow-sm text-center transition-all flex items-center justify-center gap-2">
+                                    <x-filament::icon icon="heroicon-o-check-circle" class="w-5 h-5 text-green-500" />
+                                    Gerenciar Licença
+                                </a>
+                            @else
+                                <a href="{{ route('product.show', $sw->id) }}"
+                                    class="w-full py-3 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl shadow-lg shadow-primary-600/20 text-center transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2">
+                                    Comprar
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
