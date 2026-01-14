@@ -36,6 +36,11 @@ class Plano extends Model
      * Retorna a configuração específica deste plano para o revendedor logado.
      * Usamos o CNPJ do usuário logado para filtrar.
      */
+    public function configs()
+    {
+        return $this->hasMany(PlanoRevenda::class, 'plano_id');
+    }
+
     public function minhaConfig(): HasOne
     {
         // Nota: Auth::user() pode não estar disponível em todos os contextos (ex: jobs), 

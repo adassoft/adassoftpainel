@@ -41,6 +41,18 @@ class SoftwareCatalogWidget extends Widget
         // Tentativa de filtrar ativos, se a coluna existir (Baseado no migrate, não vi coluna status explicita, mas vou assumir)
         // Update: Vi no SoftwareResource que tem Select 'status'.
 
+        // Filter by Reseller Active Plans
+        $cnpjReseller = \App\Services\ResellerBranding::getCurrentCnpj();
+
+        if ($cnpjReseller && $cnpjReseller !== '00000000000100') {
+            $query->whereHas('plans', function ($q) use ($cnpjReseller) {
+                $q->whereHas('configs', function ($q2) use ($cnpjReseller) {
+                    $q2->where('cnpj_revenda', $cnpjReseller)
+                        ->where('ativo', true);
+                });
+            });
+        }
+
         $softwares = $query->with('plans')->limit(6)->get(); // inRandomOrder() removido por enquanto para não bugar cache queries
 
         return [
