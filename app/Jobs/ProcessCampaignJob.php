@@ -2,12 +2,15 @@
 
 namespace App\Jobs;
 
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 
 class ProcessCampaignJob implements ShouldQueue
 {
-    use Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $campaign;
 
@@ -48,15 +51,22 @@ class ProcessCampaignJob implements ShouldQueue
             return;
         }
 
-        // Intervalo entre mensagens (em segundos)
-        // O usuário pediu 1 a 2 minutos. Vamos colocar 90 segundos (1.5 min) como média segura.
-        $intervalSeconds = 90;
+        // Intervalo entre mensagens (Randomizado 60s a 120s)
+        // Lógica: Mantemos um acumulador de tempo. Cada mensagem é agendada para 
+        // (agora + acumulador). O acumulador cresce de forma aleatória a cada passo.
 
-        foreach ($licenses as $index => $license) {
-            $delay = now()->addSeconds($index * $intervalSeconds);
+        $accumulatedDelay = 0; // Primeira mensagem sai imediatamente (ou quase)
+
+        foreach ($licenses as $license) {
+
+            $delayDate = now()->addSeconds($accumulatedDelay);
 
             \App\Jobs\SendCampaignMessageJob::dispatch($this->campaign, $license)
-                ->delay($delay);
+                ->delay($delayDate);
+
+            // Sorteia o tempo para o PRÓXIMO envio (entre 1 e 2 minutos)
+            $randomInterval = rand(60, 120);
+            $accumulatedDelay += $randomInterval;
         }
     }
 }
