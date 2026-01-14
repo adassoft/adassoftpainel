@@ -256,12 +256,13 @@ class LicenseResource extends Resource
                         if ($sw->id_download_repo) {
                             $dl = \App\Models\Download::find($sw->id_download_repo);
                             if ($dl) {
-                                return route('downloads.file', $dl->slug ?? $dl->id);
+                                // Redireciona para a PÁGINA de detalhes para o usuário escolher Versão/SO
+                                return route('downloads.show', $dl->slug ?? $dl->id);
                             }
                         }
 
                         // Fallback para slug do software (Controller trata legado)
-                        return route('downloads.file', $sw->slug ?? $sw->id);
+                        return route('downloads.show', $sw->slug ?? $sw->id);
                     })
                     ->visible(fn($record) => $record->software?->id_download_repo || $record->software?->arquivo_software || $record->software?->url_download)
                     ->openUrlInNewTab(),
