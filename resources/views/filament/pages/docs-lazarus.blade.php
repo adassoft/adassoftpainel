@@ -84,7 +84,7 @@
 <span class="keyword">begin</span>
   <span class="comment">// 1. Configurar</span>
   Config := <span class="keyword">TShieldConfig</span>.Create(
-    <span class="string">'{{ url('/') }}'</span>, <span class="comment">// URL Base</span>
+    <span class="string">'{{ url('/api/v1/adassoft') }}'</span>, <span class="comment">// Endpoint API</span>
     <span class="string">'API_KEY_AQUI'</span>,                    <span class="comment">// API Key</span>
     <span class="number">1</span>,                                 <span class="comment">// Software ID</span>
     <span class="string">'1.0.0'</span>                            <span class="comment">// Versão</span>

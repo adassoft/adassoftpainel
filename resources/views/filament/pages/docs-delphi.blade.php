@@ -92,7 +92,7 @@
 <span class="keyword">begin</span>
   <span class="comment">// Configuração (Pegue a API Key no painel)</span>
   Config := <span class="class">TShieldConfig</span>.Create(
-    <span class="string">'{{ url('/api_validacao.php') }}'</span>, <span class="comment">// URL Base (automática)</span>
+    <span class="string">'{{ url('/api/v1/adassoft') }}'</span>, <span class="comment">// Endpoint API (Laravel)</span>
     <span class="string">'SUA_API_KEY_AQUI'</span>,                               <span class="comment">// API Key do Software</span>
     <span class="number">1</span>,                                                <span class="comment">// ID do Software</span>
     <span class="string">'1.0.0'</span>,                                          <span class="comment">// Versão</span>

@@ -113,7 +113,7 @@
         );
         
         <span class="comment">// 2. Instanciar Cliente</span>
-        <span class="class">ShieldClient</span> client = <span class="keyword">new</span> <span class="class">ShieldClient</span>(<span class="string">"{{ url('/') }}"</span>, config);
+        <span class="class">ShieldClient</span> client = <span class="keyword">new</span> <span class="class">ShieldClient</span>(<span class="string">"{{ url('/api/v1/adassoft') }}"</span>, config);
     }
 }
 </pre>
