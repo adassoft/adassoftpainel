@@ -62,7 +62,7 @@ class KnowledgeBaseResource extends Resource
                     ->url()
                     ->columnSpanFull(),
 
-                \Amidesfahani\FilamentTinyEditor\TinyEditor::make('content')
+                \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
                     ->label('Conteúdo')
                     ->required()
                     ->columnSpanFull()
