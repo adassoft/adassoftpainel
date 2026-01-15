@@ -1,4 +1,4 @@
-unit Shield.Core;
+﻿unit Shield.Core;
 
 interface
 
@@ -853,7 +853,7 @@ begin
   end;
 end;
 
-end;
+
     
 function TShield.CheckForUpdate(const CurrentVersion: string): TUpdateInfo;
 var

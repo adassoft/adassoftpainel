@@ -112,6 +112,16 @@ Route::get('/ml/auth', [\App\Http\Controllers\MercadoLibreController::class, 'au
 Route::get('/ml/callback', [\App\Http\Controllers\MercadoLibreController::class, 'callback'])->name('ml.callback');
 Route::post('/ml/notifications', [\App\Http\Controllers\MercadoLibreController::class, 'webhook'])->name('ml.webhook');
 
+// === SDK Documentation ===
+// Apenas Admin (Nível 1)
+Route::middleware(['auth', 'admin'])->prefix('docs')->name('docs.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\DocsController::class, 'index'])->name('index');
+    Route::get('/delphi', [\App\Http\Controllers\DocsController::class, 'delphi'])->name('delphi');
+    Route::get('/java', [\App\Http\Controllers\DocsController::class, 'java'])->name('java');
+    Route::get('/lazarus', [\App\Http\Controllers\DocsController::class, 'lazarus'])->name('lazarus');
+});
+
+
 // === Gerenciador de Redirecionamentos (SEO) ===
 Route::fallback(function () {
     $path = request()->path();

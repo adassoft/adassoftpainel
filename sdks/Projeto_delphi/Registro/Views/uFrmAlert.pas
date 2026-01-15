@@ -1,4 +1,4 @@
-unit uFrmAlert;
+﻿unit uFrmAlert;
 
 interface
 
@@ -24,7 +24,8 @@ type
     FResult: Boolean;
   public
     { Public declarations }
-    class function Execute(const Msg: string): Boolean;
+    { Public declarations }
+    class function Execute(const Msg: string; const Title: string = 'Renovação Necessária'; const BtnText: string = 'Renovar Agora'; const CancelText: string = 'Fechar'): Boolean;
   end;
 
 var
@@ -34,13 +35,20 @@ implementation
 
 {$R *.dfm}
 
-class function TfrmAlert.Execute(const Msg: string): Boolean;
+class function TfrmAlert.Execute(const Msg: string; const Title: string = 'Renovação Necessária'; const BtnText: string = 'Renovar Agora'; const CancelText: string = 'Fechar'): Boolean;
 var
   Form: TfrmAlert;
 begin
   Form := TfrmAlert.Create(nil);
   try
+    Form.lblTitulo.Caption := Title;
     Form.lblMensagem.Caption := Msg;
+    Form.btnRenovar.Caption := BtnText;
+    
+    // Suporte a Label dentro do Panel ou Caption do Panel
+    // Como btnFechar é um TPanel, assumimos que ele tem um Caption direto ou Label interno.
+    // Se for TPanel padrão:
+    Form.btnFechar.Caption := CancelText;
     Form.ShowModal;
     Result := Form.FResult;
   finally

@@ -387,7 +387,9 @@ begin
     Url := Url + '/updates/check';
     
     Url := Url + '?software_id=' + IntToStr(SoftwareId) + 
-                 '&current_version=' + TIdURI.ParamsEncode(CurrentVersion);
+                 '&current_version=' + TIdURI.ParamsEncode(CurrentVersion) +
+                 '&api_key=' + TIdURI.ParamsEncode(FConfig.ApiKey) +
+                 '&timestamp=' + TIdURI.ParamsEncode(DateToISO8601(Now, False));
 
     try
       RespString := Http.Get(Url);

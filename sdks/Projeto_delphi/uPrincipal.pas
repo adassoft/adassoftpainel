@@ -73,10 +73,10 @@ begin
   // Configuracao (Pegue a API Key no painel Shield)
   Config := TShieldConfig.Create(
     'https://adassoft.com/api/v1/adassoft', // URL Base (Novo Padrão REST)
-    'd8ae56db' + '7cabcc42' + '9d6f418e' + 'f8ed47d4' + '8e06e1a9' + '3b75062e' + '4f79dd37' + '0d60d2e0',  // API Key Ofuscada
-    3,                                                  // ID do Software (Teste Dev)
+    '5c8'+'59c8'+'72'+'e798'+'b747'+'1b'+'80e17'+'6fba'+'2f'+'7599ed'+'d2f'+'596c'+'a47'+'9'+'418bf'+'21'+'c495'+'5c8'+'7a'+'7', // API Key Ofuscada
+    1,                                                  // ID do Software (Teste Dev)
     '3.10.14',                                          // Versao
-    '3547f5d0' + '0316ab9e' + 'd1b967bc' + '36685622' + '8bc32194' + 'ad8df4df' + 'e663844a' + '3a50e107' // Segredo validacao offline (Ofuscado)
+    '989'+'25'+'a4f'+'90'+'39d94'+'40'+'be06'+'dbf'+'92'+'5105'+'84'+'5'+'f62c'+'2d1'+'0'+'421'+'eb7'+'92'+'790'+'10'+'c'+'9b35'+'2568b' // Segredo validacao offline (Ofuscado)
   );
 
   MeuShield := TShield.Create(Config);
@@ -354,20 +354,45 @@ begin
     var UpdateInfo := MeuShield.CheckForUpdate(Config.SoftwareVersion);
     if UpdateInfo.UpdateAvailable then
     begin
-        var MsgUpdate := 'Nova atualização disponível: v' + UpdateInfo.Version;
+        var MsgUpdate := 'Nova versão v' + UpdateInfo.Version + ' disponível!' + sLineBreak +
+                         'Clique abaixo para iniciar o processo de atualização.';
         
         if UpdateInfo.Mandatory then
-          MsgUpdate := 'ATUALIZAÇÃO OBRIGATÓRIA: v' + UpdateInfo.Version;
+          MsgUpdate := 'ATUALIZAÇÃO OBRIGATÓRIA: v' + UpdateInfo.Version + sLineBreak + MsgUpdate;
 
-        MsgUpdate := MsgUpdate + sLineBreak + 'Use o aplicativo "Atualizador" para instalar.';
-        
         if Trim(UpdateInfo.Changelog) <> '' then
-           MsgUpdate := MsgUpdate + sLineBreak + sLineBreak + 'Notas: ' + Copy(UpdateInfo.Changelog, 1, 100) + '...';
+           MsgUpdate := MsgUpdate + sLineBreak + sLineBreak + 'Novidades: ' + Copy(UpdateInfo.Changelog, 1, 150) + '...';
         
-        TfrmAlert.Execute(MsgUpdate);
+        // 1. Exibe aviso de update
+        if TfrmAlert.Execute(MsgUpdate, 'Nova Atualização', 'Atualizar Agora') then
+        begin
+             // 2. Confirmação de segurança (Fechar sistema)
+             var WarningMsg := 'O sistema será fechado para atualizar o banco de dados e arquivos.' + sLineBreak + sLineBreak +
+                               'Certifique-se de que salvou seu trabalho.' + sLineBreak +
+                               'Deseja continuar?';
+                               
+             if TfrmAlert.Execute(WarningMsg, 'Aviso de Segurança', 'Continuar', 'Cancelar') then
+             begin
+                  // 3. Executar Atualizador
+                  var UpdaterPath := ExtractFilePath(ParamStr(0)) + 'Atualizador.exe';
+                  
+                  // Para testes (se não tiver executável real), apenas exibe msg
+                  // Mas em produção:
+                  if FileExists(UpdaterPath) then
+                  begin
+                      ShellExecute(0, 'open', PChar(UpdaterPath), nil, nil, SW_SHOWNORMAL);
+                      Application.Terminate;
+                      Halt(0); // Garante o fechamento imediato do processo
+                  end
+                  else
+                  begin
+                      ShowMessage('Arquivo "Atualizador.exe" não encontrado.' + sLineBreak + 'Path: ' + UpdaterPath);
+                  end;
+             end;
+        end;
     end;
   except
-    // Falha silenciosa no check de update (timeout/rede) para não travar o fluxo
+    // Falha silenciosa para não incomodar o usuario se sem internet
   end;
 
   if TemNaoLida then

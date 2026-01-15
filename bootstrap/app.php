@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'shield.auth' => \App\Http\Middleware\VerifyShieldApiKey::class,
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
