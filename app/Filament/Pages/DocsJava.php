@@ -6,7 +6,7 @@ use Filament\Pages\Page;
 
 class DocsJava extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-cup-online';
+    protected static ?string $navigationIcon = 'heroicon-o-command-line';
 
     protected static ?string $navigationGroup = 'Conteúdo & Suporte';
 
