@@ -73,8 +73,15 @@ class AdminPanelProvider extends PanelProvider
                 'Gestão de Usuários e Clientes',
                 'Catálogo de Softwares',
                 'Licenciamento e Ativações',
-                'Suporte e Conteúdo',
+                'Conteúdo & Suporte',
                 'Sistema e Site',
+            ])
+            ->navigationItems([
+                \Filament\Navigation\NavigationItem::make('Documentação SDK')
+                    ->url(fn() => route('docs.index'))
+                    ->icon('heroicon-o-book-open')
+                    ->group('Conteúdo & Suporte')
+                    ->sort(999),
             ])
             ->renderHook(
                 'panels::body.end',
