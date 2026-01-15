@@ -64,7 +64,72 @@ class KnowledgeBaseResource extends Resource
                 Forms\Components\RichEditor::make('content')
                     ->label('Conteúdo')
                     ->required()
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->extraAttributes(['style' => 'max-height: 600px; overflow-y: auto;'])
+                    ->hintAction(
+                        Forms\Components\Actions\Action::make('aiImprove')
+                            ->label('Melhorar com IA')
+                            ->icon('heroicon-o-sparkles')
+                            ->color('info')
+                            ->requiresConfirmation()
+                            ->modalHeading('Melhorar Conteúdo com IA')
+                            ->modalDescription('A IA analisará o texto atual e sugerirá melhorias de gramática, clareza e formatação. O conteúdo atual será substituído. Deseja continuar?')
+                            ->action(function (Forms\Get $get, Forms\Set $set) {
+                                $content = $get('content');
+                                if (empty($content)) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('O conteúdo está vazio.')
+                                        ->warning()
+                                        ->send();
+                                    return;
+                                }
+
+                                \Filament\Notifications\Notification::make()
+                                    ->title('A IA está trabalhando...')
+                                    ->body('Aguarde enquanto geramos a melhoria.')
+                                    ->info()
+                                    ->send();
+
+                                try {
+                                    $service = new \App\Services\GeminiService();
+                                    $prompt = "Atue como um editor técnico sênior. Melhore o texto abaixo para um artigo de Base de Conhecimento (Help Desk). 
+                                    Objetivos:
+                                    1. Corrigir erros gramaticais e ortográficos.
+                                    2. Melhorar a clareza, coesão e tom (profissional e prestativo).
+                                    3. Manter a formatação HTML existente (negritos, listas, etc) e melhorar se necessário.
+                                    
+                                    IMPORTANTE: Retorne APENAS o HTML final do conteúdo, sem blocos de código markdown (```html), sem explicações extras. Apenas o HTML cru para ser inserido no editor.
+                                    
+                                    Conteúdo Original:
+                                    " . $content;
+
+                                    $response = $service->generateContent($prompt);
+
+                                    if ($response['success']) {
+                                        $newContent = $response['reply'];
+                                        // Remove markdown code blocks if AI puts them despite instructions
+                                        $newContent = preg_replace('/^```html\s*/i', '', $newContent);
+                                        $newContent = preg_replace('/^```\s*/i', '', $newContent);
+                                        $newContent = preg_replace('/\s*```$/', '', $newContent);
+
+                                        $set('content', $newContent);
+
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('Conteúdo melhorado com sucesso!')
+                                            ->success()
+                                            ->send();
+                                    } else {
+                                        throw new \Exception($response['error'] ?? 'Erro desconhecido');
+                                    }
+                                } catch (\Exception $e) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Erro ao chamar a IA')
+                                        ->body($e->getMessage())
+                                        ->danger()
+                                        ->send();
+                                }
+                            })
+                    ),
 
                 Forms\Components\TagsInput::make('tags')
                     ->label('Palavras-chave (Tags)')
