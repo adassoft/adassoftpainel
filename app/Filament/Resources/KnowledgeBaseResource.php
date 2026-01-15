@@ -26,7 +26,7 @@ class KnowledgeBaseResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\View::make('filament.resources.knowledge-base.styles'),
+
                 Forms\Components\Grid::make(3)->schema([
                     Forms\Components\Select::make('category_id')
                         ->relationship('category', 'name')
@@ -62,11 +62,13 @@ class KnowledgeBaseResource extends Resource
                     ->url()
                     ->columnSpanFull(),
 
-                Forms\Components\RichEditor::make('content')
+                \Amidesfahani\FilamentTinyEditor\TinyEditor::make('content')
                     ->label('Conteúdo')
                     ->required()
                     ->columnSpanFull()
-                    ->extraAttributes(['style' => 'max-height: 600px; overflow-y: auto;'])
+                    ->minHeight(400)
+                    ->maxHeight(600)
+                    ->showMenuBar()
                     ->hintAction(
                         Forms\Components\Actions\Action::make('aiImprove')
                             ->label('Melhorar com IA')
