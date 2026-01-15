@@ -26,6 +26,7 @@ class KnowledgeBaseResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\View::make('filament.resources.knowledge-base.styles'),
                 Forms\Components\Grid::make(3)->schema([
                     Forms\Components\Select::make('category_id')
                         ->relationship('category', 'name')
