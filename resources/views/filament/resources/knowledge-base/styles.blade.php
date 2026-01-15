@@ -1,53 +1,115 @@
 <style>
     /* 
-       Aggressive CSS to hide Trix attachment metadata/links.
-       We target multiple potential structures to ensure the filename link is hidden.
+       Aggressive CSS to hide Trix attachment metadata/links AND disable image clicking 
     */
 
-    /* 1. Target the standard caption container */
+    /* --- HIDING TEXT/LINKS BELOW IMAGE --- */
+    
+    /* Hide caption containers */
     figure.attachment figcaption,
     .trix-content figcaption,
-    .trix-content .attachment__caption {
-        display: none !important;
-    }
-
-    /* 2. Target specific metadata elements (name, size) */
-    .attachment__name,
-    .attachment__size,
+    .trix-content .attachment__caption,
     .attachment__metadata {
         display: none !important;
     }
 
-    /* 3. Target the specific link styling often found in Filament/Trix */
-    figure.attachment a.attachment__link {
+    /* Hide specific text elements */
+    .attachment__name,
+    .attachment__size {
         display: none !important;
     }
 
-    /* 4. Catch-all for any anchor tag inside a figure that looks like a text link 
-       (careful not to hide the image if it's wrapped in an A, though Trix usually doesn't do that for the preview itself in this context) 
-    */
+    /* Hide links inside figure, especially the download/view link */
+    figure.attachment a.attachment__link,
     figure.attachment .attachment__caption a {
         display: none !important;
     }
 
-    /* 5. Force hide the entire caption text if it's somehow leaking out */
+    /* --- DISABLE CLICK ON IMAGE COMPONENT --- */
+
+    /* 
+       Target the generic attachment figure to prevent pointer events (clicks).
+       WARNING: This disables ALL interaction with the figure (resizing might be affected if UI depends on clicking).
+       However, Trix usually handles resizing via a separate overlay or handles.
+       If we just want to prevent the "link" behavior:
+    */
+    
     figure.attachment {
-        /* Ensure the figure behaves like a block but hide text content that isn't the image */
-        font-size: 0 !important;
+        /* Hide any stray text via zero font size */
+        font-size: 0 !important; 
         line-height: 0 !important;
     }
 
-    figure.attachment img {
-        /* Restore visibility for the image */
-        display: block !important;
-        width: auto !important;
-        /* Allow responsive sizing */
-        max-width: 100% !important;
+    /* 
+       Target the image itself. 
+       - pointer-events: none; prevents clicking the image itself.
+       - But we often want to select the image in the editor to delete it.
+       - Trix wraps images in an anchor tag <a> if it's a link. We want to disable that anchor.
+    */
+    
+    /* Disable all pointer events on links inside attachments */
+    figure.attachment a {
+        pointer-events: none !important;
+        cursor: default !important;
+        text-decoration: none !important;
     }
 
-    /* 6. Specifically for the orange link seen in the screenshot */
-    figure.attachment a[href*="storage"],
-    figure.attachment a[download] {
-        display: none !important;
+    /* Ensure the image is still visible */
+    figure.attachment img {
+        display: block !important;
+        max-width: 100% !important;
+        /* Re-enable pointer events on the image if needed for selection, 
+           but since it's likely wrapped in an <a> that we just disabled, 
+           we might need to be careful. 
+           In Trix, the image IS the content. 
+        */
+        pointer-events: none !important; /* Prevents opening the image on click */
     }
+
+    /* 
+       To still allow SELECTION (cursor placement) around the image, we don't block the figure,
+       but usually clicking the image in Trix selects it. 
+       If we disable pointer-events on IMG, we can't select it to delete/resize.
+       
+       COMPROMISE: We want to prevent the LINK behavior (opening URL).
+       Usually that's controlled by the wrapping <a> tag or an event listener.
+    */
+    
+    .trix-content figure.attachment a[href] {
+        pointer-events: none !important; /* Disables clicking the link */
+        cursor: default !important;
+    }
+
+    /* Just in case the image isn't wrapped in an A but has an onclick handler, 
+       CSS can't stop JS events easily without pointer-events: none.
+       We will apply pointer-events: none to the link, but keep it on the figure for selection.
+    */
+
 </style>
+
+<script>
+    // Javascript to remove 'href' attributes from attachment links to ensure they are dead
+    document.addEventListener('DOMContentLoaded', () => {
+        const disableAttachmentLinks = () => {
+            // Find all links inside attachment figures
+            const links = document.querySelectorAll('figure.attachment a');
+            links.forEach(link => {
+                // If it's a link to a file/image
+                if (link.getAttribute('href')) {
+                    link.removeAttribute('href'); // Kill the link
+                    link.removeAttribute('target');
+                    link.style.pointerEvents = 'none'; // Visual disable
+                    link.style.cursor = 'default';
+                }
+            });
+        };
+
+        // Run initially
+        disableAttachmentLinks();
+
+        // Run on changes (if new images are pasted/uploaded)
+        const observer = new MutationObserver(disableAttachmentLinks);
+        // Observe subtree to catch new nodes
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+</script>
