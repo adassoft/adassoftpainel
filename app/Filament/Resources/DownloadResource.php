@@ -189,6 +189,11 @@ class DownloadResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('titulo')
                     ->label('Documento/Arquivo')
                     ->description(fn(Download $record) => $record->categoria)
