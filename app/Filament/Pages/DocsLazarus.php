@@ -8,6 +8,8 @@ class DocsLazarus extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-code-bracket-square';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $navigationGroup = 'Conteúdo & Suporte';
 
     protected static ?string $navigationLabel = 'SDK Lazarus';
