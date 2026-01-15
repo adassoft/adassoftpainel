@@ -99,5 +99,38 @@
             </div>
         </x-filament::card>
 
+        <!-- FireMonkey Card -->
+        <x-filament::card class="h-full flex flex-col justify-between">
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <div class="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                        <x-filament::icon icon="heroicon-o-device-phone-mobile"
+                            class="h-8 w-8 text-red-600 dark:text-red-400" />
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">FireMonkey</h2>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">
+                    Proteção para aplicações mobile (Android/iOS) e desktop modernas.
+                    Interface responsiva e integração fluida.
+                </p>
+                <div class="space-y-2">
+                    <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                        <x-filament::icon icon="heroicon-m-check-circle" class="h-4 w-4 mr-1 text-green-500" />
+                        <span>Suporte a Android e iOS</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                        <x-filament::icon icon="heroicon-m-check-circle" class="h-4 w-4 mr-1 text-green-500" />
+                        <span>Telas de Login/Ativação Responsivas</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <x-filament::button tag="a" href="{{ \App\Filament\Pages\DocsFiremonkey::getUrl() }}" color="danger"
+                    class="w-full">
+                    Acessar Documentação
+                </x-filament::button>
+            </div>
+        </x-filament::card>
+
     </div>
 </x-filament::page>
