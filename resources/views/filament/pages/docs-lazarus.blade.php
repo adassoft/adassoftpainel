@@ -118,9 +118,9 @@
                 Downloads
             </x-slot>
             <div class="flex flex-col items-center justify-center p-4">
-                <x-filament::button tag="a" href="{{ url('downloads/sdk_lazarus.zip') }}" color="info" size="lg"
+                <x-filament::button tag="a" href="{{ route('downloads.file', ['id' => 13]) }}" color="info" size="lg"
                     icon="heroicon-o-arrow-down-tray" class="mb-4 w-full md:w-auto">
-                    Baixar SDK Lazarus e Exemplos (.zip)
+                    Baixar SDK Lazarus e Exemplos
                 </x-filament::button>
                 <p class="text-sm text-gray-500 mb-6">Inclui units Shield.Core e exemplo Console nativo.</p>
             </div>

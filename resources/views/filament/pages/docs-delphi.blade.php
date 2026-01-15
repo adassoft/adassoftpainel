@@ -173,7 +173,7 @@
             </x-slot>
 
             <div class="flex flex-col items-center justify-center p-4">
-                <x-filament::button tag="a" href="{{ url('downloads/sdk_delphi.zip') }}" color="danger" size="lg"
+                <x-filament::button tag="a" href="{{ route('downloads.file', ['id' => 10]) }}" color="danger" size="lg"
                     icon="heroicon-o-arrow-down-tray" class="mb-4 w-full md:w-auto">
                     Baixar SDK Delphi e Exemplos (.zip)
                 </x-filament::button>
@@ -181,7 +181,7 @@
 
                 <div class="w-1/2 border-t border-gray-200 my-4"></div>
 
-                <x-filament::button tag="a" href="{{ url('downloads/delphi_project.zip') }}" color="primary" size="lg"
+                <x-filament::button tag="a" href="{{ route('downloads.file', ['id' => 11]) }}" color="primary" size="lg"
                     icon="heroicon-o-computer-desktop" class="mb-2 w-full md:w-auto">
                     Baixar Projeto de Exemplo Completo
                 </x-filament::button>

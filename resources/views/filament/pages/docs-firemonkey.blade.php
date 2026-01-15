@@ -136,7 +136,7 @@
             </x-slot>
 
             <div class="flex flex-col items-center justify-center p-4">
-                <x-filament::button tag="a" href="{{ url('downloads/sdk_fmx.zip') }}" color="danger" size="lg"
+                <x-filament::button tag="a" href="{{ route('downloads.file', ['id' => 14]) }}" color="danger" size="lg"
                     icon="heroicon-o-device-phone-mobile" class="mb-4 w-full md:w-auto">
                     Baixar SDK FMX e Demos (.zip)
                 </x-filament::button>
