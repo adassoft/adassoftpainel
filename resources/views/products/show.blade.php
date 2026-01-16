@@ -197,9 +197,9 @@
 
     <!-- FAQ Section -->
     @if(!empty($product->faq) && is_array($product->faq))
-        <div class="py-12 bg-light border-top">
+        <div class="py-5 mt-5 bg-light border-top">
             <div class="container mx-auto px-4">
-                 <div class="text-center mb-10">
+                 <div class="text-center mb-5">
                     <h2 class="text-3xl font-bold text-gray-800 mb-2">Perguntas Frequentes</h2>
                 </div>
                 <div class="row justify-content-center">
