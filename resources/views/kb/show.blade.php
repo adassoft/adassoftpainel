@@ -172,6 +172,28 @@
                                 @endif
                             @endif
 
+                            <!-- Feedback Section -->
+                            <div class="mt-5 pt-4 border-top text-center" id="feedback-section">
+                                <p class="text-muted mb-3">Isso foi útil?</p>
+
+                                <div id="feedback-buttons">
+                                    <button class="btn btn-outline-success btn-sm px-4 mr-2 rounded-pill"
+                                        onclick="vote('helpful')">
+                                        <i class="far fa-thumbs-up"></i> Sim <span class="ml-1"
+                                            id="count-helpful">({{ $article->helpful_count }})</span>
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm px-4 rounded-pill"
+                                        onclick="vote('not_helpful')">
+                                        <i class="far fa-thumbs-down"></i> Não
+                                    </button>
+                                </div>
+
+                                <div id="feedback-thankyou" style="display: none;"
+                                    class="text-success font-weight-bold mt-3">
+                                    <i class="fas fa-check-circle"></i> Obrigado pelo seu feedback!
+                                </div>
+                            </div>
+
                             <!-- Author Bio (E-E-A-T) -->
                             @if($article->author && $article->author->bio)
                                 <div class="mt-5 p-4 bg-light rounded shadow-sm border-left-primary"
@@ -240,28 +262,7 @@
                                 </div>
                             @endif
 
-                            <!-- Feedback Section (Simples) -->
-                            <!-- Feedback Section -->
-                            <div class="mt-5 pt-4 border-top text-center" id="feedback-section">
-                                <p class="text-muted mb-3">Isso foi útil?</p>
 
-                                <div id="feedback-buttons">
-                                    <button class="btn btn-outline-success btn-sm px-4 mr-2 rounded-pill"
-                                        onclick="vote('helpful')">
-                                        <i class="far fa-thumbs-up"></i> Sim <span class="ml-1"
-                                            id="count-helpful">({{ $article->helpful_count }})</span>
-                                    </button>
-                                    <button class="btn btn-outline-secondary btn-sm px-4 rounded-pill"
-                                        onclick="vote('not_helpful')">
-                                        <i class="far fa-thumbs-down"></i> Não
-                                    </button>
-                                </div>
-
-                                <div id="feedback-thankyou" style="display: none;"
-                                    class="text-success font-weight-bold mt-3">
-                                    <i class="fas fa-check-circle"></i> Obrigado pelo seu feedback!
-                                </div>
-                            </div>
 
                             <script>
                                 function vote(type) {
