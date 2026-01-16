@@ -150,7 +150,7 @@
                             </div>
 
                             <div class="kb-content mb-5">
-                                {!! $article->content !!}
+                                {!! $article->processed_content !!}
                             </div>
 
                             @if($article->video_url)

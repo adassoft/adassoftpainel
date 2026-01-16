@@ -114,6 +114,34 @@ class KnowledgeBase extends Model
         return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
+    public function getProcessedContentAttribute()
+    {
+        if (empty($this->content)) {
+            return '';
+        }
+
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        // Hack para garantir UTF-8 correto
+        $content = mb_convert_encoding($this->content, 'HTML-ENTITIES', 'UTF-8');
+        $dom->loadHTML($content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $images = $dom->getElementsByTagName('img');
+        foreach ($images as $index => $img) {
+            // Força Lazy Loading em todas as imagens para melhorar LCP
+            $img->setAttribute('loading', 'lazy');
+
+            // Garante atributo ALT descritivo se estiver faltando
+            if (!$img->hasAttribute('alt') || trim($img->getAttribute('alt')) === '') {
+                $altText = ($this->title ?? 'Imagem') . " - Figura " . ($index + 1);
+                $img->setAttribute('alt', $altText);
+            }
+        }
+
+        return $dom->saveHTML();
+    }
+
     protected function extractHowToSteps()
     {
         $content = $this->content;

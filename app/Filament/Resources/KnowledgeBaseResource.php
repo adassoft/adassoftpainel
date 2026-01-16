@@ -83,6 +83,9 @@ class KnowledgeBaseResource extends Resource
                                     ->columnSpanFull()
                                     ->minHeight(400)
                                     ->maxHeight(600)
+                                    ->fileAttachmentsDirectory('kb-images')
+                                    ->fileAttachmentsVisibility('public')
+                                    ->preserveFilenames()
                                     ->showMenuBar()
                                     ->hintAction(
                                         Forms\Components\Actions\Action::make('aiImprove')
