@@ -23,8 +23,12 @@ class SeoForm
                     ->collapsible()
                     ->collapsed() // Começa fechado para não poluir
                     ->schema([
-                        ViewField::make('preview')
-                            ->view('filament.components.seo-preview')
+                        Placeholder::make('preview')
+                            ->hiddenLabel()
+                            ->content(fn(\Filament\Forms\Components\Component $component) => view('filament.components.seo-preview', [
+                                'titleStatePath' => $component->getContainer()->getStatePath() . '.title',
+                                'descriptionStatePath' => $component->getContainer()->getStatePath() . '.description',
+                            ]))
                             ->columnSpanFull(),
 
                         TextInput::make('focus_keyword')

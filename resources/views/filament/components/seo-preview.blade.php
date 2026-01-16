@@ -1,11 +1,6 @@
 <div x-data="{
-    @php
-        $statePath = $component->getStatePath();
-        $titlePath = \Illuminate\Support\Str::replaceLast('preview', 'title', $statePath);
-        $descriptionPath = \Illuminate\Support\Str::replaceLast('preview', 'description', $statePath);
-    @endphp
-    title: $wire.entangle('{{ $titlePath }}'),
-    description: $wire.entangle('{{ $descriptionPath }}'),
+    title: $wire.entangle('{{ $titleStatePath }}'),
+    description: $wire.entangle('{{ $descriptionStatePath }}'),
     url: '{{ config('app.url') }}/...',
 }" class="p-4 bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
     <h3 class="text-sm font-medium text-gray-500 mb-2">Pré-visualização Google (SERP)</h3>
