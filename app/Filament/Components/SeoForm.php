@@ -228,6 +228,7 @@ class SeoForm
                                             // 1. Root Content
                                             $content = $formData['content'] ?? '';
                                             $mainTitle = $formData['title'] ?? '';
+                                            $slug = $formData['slug'] ?? '';
 
                                             // 2. SEO Data (from relationship)
                                             $seoData = $formData['seo'] ?? [];
@@ -243,6 +244,8 @@ class SeoForm
                                                 $seoDesc = '(Meta descrição vazia)';
                                             if (empty($keyword))
                                                 $keyword = '(Sem palavra-chave)';
+                                            if (empty($slug))
+                                                $slug = '(URL/Slug não definido)';
 
                                             \Filament\Notifications\Notification::make()->title('Analisando...')->info()->send();
 
@@ -251,6 +254,7 @@ class SeoForm
                                                 $context = "Conteúdo para Análise:\n";
                                                 $context .= "Título SEO (Title Tag): $seoTitle\n";
                                                 $context .= "Meta Descrição: $seoDesc\n";
+                                                $context .= "URL/Slug: $slug\n";
                                                 $context .= "Palavra-chave Foco: $keyword\n";
 
                                                 $context .= "Palavra-chave Foco: $keyword\n";
