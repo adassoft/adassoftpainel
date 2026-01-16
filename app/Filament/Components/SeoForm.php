@@ -26,8 +26,8 @@ class SeoForm
                         ViewField::make('preview')
                             ->view('filament.components.seo-preview')
                             ->viewData([
-                                'titleStatePath' => 'title',
-                                'descriptionStatePath' => 'description',
+                                'titleStatePath' => fn(\Filament\Forms\Components\Component $component) => $component->getContainer()->getStatePath() . '.title',
+                                'descriptionStatePath' => fn(\Filament\Forms\Components\Component $component) => $component->getContainer()->getStatePath() . '.description',
                             ])
                             ->columnSpanFull(),
 
