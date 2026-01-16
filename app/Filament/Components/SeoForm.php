@@ -87,7 +87,10 @@ class SeoForm
 
                                     // Content Analysis
                                     if ($content) {
-                                        $cleanContent = strip_tags($content);
+                                        // Substitui tags por espaços para evitar aglutinação (ex: <p>Olá</p><p>Mundo</p> -> Olá Mundo)
+                                        $contentWithSpaces = preg_replace('/<[^>]+>/', ' ', $content);
+                                        $cleanContent = trim(preg_replace('/\s+/', ' ', strip_tags($contentWithSpaces)));
+
                                         $keywordCount = substr_count(Str::lower($cleanContent), Str::lower($keyword));
 
                                         if ($keywordCount > 0) {
