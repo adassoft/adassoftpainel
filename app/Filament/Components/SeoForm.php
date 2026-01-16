@@ -89,7 +89,9 @@ class SeoForm
                                     if ($content) {
                                         // Substitui tags por espaços para evitar aglutinação (ex: <p>Olá</p><p>Mundo</p> -> Olá Mundo)
                                         $contentWithSpaces = preg_replace('/<[^>]+>/', ' ', $content);
-                                        $cleanContent = trim(preg_replace('/\s+/', ' ', strip_tags($contentWithSpaces)));
+                                        // Decodifica entidades HTML (ex: &ecirc; -> ê) para bater com a keyword digitada
+                                        $contentDecoded = html_entity_decode($contentWithSpaces, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                        $cleanContent = trim(preg_replace('/\s+/', ' ', strip_tags($contentDecoded)));
 
                                         $keywordCount = substr_count(Str::lower($cleanContent), Str::lower($keyword));
 
