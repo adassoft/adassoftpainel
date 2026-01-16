@@ -51,6 +51,7 @@ class KnowledgeBaseResource extends Resource
                     ->label('Ordem')
                     ->numeric()
                     ->default(0)
+                    ->required()
                     ->columnSpan(1),
 
                 Forms\Components\TextInput::make('slug')
@@ -186,7 +187,7 @@ class KnowledgeBaseResource extends Resource
                 Tables\Columns\TextInputColumn::make('sort_order')
                     ->label('Ordem')
                     ->sortable()
-                    ->rules(['numeric', 'min:0']),
+                    ->rules(['required', 'numeric', 'min:0']),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime('d/m/Y')
