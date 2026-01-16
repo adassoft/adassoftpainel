@@ -211,7 +211,7 @@ class KnowledgeBaseResource extends Resource
                                     ])
                                     ->collapsible()
                                     ->cloneable()
-                                    ->reorderableWithButtons()
+
                                     ->addActionLabel('Adicionar Pergunta')
                                     ->hintAction(
                                         Forms\Components\Actions\Action::make('generateFaq')
