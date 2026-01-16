@@ -62,7 +62,7 @@ class KbController extends Controller
         return view('kb.category', compact('category', 'articles'));
     }
 
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
         $article = KnowledgeBase::where('slug', $slug)
             ->where('is_active', true)
@@ -73,7 +73,20 @@ class KbController extends Controller
             return redirect()->route('login')->with('error', 'Este artigo é exclusivo para usuários logados.');
         }
 
-        return view('kb.show', compact('article'));
+        // Contexto de Categoria (se veio de uma lista específica)
+        $contextSlug = $request->query('c');
+        $contextCategory = null;
+
+        if ($contextSlug) {
+            $contextCategory = $article->categories()->where('slug', $contextSlug)->first();
+        }
+
+        // Fallback: Se não tem contexto ou contexto inválido, pega a primeira categoria
+        if (!$contextCategory) {
+            $contextCategory = $article->categories()->orderBy('kb_category_knowledge_base.sort_order', 'asc')->first();
+        }
+
+        return view('kb.show', compact('article', 'contextCategory'));
     }
 
     public function vote(Request $request, $id)

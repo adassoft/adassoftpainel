@@ -109,7 +109,8 @@
             <div class="mt-4">
                 <a href="{{ route('kb.index') }}"
                     class="btn btn-outline-light btn-sm font-weight-bold rounded-pill px-4 py-2 d-inline-flex align-items-center">
-                    <x-heroicon-m-arrow-left class="w-4 h-4 mr-2" style="width: 16px; height: 16px; margin-right: 0.5rem;" /> Voltar para a Central de Ajuda
+                    <x-heroicon-m-arrow-left class="w-4 h-4 mr-2"
+                        style="width: 16px; height: 16px; margin-right: 0.5rem;" /> Voltar para a Central de Ajuda
                 </a>
             </div>
         </div>
@@ -121,7 +122,7 @@
             <div class="row">
                 @foreach ($articles as $article)
                     <div class="col-md-6 col-lg-4 mb-4">
-                        <a href="{{ route('kb.show', $article->slug ?? 'artigo-' . $article->id) }}"
+                        <a href="{{ route('kb.show', ['slug' => $article->slug ?? 'artigo-' . $article->id, 'c' => $category->slug]) }}"
                             class="card kb-article-card h-100">
                             <div class="card-body p-4 d-flex flex-column">
                                 <div class="d-flex justify-content-between align-items-start mb-3">

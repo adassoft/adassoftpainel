@@ -117,9 +117,9 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb kb-breadcrumb mb-4">
                     <li class="breadcrumb-item"><a href="{{ route('kb.index') }}">Central de Ajuda</a></li>
-                    @if($article->category)
+                    @if($contextCategory)
                         <li class="breadcrumb-item"><a
-                                href="{{ route('kb.category', $article->category->slug) }}">{{ $article->category->name }}</a>
+                                href="{{ route('kb.category', $contextCategory->slug) }}">{{ $contextCategory->name }}</a>
                         </li>
                     @endif
                     <li class="breadcrumb-item active" aria-current="page">{{ Str::limit($article->title, 30) }}</li>
@@ -136,10 +136,13 @@
                             <div class="d-flex align-items-center text-muted small mb-5 pb-3 border-bottom">
                                 <span class="mr-4"><i class="far fa-clock mr-1"></i> Atualizado:
                                     {{ $article->updated_at->format('d/m/Y') }}</span>
-                                @if($article->category)
-                                    <span
-                                        class="badge badge-light text-uppercase tracking-wide px-2 py-1">{{ $article->category->name }}</span>
-                                @endif
+                                @foreach($article->categories as $cat)
+                                    <a href="{{ route('kb.category', $cat->slug) }}" class="text-decoration-none mr-2">
+                                        <span class="badge badge-light text-uppercase tracking-wide px-2 py-1 text-primary border">
+                                            {{ $cat->name }}
+                                        </span>
+                                    </a>
+                                @endforeach
                             </div>
 
                             <div class="kb-content mb-5">
@@ -227,11 +230,11 @@
                 <!-- Sidebar (Outros Artigos da Categoria) -->
                 <div class="col-lg-4">
                     <div class="sidebar-kb">
-                        @if($article->category && $article->category->articles->count() > 1)
-                            <h6 class="font-weight-bold text-uppercase text-gray-500 mb-3 pl-3">Nesta Categoria</h6>
+                        @if($contextCategory && $contextCategory->articles->count() > 1)
+                            <h6 class="font-weight-bold text-uppercase text-gray-500 mb-3 pl-3">Nesta Categoria ({{ $contextCategory->name }})</h6>
                             <div class="bg-white rounded-lg shadow-sm p-3">
-                                @foreach($article->category->articles()->where('is_public', true)->orderBy('kb_category_knowledge_base.sort_order', 'asc')->get() as $related)
-                                    <a href="{{ route('kb.show', $related->slug ?? 'artigo-' . $related->id) }}"
+                                @foreach($contextCategory->articles()->where('is_public', true)->orderBy('kb_category_knowledge_base.sort_order', 'asc')->get() as $related)
+                                    <a href="{{ route('kb.show', ['slug' => $related->slug ?? 'artigo-' . $related->id, 'c' => $contextCategory->slug]) }}"
                                         class="sidebar-link {{ $related->id == $article->id ? 'active' : '' }}">
                                         {{ $related->pivot->sort_order ?? 0 }} - {{ $related->title }}
                                     </a>
