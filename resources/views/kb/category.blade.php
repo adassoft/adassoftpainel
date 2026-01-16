@@ -118,6 +118,44 @@
 
     <!-- Lista de Artigos (Cards) -->
     <div class="container pb-5">
+
+        <!-- Subcategorias (Se houver) -->
+        @if ($category->children->isNotEmpty())
+            <div class="row mb-5">
+                <div class="col-12 mb-4">
+                    <h4 class="font-weight-bold text-gray-800 pb-2 border-bottom">
+                        Seções em {{ $category->name }}
+                    </h4>
+                </div>
+                @foreach ($category->children as $child)
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <a href="{{ route('kb.category', $child->slug) }}" class="card kb-article-card h-100"
+                            style="background: #fff;">
+                            <div class="card-body p-4 text-center">
+                                <div class="mx-auto mb-3 text-primary bg-light rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width: 60px; height: 60px;">
+                                    @if(str_contains($child->icon ?? '', '<svg'))
+                                        {!! str_replace('w-6 h-6', 'w-8 h-8', $child->icon) !!}
+                                    @else
+                                        @php
+                                            try {
+                                                echo svg($child->icon ?? 'heroicon-o-folder', 'w-8 h-8')->toHtml();
+                                            } catch (\Exception $e) {
+                                                echo '<i class="fas fa-folder fa-2x"></i>';
+                                            }
+                                        @endphp
+                                    @endif
+                                </div>
+                                <h5 class="font-weight-bold mb-2">{{ $child->name }}</h5>
+                                <p class="small text-muted mb-0">{{ $child->description }}</p>
+                                <span class="badge badge-light mt-3 border">{{ $child->articles_count }} Artigos</span>
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         @if ($articles->count() > 0)
             <div class="row">
                 @foreach ($articles as $article)

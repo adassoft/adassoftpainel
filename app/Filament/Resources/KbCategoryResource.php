@@ -45,6 +45,18 @@ class KbCategoryResource extends Resource
                                     ->label('Descrição')
                                     ->columnSpanFull(),
 
+                                Forms\Components\Select::make('parent_id')
+                                    ->relationship(
+                                        'parent',
+                                        'name',
+                                        modifyQueryUsing: fn(\Illuminate\Database\Eloquent\Builder $query, ?\App\Models\KbCategory $record) =>
+                                        $record ? $query->where('id', '!=', $record->id) : $query
+                                    )
+                                    ->searchable()
+                                    ->preload()
+                                    ->label('Categoria Pai (Opcional)')
+                                    ->columnSpanFull(),
+
                                 Forms\Components\Grid::make(3)->schema([
                                     Forms\Components\Select::make('icon')
                                         ->label('Ícone')
@@ -99,7 +111,10 @@ class KbCategoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->description(fn($record) => $record->parent ? 'Filho de: ' . $record->parent->name : 'Categoria Raiz')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\IconColumn::make('icon')->icon(fn($state) => $state),
                 Tables\Columns\TextColumn::make('color')->badge(),
                 Tables\Columns\TextColumn::make('articles_count')

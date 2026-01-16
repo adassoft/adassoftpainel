@@ -25,15 +25,19 @@ class KbController extends Controller
                 ->get();
         }
 
-        // Carrega categorias ativas COM seus artigos ativos e públicos
+        // Carrega categorias RAÍZES ativas
         $categories = KbCategory::where('is_active', true)
+            ->whereNull('parent_id')
             ->orderBy('sort_order', 'asc')
             ->with([
+                'children' => function ($q) {
+                    $q->where('is_active', true)->orderBy('sort_order');
+                },
                 'articles' => function ($query) {
                     $query->where('is_active', true)
-                        ->where('is_public', true) // Na home, só mostra os públicos
+                        ->where('is_public', true)
                         ->orderBy('kb_category_knowledge_base.sort_order', 'asc')
-                        ->take(5); // Limita 5 por card na home
+                        ->take(5);
                 }
             ])
             ->withCount([
@@ -51,6 +55,14 @@ class KbController extends Controller
     {
         $category = KbCategory::where('slug', $slug)
             ->where('is_active', true)
+            ->with([
+                'children' => function ($q) {
+                    $q->where('is_active', true)
+                        ->orderBy('sort_order', 'asc')
+                        ->withCount(['articles' => function ($q) {
+                            $q->where('is_active', true)->where('is_public', true); }]);
+                }
+            ])
             ->firstOrFail();
 
         $articles = $category->articles()
