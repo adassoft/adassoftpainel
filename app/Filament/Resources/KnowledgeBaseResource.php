@@ -283,8 +283,7 @@ class KnowledgeBaseResource extends Resource
 
                 Tables\Columns\TextColumn::make('categories.name')
                     ->label('Categorias')
-                    ->badge()
-                    ->sortable(),
+                    ->badge(),
 
                 Tables\Columns\IconColumn::make('is_public')
                     ->label('Público')
