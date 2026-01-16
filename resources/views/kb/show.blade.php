@@ -211,25 +211,25 @@
                                     <div class="accordion" id="faqAccordion">
                                         @foreach($article->faq as $index => $item)
                                             @if(!empty($item['question']) && !empty($item['answer']))
-                                                <div class="card border-0 mb-2 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                                                <div class="card border-0 mb-3 shadow-sm rounded-lg overflow-hidden">
                                                     <div class="card-header bg-white p-0" id="heading{{ $index }}">
                                                         <h2 class="mb-0">
-                                                            <button class="btn btn-link btn-block text-left font-weight-bold text-dark p-3 d-flex justify-content-between align-items-center"
-                                                                type="button"
-                                                                data-toggle="collapse"
-                                                                data-target="#collapse{{ $index }}"
-                                                                aria-expanded="false"
-                                                                aria-controls="collapse{{ $index }}"
-                                                                style="text-decoration: none; box-shadow: none;">
+                                                            <button class="btn btn-link btn-block text-left font-weight-bold text-dark p-4 d-flex justify-content-between align-items-center text-decoration-none" 
+                                                                    type="button" 
+                                                                    data-toggle="collapse" 
+                                                                    data-target="#collapse{{ $index }}" 
+                                                                    aria-expanded="false" 
+                                                                    aria-controls="collapse{{ $index }}"
+                                                                    style="text-decoration: none; box-shadow: none;">
                                                                 {{ $item['question'] }}
-                                                                <i class="fas fa-chevron-down text-muted small"></i>
+                                                                <i class="fas fa-chevron-down text-gray-400"></i>
                                                             </button>
                                                         </h2>
                                                     </div>
 
-                                                    <div id="collapse{{ $index }}" class="collapse" aria-labelledby="heading{{ $index }}"
-                                                        data-parent="#faqAccordion">
-                                                        <div class="card-body bg-light text-muted">
+                                                    <div id="collapse{{ $index }}" class="collapse" aria-labelledby="heading{{ $index }}" 
+                                                         data-parent="#faqAccordion">
+                                                        <div class="card-body bg-light text-muted p-4">
                                                             {!! nl2br(e($item['answer'])) !!}
                                                         </div>
                                                     </div>
