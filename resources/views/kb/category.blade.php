@@ -108,8 +108,8 @@
 
             <div class="mt-4">
                 <a href="{{ route('kb.index') }}"
-                    class="btn btn-outline-light btn-sm font-weight-bold rounded-pill px-4 py-2">
-                    <i class="fas fa-arrow-left mr-2"></i> Voltar para a Central de Ajuda
+                    class="btn btn-outline-light btn-sm font-weight-bold rounded-pill px-4 py-2 d-inline-flex align-items-center">
+                    <x-heroicon-m-arrow-left class="w-4 h-4 mr-2" style="width: 16px; height: 16px; margin-right: 0.5rem;" /> Voltar para a Central de Ajuda
                 </a>
             </div>
         </div>
@@ -137,12 +137,12 @@
 
                                 <p class="small mb-4 flex-grow-1"
                                     style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
-                                    {{ Str::limit(strip_tags($article->content), 120) }}
+                                    {{ Str::limit(html_entity_decode(strip_tags($article->content)), 120) }}
                                 </p>
 
                                 <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
                                     <span class="font-weight-bold small read-more">Ler artigo</span>
-                                    <i class="fas fa-arrow-right small read-more"></i>
+                                    <x-heroicon-m-arrow-right class="w-4 h-4 read-more" style="width: 16px; height: 16px;" />
                                 </div>
                             </div>
                         </a>
