@@ -179,7 +179,7 @@ class DownloadResource extends Resource
                         Forms\Components\Tabs\Tab::make('SEO')
                             ->icon('heroicon-o-magnifying-glass')
                             ->schema([
-                                \App\Filament\Components\SeoForm::make(),
+                                \App\Filament\Components\SeoForm::make('descricao'),
                             ]),
                     ]),
             ]);

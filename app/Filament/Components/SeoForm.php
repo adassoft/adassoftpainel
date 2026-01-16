@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 
 class SeoForm
 {
-    public static function make(): Group
+    public static function make(string $contentField = 'content'): Group
     {
         return Group::make()
             ->relationship('seo')
@@ -35,7 +35,7 @@ class SeoForm
 
                         Placeholder::make('analysis')
                             ->hiddenLabel()
-                            ->content(function (\Filament\Forms\Components\Component $component) {
+                            ->content(function (\Filament\Forms\Components\Component $component) use ($contentField) {
                                 $data = $component->getContainer()->getState();
                                 $keyword = trim($data['focus_keyword'] ?? '');
                                 $title = $data['title'] ?? null;
@@ -44,7 +44,7 @@ class SeoForm
                                 // Tenta obter o conteúdo principal do formulário (hack para acessar dados do pai)
                                 $livewire = $component->getLivewire();
                                 $mainData = $livewire->data ?? [];
-                                $content = $mainData['content'] ?? null;
+                                $content = $mainData[$contentField] ?? null;
 
                                 $analysis = [];
 
@@ -123,9 +123,9 @@ class SeoForm
                                 Action::make('suggest_keyword')
                                     ->icon('heroicon-m-sparkles')
                                     ->label('Sugerir do Conteúdo')
-                                    ->action(function ($set, $component) {
+                                    ->action(function ($set, $component) use ($contentField) {
                                         $livewire = $component->getLivewire();
-                                        $content = $livewire->data['content'] ?? '';
+                                        $content = $livewire->data[$contentField] ?? '';
                                         if (!$content) {
                                             \Filament\Notifications\Notification::make()->title('Adicione conteúdo primeiro.')->warning()->send();
                                             return;
@@ -169,9 +169,9 @@ class SeoForm
                                 Action::make('generate_description')
                                     ->icon('heroicon-m-sparkles')
                                     ->label('Gerar do Conteúdo')
-                                    ->action(function ($set, $component) {
+                                    ->action(function ($set, $component) use ($contentField) {
                                         $livewire = $component->getLivewire();
-                                        $content = $livewire->data['content'] ?? '';
+                                        $content = $livewire->data[$contentField] ?? '';
                                         if (!$content) {
                                             \Filament\Notifications\Notification::make()->title('Adicione conteúdo primeiro.')->warning()->send();
                                             return;
@@ -230,13 +230,13 @@ class SeoForm
                                         ->label('Executar Auditoria Completa')
                                         ->icon('heroicon-o-cpu-chip')
                                         ->color('primary')
-                                        ->action(function ($set, $component) {
+                                        ->action(function ($set, $component) use ($contentField) {
                                             $livewire = $component->getLivewire();
                                             $formData = $livewire->data ?? [];
 
                                             // 1. Root Content
-                                            $content = $formData['content'] ?? '';
-                                            $mainTitle = $formData['title'] ?? '';
+                                            $content = $formData[$contentField] ?? '';
+                                            $mainTitle = $formData['title'] ?? $formData['titulo'] ?? $formData['name'] ?? $formData['nome_software'] ?? '';
                                             $slug = $formData['slug'] ?? '';
 
                                             // 2. SEO Data (from relationship)
