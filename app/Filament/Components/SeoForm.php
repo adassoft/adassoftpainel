@@ -171,9 +171,32 @@ class SeoForm
                                         }
 
                                         $text = html_entity_decode(strip_tags($content));
-                                        $description = Str::limit($text, 155, '');
-                                        // Remove quebras de linha múltiplas
-                                        $description = preg_replace('/\s+/', ' ', $description);
+                                        $text = preg_replace('/\s+/', ' ', trim($text));
+
+                                        // Busca a palavra-chave
+                                        $state = $component->getContainer()->getState();
+                                        $keyword = $state['focus_keyword'] ?? null;
+                                        $description = '';
+
+                                        if ($keyword && ($pos = mb_stripos($text, $keyword)) !== false) {
+                                            // Encontrar início da frase (procura pontuação anterior)
+                                            $before = mb_substr($text, 0, $pos);
+                                            $start = 0;
+                                            foreach (['.', '!', '?'] as $p) {
+                                                $pPos = mb_strrpos($before, $p);
+                                                if ($pPos !== false && $pPos + 1 > $start) {
+                                                    $start = $pPos + 1;
+                                                }
+                                            }
+
+                                            $candidate = trim(mb_substr($text, $start));
+                                            $description = Str::limit($candidate, 155, '');
+                                        }
+
+                                        // Fallback se não achou ou não tem keyword
+                                        if (empty($description)) {
+                                            $description = Str::limit($text, 155, '');
+                                        }
 
                                         $set('description', trim($description));
                                         \Filament\Notifications\Notification::make()->title('Descrição gerada com sucesso')->success()->send();
