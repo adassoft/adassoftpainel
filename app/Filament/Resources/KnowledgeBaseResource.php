@@ -195,8 +195,11 @@ class KnowledgeBaseResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('sort_order', 'asc')
+            ->reorderable('sort_order')
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('category')
+                    ->relationship('category', 'name')
+                    ->label('Filtrar por Categoria'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
