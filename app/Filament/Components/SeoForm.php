@@ -146,7 +146,6 @@ class SeoForm
                         TextInput::make('title')
                             ->label('Título SEO')
                             ->placeholder('Título da página | Nome do Site')
-                            ->maxLength(60) // Google corta ~60
                             ->live(debounce: 500)
                             ->afterStateUpdated(function ($state, $set) {
                                 // Aqui poderíamos rodar validações em tempo real
@@ -155,7 +154,6 @@ class SeoForm
                         Textarea::make('description')
                             ->label('Meta Descrição')
                             ->rows(3)
-                            ->maxLength(160) // Google corta ~160
                             ->placeholder('Um resumo atrativo do conteúdo...')
                             ->live(debounce: 500)
                             ->hintAction(
