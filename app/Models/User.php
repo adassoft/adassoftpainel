@@ -50,6 +50,9 @@ class User extends Authenticatable implements FilamentUser
         'foto',
         'uf',
         'data',
+        'bio',
+        'job_title',
+        'linkedin_url',
     ];
 
     /**

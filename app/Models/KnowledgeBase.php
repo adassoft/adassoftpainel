@@ -20,6 +20,7 @@ class KnowledgeBase extends Model
         'video_url',
         'helpful_count',
         'not_helpful_count',
+        'author_id',
     ];
 
     protected $casts = [
@@ -30,6 +31,11 @@ class KnowledgeBase extends Model
         'helpful_count' => 'integer',
         'not_helpful_count' => 'integer',
     ];
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author_id');
+    }
 
     public function categories()
     {
@@ -46,6 +52,8 @@ class KnowledgeBase extends Model
 
     public function getJsonLdAttribute()
     {
+        $authorName = $this->author ? ($this->author->name ?? $this->author->nome) : 'Adassoft';
+
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Article',
@@ -53,11 +61,19 @@ class KnowledgeBase extends Model
             'datePublished' => $this->created_at->toIso8601String(),
             'dateModified' => $this->updated_at->toIso8601String(),
             'author' => [
-                '@type' => 'Organization',
-                'name' => 'Adassoft',
+                '@type' => $this->author ? 'Person' : 'Organization',
+                'name' => $authorName,
             ],
             'description' => \Illuminate\Support\Str::limit(strip_tags($this->content), 160),
         ];
+
+        if ($this->author && $this->author->job_title) {
+            $schema['author']['jobTitle'] = $this->author->job_title;
+        }
+
+        if ($this->author && $this->author->linkedin_url) {
+            $schema['author']['url'] = $this->author->linkedin_url;
+        }
 
         // Se o título começar com "Como", tenta gerar Schema de HowTo
         if (stripos($this->title, 'Como') === 0) {

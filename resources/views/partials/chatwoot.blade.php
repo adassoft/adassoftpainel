@@ -20,11 +20,22 @@
             }
         })(document, "script");
 
-        // Global listener for "open-chat" class
-        document.addEventListener('click', function (e) {
-            if (e.target && e.target.closest('.open-chat')) {
-                e.preventDefault();
-                window.$chatwoot.toggle('open');
+        // Global listener for "open-chat" class or href="#chat"
+        document.addEventListener('click', function(e) {
+            // Procura pro link mais próximo (necessário se tiver ícone dentro do a)
+            var target = e.target.closest('a') || e.target;
+            
+            // Verifica se tem a classe open-chat
+            if (target.classList && target.classList.contains('open-chat')) {
+                 e.preventDefault();
+                 window.$chatwoot.toggle('open');
+                 return;
+            }
+
+            // Verifica se o href termina com #chat
+            if (target.getAttribute && target.getAttribute('href') && target.getAttribute('href').endsWith('#chat')) {
+                 e.preventDefault();
+                 window.$chatwoot.toggle('open');
             }
         });
     </script>

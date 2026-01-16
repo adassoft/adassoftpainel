@@ -110,8 +110,8 @@
 
 @section('content')
     <script type="application/ld+json">
-            {!! $article->json_ld !!}
-        </script>
+                {!! $article->json_ld !!}
+            </script>
 
     <div class="bg-gray-100 py-5 min-vh-100" style="background-color: #f8f9fc;">
         <div class="container">
@@ -170,6 +170,38 @@
                                         </div>
                                     </div>
                                 @endif
+                            @endif
+
+                            <!-- Author Bio (E-E-A-T) -->
+                            @if($article->author && $article->author->bio)
+                                <div class="mt-5 p-4 bg-light rounded shadow-sm border-left-primary"
+                                    style="background-color: #f8f9fc; border-left: 4px solid var(--color-accent, #4e73df);">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 text-center mb-3 mb-md-0">
+                                            <img src="{{ $article->author->foto ? asset('storage/' . $article->author->foto) : 'https://ui-avatars.com/api/?name=' . urlencode($article->author->name) . '&background=random' }}"
+                                                class="rounded-circle img-fluid shadow-sm"
+                                                style="width: 80px; height: 80px; object-fit: cover;"
+                                                alt="{{ $article->author->name }}">
+                                        </div>
+                                        <div class="col-md-10">
+                                            <h6 class="font-weight-bold mb-1 text-dark">{{ $article->author->name }}</h6>
+                                            @if($article->author->job_title)
+                                                <p class="small text-uppercase text-primary font-weight-bold mb-2"
+                                                    style="font-size: 0.75rem; letter-spacing: 1px;">
+                                                    {{ $article->author->job_title }}</p>
+                                            @endif
+                                            <p class="small text-muted mb-0" style="line-height: 1.6;">
+                                                {!! nl2br(e($article->author->bio)) !!}
+                                            </p>
+                                            @if($article->author->linkedin_url)
+                                                <a href="{{ $article->author->linkedin_url }}" target="_blank"
+                                                    class="mt-2 d-inline-block small text-primary font-weight-bold">
+                                                    <i class="fab fa-linkedin"></i> Ver Perfil Profissional
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
 
                             <!-- Feedback Section (Simples) -->

@@ -111,6 +111,25 @@ class UserResource extends Resource
                             ->required(fn(string $context): bool => $context === 'create')
                             ->label('Senha'),
                     ]),
+
+                Forms\Components\Section::make('Perfil do Especialista (E-E-A-T)')
+                    ->description('Preencha para exibir a autoria nos artigos e melhorar o SEO.')
+                    ->collapsed()
+                    ->schema([
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\TextInput::make('job_title')
+                                ->label('Cargo / Título')
+                                ->placeholder('Ex: Especialista em Suporte, Diretor de Tecnologia'),
+                            Forms\Components\TextInput::make('linkedin_url')
+                                ->label('LinkedIn URL')
+                                ->url()
+                                ->placeholder('https://linkedin.com/in/...'),
+                        ]),
+                        Forms\Components\Textarea::make('bio')
+                            ->label('Mini-Biografia')
+                            ->rows(3)
+                            ->placeholder('Ex: Engenheiro de Software com 10 anos de experiência em automação comercial...'),
+                    ]),
             ]);
     }
 

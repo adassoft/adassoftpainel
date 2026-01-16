@@ -253,12 +253,17 @@ class SeoForm
                                                 $context .= "Meta Descrição: $seoDesc\n";
                                                 $context .= "Palavra-chave Foco: $keyword\n";
 
-                                                $cleanContent = html_entity_decode(strip_tags($content));
-                                                // Limit content to prevent huge prompts
-                                                $context .= "Texto (3000 chars): " . mb_substr($cleanContent, 0, 3000) . "\n";
+                                                $context .= "Palavra-chave Foco: $keyword\n";
 
-                                                $prompt = "Atue como Especialista SEO Sênior. Analise:\n$context\n";
-                                                $prompt .= "1. Nota 0-100.\n2. Checklist Título/Desc/Keyword.\n3. Pontos Fortes.\n4. Pontos Fracos.\n5. Sugestões Práticas.\n";
+                                                // Permitir tags de estrutura para a IA analisar cabeçalhos
+                                                $allowedTags = '<h1><h2><h3><h4><h5><h6><p><ul><ol><li><strong><b>';
+                                                $cleanContent = strip_tags($content, $allowedTags);
+
+                                                // Limit content to prevent huge prompts
+                                                $context .= "Estrutura HTML do Artigo (Limited): " . mb_substr($cleanContent, 0, 5000) . "\n";
+
+                                                $prompt = "Atue como Especialista SEO Sênior. Analise o HTML fornecido buscando:\n$context\n";
+                                                $prompt .= "1. Nota 0-100.\n2. Checklist Título/Desc/Keyword.\n3. Validação de Hierarquia de Cabeçalhos (H1/H2/H3 estão sendo usados corretamente ou apenas negrito?).\n4. Pontos Fortes.\n5. Pontos Fracos.\n6. Sugestões Práticas.\n";
                                                 $prompt .= "Responda em Markdown limpo.";
 
                                                 $response = $service->generateContent($prompt);

@@ -53,6 +53,15 @@ class KnowledgeBaseResource extends Resource
                                         ->columnSpan(2),
                                 ]),
 
+                                Forms\Components\Select::make('author_id')
+                                    ->relationship('author', 'nome')
+                                    ->label('Autor (Expertise)')
+                                    ->searchable()
+                                    ->preload()
+                                    ->default(auth()->id())
+                                    ->helperText('Selecione o especialista responsável para exibir a bio no artigo (E-E-A-T).')
+                                    ->columnSpanFull(),
+
                                 Forms\Components\TextInput::make('slug')
                                     ->label('URL Amigável (Slug)')
                                     ->unique(ignoreRecord: true)
@@ -124,11 +133,13 @@ class KnowledgeBaseResource extends Resource
                                                     1. Corrigir erros gramaticais e ortográficos.
                                                     2. Melhorar a clareza, coesão e tom (profissional, direto e prestativo).
                                                     3. Manter TODA a formatação HTML existente (links, imagens, tabelas) e melhorar a estrutura (H2, H3) se necessário.
+                                                    4. EXPANSÃO SEMÂNTICA (LSI): Identifique o tópico principal e enriqueça o texto usando sinônimos e termos correlatos (ex: se o tema for 'boleto', use também 'cobrança', 'fatura', 'título bancário', 'inadimplência'). Evite repetição excessiva da palavra-chave exata.
                                                     {$seoInstructions}
                                                     
                                                     IMPORTANTE: Retorne APENAS o HTML final do conteúdo, sem blocos de código markdown (```html), sem explicações extras. Apenas o HTML cru para ser inserido no editor.
                                                     
                                                     Conteúdo Original:
+
                                                     " . $content;
 
                                                     $response = $service->generateContent($prompt);
