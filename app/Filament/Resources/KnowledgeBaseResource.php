@@ -180,75 +180,7 @@ class KnowledgeBaseResource extends Resource
                                     ->separator(',')
                                     ->columnSpanFull(),
 
-                                Forms\Components\Section::make('Perguntas Frequentes (FAQ)')
-                                    ->description('Adicione perguntas e respostas para gerar Rich Snippets no Google.')
-                                    ->collapsed()
-                                    ->schema([
-                                        Forms\Components\Repeater::make('faq')
-                                            ->label('Perguntas e Respostas')
-                                            ->itemLabel(fn(array $state): ?string => $state['question'] ?? null)
-                                            ->schema([
-                                                Forms\Components\TextInput::make('question')
-                                                    ->label('Pergunta')
-                                                    ->required()
-                                                    ->columnSpanFull(),
-                                                Forms\Components\Textarea::make('answer')
-                                                    ->label('Resposta')
-                                                    ->required()
-                                                    ->rows(3)
-                                                    ->columnSpanFull(),
-                                            ])
-                                            ->collapsible()
-                                            ->cloneable()
-                                            ->reorderableWithButtons()
-                                            ->addActionLabel('Adicionar Pergunta')
-                                            ->hintAction(
-                                                Forms\Components\Actions\Action::make('generateFaq')
-                                                    ->label('Gerar FAQ com IA')
-                                                    ->icon('heroicon-o-sparkles')
-                                                    ->color('info')
-                                                    ->requiresConfirmation()
-                                                    ->action(function (Forms\Get $get, Forms\Set $set) {
-                                                        $content = $get('content');
-                                                        if (!$content) {
-                                                            \Filament\Notifications\Notification::make()->title('Adicione conteúdo primeiro.')->warning()->send();
-                                                            return;
-                                                        }
 
-                                                        \Filament\Notifications\Notification::make()->title('Gerando perguntas...')->info()->send();
-
-                                                        try {
-                                                            $service = new \App\Services\GeminiService();
-                                                            $prompt = "Com base no texto abaixo, gere 3 a 5 perguntas frequentes (FAQ) relevantes com respostas curtas e diretas.
-                                                        Retorne APENAS um JSON array neste formato:
-                                                        [{\"question\": \"Pergunta?\", \"answer\": \"Resposta.\"}]
-                                                        
-                                                        Texto: " . strip_tags($content);
-
-                                                            $response = $service->generateContent($prompt);
-                                                            if ($response['success']) {
-                                                                $json = $response['reply'];
-                                                                // Clean markdown code blocks
-                                                                $json = preg_replace('/^```json\s*/i', '', $json);
-                                                                $json = preg_replace('/^```\s*/i', '', $json);
-                                                                $json = preg_replace('/\s*```$/', '', $json);
-
-                                                                $faq = json_decode($json, true);
-
-                                                                if (is_array($faq)) {
-                                                                    $current = $get('faq') ?? [];
-                                                                    $set('faq', array_merge($current, $faq));
-                                                                    \Filament\Notifications\Notification::make()->title('FAQ Gerado!')->success()->send();
-                                                                } else {
-                                                                    throw new \Exception('Falha ao decodificar JSON da IA.');
-                                                                }
-                                                            }
-                                                        } catch (\Exception $e) {
-                                                            \Filament\Notifications\Notification::make()->title('Erro')->body($e->getMessage())->danger()->send();
-                                                        }
-                                                    })
-                                            )
-                                    ]),
 
                                 Forms\Components\Grid::make(2)->schema([
                                     Forms\Components\Toggle::make('is_public')
@@ -261,6 +193,75 @@ class KnowledgeBaseResource extends Resource
                                         ->default(true),
                                 ]),
                             ]),
+                        Forms\Components\Tabs\Tab::make('Perguntas Frequentes (FAQ)')
+                            ->icon('heroicon-o-chat-bubble-left-right')
+                            ->schema([
+                                Forms\Components\Repeater::make('faq')
+                                    ->label('Perguntas e Respostas')
+                                    ->itemLabel(fn(array $state): ?string => $state['question'] ?? null)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('question')
+                                            ->label('Pergunta')
+                                            ->required()
+                                            ->columnSpanFull(),
+                                        Forms\Components\Textarea::make('answer')
+                                            ->label('Resposta')
+                                            ->required()
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible()
+                                    ->cloneable()
+                                    ->reorderableWithButtons()
+                                    ->addActionLabel('Adicionar Pergunta')
+                                    ->hintAction(
+                                        Forms\Components\Actions\Action::make('generateFaq')
+                                            ->label('Gerar FAQ com IA')
+                                            ->icon('heroicon-o-sparkles')
+                                            ->color('info')
+                                            ->requiresConfirmation()
+                                            ->action(function (Forms\Get $get, Forms\Set $set) {
+                                                $content = $get('content');
+                                                if (!$content) {
+                                                    \Filament\Notifications\Notification::make()->title('Adicione conteúdo primeiro.')->warning()->send();
+                                                    return;
+                                                }
+
+                                                \Filament\Notifications\Notification::make()->title('Gerando perguntas...')->info()->send();
+
+                                                try {
+                                                    $service = new \App\Services\GeminiService();
+                                                    $prompt = "Com base no texto abaixo, gere 3 a 5 perguntas frequentes (FAQ) relevantes com respostas curtas e diretas.
+                                                        Retorne APENAS um JSON array neste formato:
+                                                        [{\"question\": \"Pergunta?\", \"answer\": \"Resposta.\"}]
+                                                        
+                                                        Texto: " . strip_tags($content);
+
+                                                    $response = $service->generateContent($prompt);
+                                                    if ($response['success']) {
+                                                        $json = $response['reply'];
+                                                        // Clean markdown code blocks
+                                                        $json = preg_replace('/^```json\s*/i', '', $json);
+                                                        $json = preg_replace('/^```\s*/i', '', $json);
+                                                        $json = preg_replace('/\s*```$/', '', $json);
+
+                                                        $faq = json_decode($json, true);
+
+                                                        if (is_array($faq)) {
+                                                            $current = $get('faq') ?? [];
+                                                            $set('faq', array_merge($current, $faq));
+                                                            \Filament\Notifications\Notification::make()->title('FAQ Gerado!')->success()->send();
+                                                        } else {
+                                                            throw new \Exception('Falha ao decodificar JSON da IA.');
+                                                        }
+                                                    }
+                                                } catch (\Exception $e) {
+                                                    \Filament\Notifications\Notification::make()->title('Erro')->body($e->getMessage())->danger()->send();
+                                                }
+                                            })
+                                    )
+                            ]),
+
                         Forms\Components\Tabs\Tab::make('SEO')
                             ->icon('heroicon-o-magnifying-glass')
                             ->schema([
