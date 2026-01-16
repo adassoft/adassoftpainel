@@ -80,7 +80,6 @@ class KnowledgeBaseResource extends Resource
                                 \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
                                     ->label('Conteúdo')
                                     ->required()
-                                    ->live(onBlur: true)
                                     ->columnSpanFull()
                                     ->minHeight(400)
                                     ->maxHeight(600)
