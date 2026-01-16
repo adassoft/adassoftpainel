@@ -213,6 +213,60 @@ class SeoForm
                             ->label('Robots (Indexação)')
                             ->default('index, follow')
                             ->helperText('Ex: noindex, nofollow (para esconder do Google)'),
+
+                        Section::make('Auditoria IA Avançada')
+                            ->collapsible()
+                            ->collapsed()
+                            ->schema([
+                                \Filament\Forms\Components\Actions::make([
+                                    Action::make('run_audit')
+                                        ->label('Executar Auditoria Completa')
+                                        ->icon('heroicon-o-cpu-chip')
+                                        ->color('primary')
+                                        ->action(function ($set, $component) {
+                                            $data = $component->getContainer()->getState();
+                                            $livewire = $component->getLivewire();
+                                            $mainData = $livewire->data ?? [];
+                                            $content = $mainData['content'] ?? '';
+
+                                            $title = $data['title'] ?? 'N/A';
+                                            $desc = $data['description'] ?? 'N/A';
+                                            $keyword = $data['focus_keyword'] ?? 'N/A';
+
+                                            \Filament\Notifications\Notification::make()->title('Analisando...')->info()->send();
+
+                                            try {
+                                                $service = new \App\Services\GeminiService();
+                                                $context = "Conteúdo para Análise:\n";
+                                                $context .= "Título: $title\nDescrição: $desc\nKeyword: $keyword\n";
+
+                                                $cleanContent = html_entity_decode(strip_tags($content));
+                                                // Limit content to prevent huge prompts
+                                                $context .= "Texto (3000 chars): " . mb_substr($cleanContent, 0, 3000) . "\n";
+
+                                                $prompt = "Atue como Especialista SEO Sênior. Analise:\n$context\n";
+                                                $prompt .= "1. Nota 0-100.\n2. Checklist Título/Desc/Keyword.\n3. Pontos Fortes.\n4. Pontos Fracos.\n5. Sugestões Práticas.\n";
+                                                $prompt .= "Responda em Markdown limpo.";
+
+                                                $response = $service->generateContent($prompt);
+
+                                                if ($response['success']) {
+                                                    $set('ai_audit_result', $response['reply']);
+                                                    \Filament\Notifications\Notification::make()->title('Auditoria Concluída!')->success()->send();
+                                                } else {
+                                                    throw new \Exception($response['error']);
+                                                }
+                                            } catch (\Exception $e) {
+                                                \Filament\Notifications\Notification::make()->title('Erro')->body($e->getMessage())->danger()->send();
+                                            }
+                                        }),
+                                ]),
+                                \Filament\Forms\Components\MarkdownEditor::make('ai_audit_result')
+                                    ->label('Relatório da Auditoria')
+                                    ->disabled() // Read-only
+                                    ->columnSpanFull()
+                                    ->visible(fn($get) => !empty($get('ai_audit_result'))),
+                            ]),
                     ]),
             ]);
     }
