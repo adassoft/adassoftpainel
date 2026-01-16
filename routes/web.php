@@ -23,6 +23,7 @@ Route::get('/dev', [\App\Http\Controllers\DeveloperPartnerController::class, 'in
 Route::post('/dev/join', [\App\Http\Controllers\DeveloperPartnerController::class, 'store'])->name('developer.store');
 
 Route::get('/feeds/google.xml', [\App\Http\Controllers\FeedController::class, 'google'])->name('feeds.google');
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 
 // Checkout routes public (auth handled inside)
 Route::get('/checkout/{planId}', [\App\Http\Controllers\CheckoutController::class, 'start'])->name('checkout.start');

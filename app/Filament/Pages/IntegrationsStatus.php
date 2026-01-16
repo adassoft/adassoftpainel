@@ -24,7 +24,7 @@ class IntegrationsStatus extends Page
                 $warnings[] = 'Sem descrição';
             if (empty($soft->imagem) && empty($soft->imagem_destaque))
                 $warnings[] = 'Sem imagem';
-            if ($soft->plans->where('status', '!=', 'inativo')->count() == 0)
+            if ($soft->plans->where('status', true)->count() == 0)
                 $warnings[] = 'Sem planos ativos (Preço 0)';
             if (empty($soft->google_product_category))
                 $warnings[] = 'Sem Categoria Google (Usando padrão)';

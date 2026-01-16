@@ -21,7 +21,7 @@ class FeedController extends Controller
 
         foreach ($softwares as $soft) {
             // Pega o menor preço de plano ativo
-            $minPricePlan = $soft->plans->where('status', '!=', 'inativo')->sortBy('valor')->first();
+            $minPricePlan = $soft->plans->where('status', true)->sortBy('valor')->first();
             $price = $minPricePlan ? $minPricePlan->valor : 0;
 
             // Se preço for 0, talvez não deva enviar ou enviar como 0.00 BRL
