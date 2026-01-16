@@ -38,7 +38,7 @@ class ArticlesRelationManager extends RelationManager
                     ->boolean(),
             ])
             ->defaultSort('kb_category_knowledge_base.sort_order', 'asc')
-            ->reorderable('sort_order')
+            ->reorderable('kb_category_knowledge_base.sort_order')
             ->filters([
                 //
             ])
