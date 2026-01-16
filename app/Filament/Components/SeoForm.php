@@ -122,7 +122,7 @@ class SeoForm
                                             return;
                                         }
 
-                                        $text = strtolower(strip_tags($content));
+                                        $text = strtolower(html_entity_decode(strip_tags($content)));
                                         // Simple removal of punctuation
                                         $text = preg_replace('/[^\p{L}\p{N}\s]/u', '', $text);
                                         $words = str_word_count($text, 1, 'àáâãçéêíóôõúü');
@@ -170,7 +170,7 @@ class SeoForm
                                             return;
                                         }
 
-                                        $text = strip_tags($content);
+                                        $text = html_entity_decode(strip_tags($content));
                                         $description = Str::limit($text, 155, '');
                                         // Remove quebras de linha múltiplas
                                         $description = preg_replace('/\s+/', ' ', $description);
