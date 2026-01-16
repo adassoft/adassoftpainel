@@ -159,7 +159,7 @@ class KnowledgeBaseResource extends Resource
                 Tables\Columns\TextColumn::make('title')
                     ->searchable()
                     ->weight('bold')
-                    ->description(fn($record) => \Illuminate\Support\Str::limit(strip_tags($record->content), 50)),
+                    ->description(fn($record) => \Illuminate\Support\Str::limit(html_entity_decode(strip_tags($record->content)), 50)),
 
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Categoria')
