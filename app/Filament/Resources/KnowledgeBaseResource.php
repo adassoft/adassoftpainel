@@ -83,7 +83,9 @@ class KnowledgeBaseResource extends Resource
                                     ->columnSpanFull()
                                     ->minHeight(400)
                                     ->maxHeight(600)
-                                    ->imagesUploadUrl(fn() => route('tinymce.upload'))
+                                    ->setCustomConfigs([
+                                        'images_upload_url' => route('tinymce.upload'),
+                                    ])
 
                                     ->showMenuBar()
                                     ->hintAction(
