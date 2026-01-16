@@ -152,7 +152,7 @@
             </div>
 
             <div class="mt-5 d-flex justify-content-center">
-                {{ $articles->links() }}
+                {{ $articles->links('pagination::bootstrap-4') }}
                 {{-- Nota: Se a paginação padrão do Laravel usar Tailwind, pode precisar customizar para Bootstrap.
                 Geralmente $articles->links('pagination::bootstrap-4') resolve. --}}
             </div>
