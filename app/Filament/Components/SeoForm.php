@@ -25,10 +25,6 @@ class SeoForm
                     ->schema([
                         ViewField::make('preview')
                             ->view('filament.components.seo-preview')
-                            ->viewData([
-                                'titleStatePath' => fn(\Filament\Forms\Components\Component $component) => $component->getContainer()->getStatePath() . '.title',
-                                'descriptionStatePath' => fn(\Filament\Forms\Components\Component $component) => $component->getContainer()->getStatePath() . '.description',
-                            ])
                             ->columnSpanFull(),
 
                         TextInput::make('focus_keyword')
