@@ -37,7 +37,7 @@ class SeoForm
                             ->hiddenLabel()
                             ->content(function (\Filament\Forms\Components\Component $component) {
                                 $data = $component->getContainer()->getState();
-                                $keyword = $data['focus_keyword'] ?? null;
+                                $keyword = trim($data['focus_keyword'] ?? '');
                                 $title = $data['title'] ?? null;
                                 $description = $data['description'] ?? null;
 
@@ -96,10 +96,12 @@ class SeoForm
                                         if ($keywordCount > 0) {
                                             $analysis[] = ['status' => 'success', 'message' => "A palavra-chave aparece {$keywordCount} vezes no conteúdo."];
                                         } else {
-                                            $analysis[] = ['status' => 'error', 'message' => 'A palavra-chave não foi encontrada no conteúdo do artigo.'];
+                                            // Debug para entender o erro
+                                            $preview = Str::limit($cleanContent, 60);
+                                            $analysis[] = ['status' => 'error', 'message' => "A palavra-chave não foi encontrada. (Debug: Li {$keywordCount} ocorrências em " . strlen($cleanContent) . " chars. Início: '$preview')"];
                                         }
                                     } else {
-                                        $analysis[] = ['status' => 'warning', 'message' => 'Adicione conteúdo ao artigo para análise de densidade.'];
+                                        $analysis[] = ['status' => 'warning', 'message' => 'O conteúdo parece vazio para o validador. Salve o rascunho ou clique fora do editor para atualizar.'];
                                     }
                                 }
 
