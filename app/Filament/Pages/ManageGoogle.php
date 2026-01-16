@@ -77,7 +77,51 @@ class ManageGoogle extends Page implements HasForms
                                 'gemini-2.0-flash',
                                 'gemini-2.0-flash-lite-preview-02-05',
                             ])
-                            ->helperText('Selecione da lista ou cole o ID que você copiou (Ex: gemini-1.5-flash).'),
+                            ->helperText('Selecione da lista ou cole o ID que você copiou (Ex: gemini-1.5-flash).')
+                            ->suffixAction(
+                                \Filament\Forms\Components\Actions\Action::make('check_api')
+                                    ->icon('heroicon-o-arrow-path')
+                                    ->tooltip('Listar modelos disponíveis para esta Chave')
+                                    ->action(function ($get, $set) {
+                                        $key = $get('gemini_api_key');
+                                        if (!$key) {
+                                            \Filament\Notifications\Notification::make()->title('API Key necessária')->warning()->send();
+                                            return;
+                                        }
+
+                                        try {
+                                            $response = \Illuminate\Support\Facades\Http::get("https://generativelanguage.googleapis.com/v1beta/models?key={$key}");
+
+                                            if ($response->failed()) {
+                                                throw new \Exception($response->json()['error']['message'] ?? 'Erro na requisição');
+                                            }
+
+                                            $models = collect($response->json()['models'] ?? [])
+                                                ->filter(fn($m) => in_array('generateContent', $m['supportedGenerationMethods'] ?? []))
+                                                ->map(fn($m) => str_replace('models/', '', $m['name']))
+                                                ->sort()
+                                                ->values()
+                                                ->toArray();
+
+                                            if (empty($models)) {
+                                                \Filament\Notifications\Notification::make()->title('Nenhum modelo de texto encontrado')->warning()->send();
+                                                return;
+                                            }
+
+                                            // Show in a modal with copy buttons or simplier: Notification
+                                            $body = implode(" | ", $models);
+                                            \Filament\Notifications\Notification::make()
+                                                ->title('Modelos Disponíveis (Copiado para Log)')
+                                                ->body("Modelos encontrados:\n" . implode("\n", $models))
+                                                ->success()
+                                                ->persistent() // Fica na tela
+                                                ->send();
+
+                                        } catch (\Exception $e) {
+                                            \Filament\Notifications\Notification::make()->title('Erro')->body($e->getMessage())->danger()->send();
+                                        }
+                                    })
+                            ),
 
                         ViewField::make('models_button')
                             ->view('filament.forms.components.google-models-button'),
