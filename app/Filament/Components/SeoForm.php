@@ -224,21 +224,36 @@ class SeoForm
                                         ->icon('heroicon-o-cpu-chip')
                                         ->color('primary')
                                         ->action(function ($set, $component) {
-                                            $data = $component->getContainer()->getState();
                                             $livewire = $component->getLivewire();
-                                            $mainData = $livewire->data ?? [];
-                                            $content = $mainData['content'] ?? '';
+                                            $formData = $livewire->data ?? [];
 
-                                            $title = $data['title'] ?? 'N/A';
-                                            $desc = $data['description'] ?? 'N/A';
-                                            $keyword = $data['focus_keyword'] ?? 'N/A';
+                                            // 1. Root Content
+                                            $content = $formData['content'] ?? '';
+                                            $mainTitle = $formData['title'] ?? '';
+
+                                            // 2. SEO Data (from relationship)
+                                            $seoData = $formData['seo'] ?? [];
+
+                                            $seoTitle = $seoData['title'] ?? '';
+                                            $seoDesc = $seoData['description'] ?? '';
+                                            $keyword = $seoData['focus_keyword'] ?? '';
+
+                                            // Fallbacks
+                                            if (empty($seoTitle))
+                                                $seoTitle = $mainTitle ?: '(Título não definido)';
+                                            if (empty($seoDesc))
+                                                $seoDesc = '(Meta descrição vazia)';
+                                            if (empty($keyword))
+                                                $keyword = '(Sem palavra-chave)';
 
                                             \Filament\Notifications\Notification::make()->title('Analisando...')->info()->send();
 
                                             try {
                                                 $service = new \App\Services\GeminiService();
                                                 $context = "Conteúdo para Análise:\n";
-                                                $context .= "Título: $title\nDescrição: $desc\nKeyword: $keyword\n";
+                                                $context .= "Título SEO (Title Tag): $seoTitle\n";
+                                                $context .= "Meta Descrição: $seoDesc\n";
+                                                $context .= "Palavra-chave Foco: $keyword\n";
 
                                                 $cleanContent = html_entity_decode(strip_tags($content));
                                                 // Limit content to prevent huge prompts
