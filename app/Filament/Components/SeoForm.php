@@ -58,12 +58,14 @@ class SeoForm
 
                                     // Title Length
                                     $titleLen = Str::length($title);
-                                    if ($titleLen >= 30 && $titleLen <= 60) {
-                                        $analysis[] = ['status' => 'success', 'message' => 'O título tem um comprimento ideal.'];
+                                    if ($titleLen >= 30 && $titleLen <= 70) {
+                                        $analysis[] = ['status' => 'success', 'message' => "O título tem um comprimento adequado ($titleLen caracteres)."];
                                     } elseif ($titleLen < 30) {
                                         $analysis[] = ['status' => 'warning', 'message' => 'O título é curto. Tente escrever mais de 30 caracteres.'];
+                                    } elseif ($titleLen <= 80) {
+                                        $analysis[] = ['status' => 'warning', 'message' => "O título está longo ($titleLen), pode ser cortado em telas menores."];
                                     } else {
-                                        $analysis[] = ['status' => 'warning', 'message' => 'O título é longo. O Google pode cortá-lo (ideal até 60).'];
+                                        $analysis[] = ['status' => 'warning', 'message' => "O título é muito longo ($titleLen). O Google deve cortá-lo (ideal até 70)."];
                                     }
 
                                     // Description Check
@@ -259,8 +261,8 @@ class SeoForm
 
                                                 $context .= "Palavra-chave Foco: $keyword\n";
 
-                                                // Permitir tags de estrutura para a IA analisar cabeçalhos
-                                                $allowedTags = '<h1><h2><h3><h4><h5><h6><p><ul><ol><li><strong><b>';
+                                                // Permitir tags de estrutura para a IA analisar cabeçalhos E IMAGENS
+                                                $allowedTags = '<h1><h2><h3><h4><h5><h6><p><ul><ol><li><strong><b><img>';
                                                 $cleanContent = strip_tags($content, $allowedTags);
 
                                                 // Limit content to prevent huge prompts
