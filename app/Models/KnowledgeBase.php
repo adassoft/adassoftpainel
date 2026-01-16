@@ -29,8 +29,16 @@ class KnowledgeBase extends Model
         'not_helpful_count' => 'integer',
     ];
 
-    public function category()
+    public function categories()
     {
-        return $this->belongsTo(KbCategory::class, 'category_id');
+        return $this->belongsToMany(KbCategory::class, 'kb_category_knowledge_base')
+            ->withPivot('sort_order')
+            ->withTimestamps();
+    }
+
+    // Helper to keep compatibility for now, returns the first category
+    public function getCategoryAttribute()
+    {
+        return $this->categories->first();
     }
 }

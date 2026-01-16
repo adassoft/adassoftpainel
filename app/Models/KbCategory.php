@@ -22,6 +22,8 @@ class KbCategory extends Model
 
     public function articles()
     {
-        return $this->hasMany(KnowledgeBase::class, 'category_id');
+        return $this->belongsToMany(KnowledgeBase::class, 'kb_category_knowledge_base')
+            ->withPivot('sort_order')
+            ->withTimestamps();
     }
 }

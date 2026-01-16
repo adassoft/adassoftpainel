@@ -28,9 +28,10 @@ class KnowledgeBaseResource extends Resource
             ->schema([
 
                 Forms\Components\Grid::make(3)->schema([
-                    Forms\Components\Select::make('category_id')
-                        ->relationship('category', 'name')
-                        ->label('Categoria')
+                    Forms\Components\Select::make('categories')
+                        ->relationship('categories', 'name')
+                        ->label('Categorias')
+                        ->multiple()
                         ->createOptionForm([
                             Forms\Components\TextInput::make('name')->required()->afterStateUpdated(fn($set, $state) => $set('slug', \Illuminate\Support\Str::slug($state)))->live(onBlur: true),
                             Forms\Components\TextInput::make('slug')->required(),
@@ -161,10 +162,9 @@ class KnowledgeBaseResource extends Resource
                     ->weight('bold')
                     ->description(fn($record) => \Illuminate\Support\Str::limit(html_entity_decode(strip_tags($record->content)), 50)),
 
-                Tables\Columns\TextColumn::make('category.name')
-                    ->label('Categoria')
+                Tables\Columns\TextColumn::make('categories.name')
+                    ->label('Categorias')
                     ->badge()
-                    ->color(fn($record) => $record->category?->color ?? 'gray')
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('is_public')
@@ -177,21 +177,15 @@ class KnowledgeBaseResource extends Resource
                     ->label('Ativo')
                     ->boolean(),
 
-                Tables\Columns\TextInputColumn::make('sort_order')
-                    ->label('Ordem')
-                    ->sortable()
-                    ->rules(['required', 'numeric', 'min:0']),
-
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('sort_order', 'asc')
-            ->reorderable('sort_order')
+            ->defaultSort('updated_at', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('category')
-                    ->relationship('category', 'name')
+                Tables\Filters\SelectFilter::make('categories')
+                    ->relationship('categories', 'name')
                     ->label('Filtrar por Categoria'),
             ])
             ->actions([
