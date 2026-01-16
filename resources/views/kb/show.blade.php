@@ -118,7 +118,9 @@
                 <ol class="breadcrumb kb-breadcrumb mb-4">
                     <li class="breadcrumb-item"><a href="{{ route('kb.index') }}">Central de Ajuda</a></li>
                     @if($article->category)
-                        <li class="breadcrumb-item"><a href="#">{{ $article->category->name }}</a></li>
+                        <li class="breadcrumb-item"><a
+                                href="{{ route('kb.category', $article->category->slug) }}">{{ $article->category->name }}</a>
+                        </li>
                     @endif
                     <li class="breadcrumb-item active" aria-current="page">{{ Str::limit($article->title, 30) }}</li>
                 </ol>
