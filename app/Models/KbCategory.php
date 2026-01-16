@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class KbCategory extends Model
 {
+    use Concerns\HasSeo;
+
     protected $fillable = [
         'name',
         'slug',

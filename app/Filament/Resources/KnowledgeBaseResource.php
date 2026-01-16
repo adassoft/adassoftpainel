@@ -27,129 +27,141 @@ class KnowledgeBaseResource extends Resource
         return $form
             ->schema([
 
-                Forms\Components\Grid::make(3)->schema([
-                    Forms\Components\Select::make('categories')
-                        ->relationship('categories', 'name')
-                        ->label('Categorias')
-                        ->multiple()
-                        ->createOptionForm([
-                            Forms\Components\TextInput::make('name')->required()->afterStateUpdated(fn($set, $state) => $set('slug', \Illuminate\Support\Str::slug($state)))->live(onBlur: true),
-                            Forms\Components\TextInput::make('slug')->required(),
-                        ])
-                        ->searchable()
-                        ->preload(),
+                Forms\Components\Tabs::make('ContentTabs')
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make('Conteúdo')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
+                                Forms\Components\Grid::make(3)->schema([
+                                    Forms\Components\Select::make('categories')
+                                        ->relationship('categories', 'name')
+                                        ->label('Categorias')
+                                        ->multiple()
+                                        ->createOptionForm([
+                                            Forms\Components\TextInput::make('name')->required()->afterStateUpdated(fn($set, $state) => $set('slug', \Illuminate\Support\Str::slug($state)))->live(onBlur: true),
+                                            Forms\Components\TextInput::make('slug')->required(),
+                                        ])
+                                        ->searchable()
+                                        ->preload(),
 
-                    Forms\Components\TextInput::make('title')
-                        ->label('Título do Artigo')
-                        ->required()
-                        ->maxLength(255)
-                        ->live(onBlur: true)
-                        ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
-                        ->columnSpan(2),
-                ]),
+                                    Forms\Components\TextInput::make('title')
+                                        ->label('Título do Artigo')
+                                        ->required()
+                                        ->maxLength(255)
+                                        ->live(onBlur: true)
+                                        ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state)))
+                                        ->columnSpan(2),
+                                ]),
 
-                Forms\Components\TextInput::make('slug')
-                    ->label('URL Amigável (Slug)')
-                    ->unique(ignoreRecord: true)
-                    ->required()
-                    ->columnSpanFull(),
+                                Forms\Components\TextInput::make('slug')
+                                    ->label('URL Amigável (Slug)')
+                                    ->unique(ignoreRecord: true)
+                                    ->required()
+                                    ->columnSpanFull(),
 
-                Forms\Components\TextInput::make('video_url')
-                    ->label('Vídeo do YouTube (URL)')
-                    ->prefixIcon('heroicon-o-video-camera')
-                    ->prefix('URL')
-                    ->placeholder('https://youtube.com/watch?v=...')
-                    ->helperText('Cole o link do vídeo para exibir no topo do artigo.')
-                    ->url()
-                    ->columnSpanFull(),
+                                Forms\Components\TextInput::make('video_url')
+                                    ->label('Vídeo do YouTube (URL)')
+                                    ->prefixIcon('heroicon-o-video-camera')
+                                    ->prefix('URL')
+                                    ->placeholder('https://youtube.com/watch?v=...')
+                                    ->helperText('Cole o link do vídeo para exibir no topo do artigo.')
+                                    ->url()
+                                    ->columnSpanFull(),
 
-                \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
-                    ->label('Conteúdo')
-                    ->required()
-                    ->columnSpanFull()
-                    ->minHeight(400)
-                    ->maxHeight(600)
-                    ->showMenuBar()
-                    ->hintAction(
-                        Forms\Components\Actions\Action::make('aiImprove')
-                            ->label('Melhorar com IA')
-                            ->icon('heroicon-o-sparkles')
-                            ->color('info')
-                            ->requiresConfirmation()
-                            ->modalHeading('Melhorar Conteúdo com IA')
-                            ->modalDescription('A IA analisará o texto atual e sugerirá melhorias de gramática, clareza e formatação. O conteúdo atual será substituído. Deseja continuar?')
-                            ->action(function (Forms\Get $get, Forms\Set $set) {
-                                $content = $get('content');
-                                if (empty($content)) {
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('O conteúdo está vazio.')
-                                        ->warning()
-                                        ->send();
-                                    return;
-                                }
+                                \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
+                                    ->label('Conteúdo')
+                                    ->required()
+                                    ->columnSpanFull()
+                                    ->minHeight(400)
+                                    ->maxHeight(600)
+                                    ->showMenuBar()
+                                    ->hintAction(
+                                        Forms\Components\Actions\Action::make('aiImprove')
+                                            ->label('Melhorar com IA')
+                                            ->icon('heroicon-o-sparkles')
+                                            ->color('info')
+                                            ->requiresConfirmation()
+                                            ->modalHeading('Melhorar Conteúdo com IA')
+                                            ->modalDescription('A IA analisará o texto atual e sugerirá melhorias de gramática, clareza e formatação. O conteúdo atual será substituído. Deseja continuar?')
+                                            ->action(function (Forms\Get $get, Forms\Set $set) {
+                                                $content = $get('content');
+                                                if (empty($content)) {
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('O conteúdo está vazio.')
+                                                        ->warning()
+                                                        ->send();
+                                                    return;
+                                                }
 
-                                \Filament\Notifications\Notification::make()
-                                    ->title('A IA está trabalhando...')
-                                    ->body('Aguarde enquanto geramos a melhoria.')
-                                    ->info()
-                                    ->send();
+                                                \Filament\Notifications\Notification::make()
+                                                    ->title('A IA está trabalhando...')
+                                                    ->body('Aguarde enquanto geramos a melhoria.')
+                                                    ->info()
+                                                    ->send();
 
-                                try {
-                                    $service = new \App\Services\GeminiService();
-                                    $prompt = "Atue como um editor técnico sênior. Melhore o texto abaixo para um artigo de Base de Conhecimento (Help Desk). 
-                                    Objetivos:
-                                    1. Corrigir erros gramaticais e ortográficos.
-                                    2. Melhorar a clareza, coesão e tom (profissional e prestativo).
-                                    3. Manter a formatação HTML existente (negritos, listas, etc) e melhorar se necessário.
-                                    
-                                    IMPORTANTE: Retorne APENAS o HTML final do conteúdo, sem blocos de código markdown (```html), sem explicações extras. Apenas o HTML cru para ser inserido no editor.
-                                    
-                                    Conteúdo Original:
-                                    " . $content;
+                                                try {
+                                                    $service = new \App\Services\GeminiService();
+                                                    $prompt = "Atue como um editor técnico sênior. Melhore o texto abaixo para um artigo de Base de Conhecimento (Help Desk). 
+                                                    Objetivos:
+                                                    1. Corrigir erros gramaticais e ortográficos.
+                                                    2. Melhorar a clareza, coesão e tom (profissional e prestativo).
+                                                    3. Manter a formatação HTML existente (negritos, listas, etc) e melhorar se necessário.
+                                                    
+                                                    IMPORTANTE: Retorne APENAS o HTML final do conteúdo, sem blocos de código markdown (```html), sem explicações extras. Apenas o HTML cru para ser inserido no editor.
+                                                    
+                                                    Conteúdo Original:
+                                                    " . $content;
 
-                                    $response = $service->generateContent($prompt);
+                                                    $response = $service->generateContent($prompt);
 
-                                    if ($response['success']) {
-                                        $newContent = $response['reply'];
-                                        // Remove markdown code blocks if AI puts them despite instructions
-                                        $newContent = preg_replace('/^```html\s*/i', '', $newContent);
-                                        $newContent = preg_replace('/^```\s*/i', '', $newContent);
-                                        $newContent = preg_replace('/\s*```$/', '', $newContent);
+                                                    if ($response['success']) {
+                                                        $newContent = $response['reply'];
+                                                        // Remove markdown code blocks if AI puts them despite instructions
+                                                        $newContent = preg_replace('/^```html\s*/i', '', $newContent);
+                                                        $newContent = preg_replace('/^```\s*/i', '', $newContent);
+                                                        $newContent = preg_replace('/\s*```$/', '', $newContent);
 
-                                        $set('content', $newContent);
+                                                        $set('content', $newContent);
 
-                                        \Filament\Notifications\Notification::make()
-                                            ->title('Conteúdo melhorado com sucesso!')
-                                            ->success()
-                                            ->send();
-                                    } else {
-                                        throw new \Exception($response['error'] ?? 'Erro desconhecido');
-                                    }
-                                } catch (\Exception $e) {
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('Erro ao chamar a IA')
-                                        ->body($e->getMessage())
-                                        ->danger()
-                                        ->send();
-                                }
-                            })
-                    ),
+                                                        \Filament\Notifications\Notification::make()
+                                                            ->title('Conteúdo melhorado com sucesso!')
+                                                            ->success()
+                                                            ->send();
+                                                    } else {
+                                                        throw new \Exception($response['error'] ?? 'Erro desconhecido');
+                                                    }
+                                                } catch (\Exception $e) {
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('Erro ao chamar a IA')
+                                                        ->body($e->getMessage())
+                                                        ->danger()
+                                                        ->send();
+                                                }
+                                            })
+                                    ),
 
-                Forms\Components\TagsInput::make('tags')
-                    ->label('Palavras-chave (Tags)')
-                    ->separator(',')
-                    ->columnSpanFull(),
+                                Forms\Components\TagsInput::make('tags')
+                                    ->label('Palavras-chave (Tags)')
+                                    ->separator(',')
+                                    ->columnSpanFull(),
 
-                Forms\Components\Grid::make(2)->schema([
-                    Forms\Components\Toggle::make('is_public')
-                        ->label('Público (Sem Login)')
-                        ->helperText('Se ativo, qualquer visitante pode ler.')
-                        ->default(true),
+                                Forms\Components\Grid::make(2)->schema([
+                                    Forms\Components\Toggle::make('is_public')
+                                        ->label('Público (Sem Login)')
+                                        ->helperText('Se ativo, qualquer visitante pode ler.')
+                                        ->default(true),
 
-                    Forms\Components\Toggle::make('is_active')
-                        ->label('Publicado')
-                        ->default(true),
-                ]),
+                                    Forms\Components\Toggle::make('is_active')
+                                        ->label('Publicado')
+                                        ->default(true),
+                                ]),
+                            ]),
+                        Forms\Components\Tabs\Tab::make('SEO')
+                            ->icon('heroicon-o-magnifying-glass')
+                            ->schema([
+                                \App\Filament\Components\SeoForm::make(),
+                            ]),
+                    ])->columnSpanFull()
             ]);
     }
 

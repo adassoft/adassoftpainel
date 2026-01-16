@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class KnowledgeBase extends Model
 {
+    use Concerns\HasSeo;
+
     protected $fillable = [
         'title',
         'slug',

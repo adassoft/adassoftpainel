@@ -26,60 +26,72 @@ class KbCategoryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('Nome da Categoria')
-                    ->required()
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state))),
+                Forms\Components\Tabs::make('Tabs')
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make('Geral')
+                            ->icon('heroicon-o-information-circle')
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nome da Categoria')
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn(Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state))),
 
-                Forms\Components\TextInput::make('slug')
-                    ->required()
-                    ->unique(ignoreRecord: true),
+                                Forms\Components\TextInput::make('slug')
+                                    ->required()
+                                    ->unique(ignoreRecord: true),
 
-                Forms\Components\TextInput::make('description')
-                    ->label('Descrição')
-                    ->columnSpanFull(),
+                                Forms\Components\TextInput::make('description')
+                                    ->label('Descrição')
+                                    ->columnSpanFull(),
 
-                Forms\Components\Grid::make(3)->schema([
-                    Forms\Components\Select::make('icon')
-                        ->label('Ícone')
-                        ->searchable()
-                        ->options([
-                            'heroicon-o-book-open' => 'Livro / Manual',
-                            'heroicon-o-rocket-launch' => 'Primeiros Passos / Start',
-                            'heroicon-o-chat-bubble-left-right' => 'Dúvidas / Chat',
-                            'heroicon-o-currency-dollar' => 'Financeiro / Pagamentos',
-                            'heroicon-o-cog-6-tooth' => 'Configurações Técnicas',
-                            'heroicon-o-user-group' => 'Gestão de Usuários',
-                            'heroicon-o-shield-check' => 'Segurança e Acesso',
-                            'heroicon-o-exclamation-triangle' => 'Solução de Problemas',
-                            'heroicon-o-question-mark-circle' => 'Perguntas Frequentes (FAQ)',
-                            'heroicon-o-shopping-cart' => 'Vendas e Comercial',
-                            'heroicon-o-document-text' => 'Documentação Geral',
-                            'heroicon-o-computer-desktop' => 'Instalação / Sistema',
-                            'heroicon-o-cloud-arrow-down' => 'Downloads e Atualizações',
-                        ])
-                        ->default('heroicon-o-book-open'),
+                                Forms\Components\Grid::make(3)->schema([
+                                    Forms\Components\Select::make('icon')
+                                        ->label('Ícone')
+                                        ->searchable()
+                                        ->options([
+                                            'heroicon-o-book-open' => 'Livro / Manual',
+                                            'heroicon-o-rocket-launch' => 'Primeiros Passos / Start',
+                                            'heroicon-o-chat-bubble-left-right' => 'Dúvidas / Chat',
+                                            'heroicon-o-currency-dollar' => 'Financeiro / Pagamentos',
+                                            'heroicon-o-cog-6-tooth' => 'Configurações Técnicas',
+                                            'heroicon-o-user-group' => 'Gestão de Usuários',
+                                            'heroicon-o-shield-check' => 'Segurança e Acesso',
+                                            'heroicon-o-exclamation-triangle' => 'Solução de Problemas',
+                                            'heroicon-o-question-mark-circle' => 'Perguntas Frequentes (FAQ)',
+                                            'heroicon-o-shopping-cart' => 'Vendas e Comercial',
+                                            'heroicon-o-document-text' => 'Documentação Geral',
+                                            'heroicon-o-computer-desktop' => 'Instalação / Sistema',
+                                            'heroicon-o-cloud-arrow-down' => 'Downloads e Atualizações',
+                                        ])
+                                        ->default('heroicon-o-book-open'),
 
-                    Forms\Components\Select::make('color')
-                        ->label('Cor de Destaque')
-                        ->options([
-                            'primary' => 'Azul (Primary)',
-                            'success' => 'Verde (Success)',
-                            'warning' => 'Amarelo (Warning)',
-                            'danger' => 'Vermelho (Danger)',
-                            'info' => 'Azul Claro (Info)',
-                            'secondary' => 'Cinza (Secondary)',
-                        ])
-                        ->default('primary'),
+                                    Forms\Components\Select::make('color')
+                                        ->label('Cor de Destaque')
+                                        ->options([
+                                            'primary' => 'Azul (Primary)',
+                                            'success' => 'Verde (Success)',
+                                            'warning' => 'Amarelo (Warning)',
+                                            'danger' => 'Vermelho (Danger)',
+                                            'info' => 'Azul Claro (Info)',
+                                            'secondary' => 'Cinza (Secondary)',
+                                        ])
+                                        ->default('primary'),
 
-                    Forms\Components\TextInput::make('sort_order')
-                        ->label('Ordem')
-                        ->numeric()
-                        ->default(0),
-                ]),
+                                    Forms\Components\TextInput::make('sort_order')
+                                        ->label('Ordem')
+                                        ->numeric()
+                                        ->default(0),
+                                ]),
 
-                Forms\Components\Toggle::make('is_active')->label('Ativo')->default(true),
+                                Forms\Components\Toggle::make('is_active')->label('Ativo')->default(true),
+                            ]),
+                        Forms\Components\Tabs\Tab::make('SEO')
+                            ->icon('heroicon-o-magnifying-glass')
+                            ->schema([
+                                \App\Filament\Components\SeoForm::make(),
+                            ]),
+                    ])->columnSpanFull()
             ]);
     }
 
