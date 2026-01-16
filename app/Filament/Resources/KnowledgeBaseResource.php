@@ -47,13 +47,6 @@ class KnowledgeBaseResource extends Resource
                         ->columnSpan(2),
                 ]),
 
-                Forms\Components\TextInput::make('sort_order')
-                    ->label('Ordem')
-                    ->numeric()
-                    ->default(0)
-                    ->required()
-                    ->columnSpan(1),
-
                 Forms\Components\TextInput::make('slug')
                     ->label('URL Amigável (Slug)')
                     ->unique(ignoreRecord: true)
