@@ -101,11 +101,30 @@ class KnowledgeBaseResource extends Resource
 
                                                 try {
                                                     $service = new \App\Services\GeminiService();
-                                                    $prompt = "Atue como um editor técnico sênior. Melhore o texto abaixo para um artigo de Base de Conhecimento (Help Desk). 
+                                                    $keyword = $get('focus_keyword');
+
+                                                    $seoInstructions = "";
+                                                    if ($keyword) {
+                                                        $seoInstructions = "4. OTIMIZAÇÃO SEO INDISPENSÁVEL:
+                                                        - Palavra-chave Foco: '{$keyword}'
+                                                        - A palavra-chave DEVE aparecer no primeiro parágrafo.
+                                                        - A palavra-chave DEVE aparecer em pelo menos um subtítulo (H2 ou H3), se houver subtítulos.
+                                                        - Espalhe a palavra-chave naturalmente pelo texto (densidade ~1%).
+                                                        - Use negrito na primeira ocorrência da palavra-chave.";
+                                                    } else {
+                                                        $seoInstructions = "4. OTIMIZAÇÃO SEO:
+                                                        - Use parágrafos curtos para facilitar a leitura (escaneabilidade).
+                                                        - Use subtítulos (H2, H3) para quebrar o texto.
+                                                        - Use listas (bullet points) onde apropriado.";
+                                                    }
+
+                                                    $prompt = "Atue como um editor técnico sênior e especialista em SEO. Melhore o texto abaixo para um artigo de Base de Conhecimento.
+                                                    
                                                     Objetivos:
                                                     1. Corrigir erros gramaticais e ortográficos.
-                                                    2. Melhorar a clareza, coesão e tom (profissional e prestativo).
-                                                    3. Manter a formatação HTML existente (negritos, listas, etc) e melhorar se necessário.
+                                                    2. Melhorar a clareza, coesão e tom (profissional, direto e prestativo).
+                                                    3. Manter TODA a formatação HTML existente (links, imagens, tabelas) e melhorar a estrutura (H2, H3) se necessário.
+                                                    {$seoInstructions}
                                                     
                                                     IMPORTANTE: Retorne APENAS o HTML final do conteúdo, sem blocos de código markdown (```html), sem explicações extras. Apenas o HTML cru para ser inserido no editor.
                                                     
