@@ -37,7 +37,7 @@ class ArticlesRelationManager extends RelationManager
                     ->label('Público')
                     ->boolean(),
             ])
-            ->defaultSort('sort_order', 'asc')
+            ->defaultSort('kb_category_knowledge_base.sort_order', 'asc')
             ->reorderable('sort_order')
             ->filters([
                 //
