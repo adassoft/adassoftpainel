@@ -16,8 +16,16 @@
                 window.chatwootSDK.run({
                     websiteToken: "{{ $chatwoot['website_token'] }}",
                     baseUrl: BASE_URL
-                })
+                });
             }
         })(document, "script");
+
+        // Global listener for "open-chat" class
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.closest('.open-chat')) {
+                e.preventDefault();
+                window.$chatwoot.toggle('open');
+            }
+        });
     </script>
 @endif
