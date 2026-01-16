@@ -8,8 +8,23 @@ use App\Models\KbCategory;
 
 class KbController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = $request->input('q');
+        $searchResults = null;
+
+        if ($query) {
+            $searchResults = KnowledgeBase::where('is_active', true)
+                ->where('is_public', true)
+                ->where(function ($q) use ($query) {
+                    $q->where('title', 'like', "%{$query}%")
+                        ->orWhere('content', 'like', "%{$query}%")
+                        ->orWhere('tags', 'like', "%{$query}%");
+                })
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        }
+
         // Carrega categorias ativas COM seus artigos ativos e públicos
         $categories = KbCategory::where('is_active', true)
             ->orderBy('sort_order', 'asc')
@@ -29,7 +44,7 @@ class KbController extends Controller
             ])
             ->get();
 
-        return view('kb.index', compact('categories'));
+        return view('kb.index', compact('categories', 'searchResults', 'query'));
     }
 
     public function category($slug)

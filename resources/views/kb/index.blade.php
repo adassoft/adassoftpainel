@@ -121,18 +121,74 @@
 
             <div class="row justify-content-center">
                 <div class="col-md-8 col-lg-6">
-                    <!-- TODO: Implementar busca real em breve -->
-                    <div class="input-group input-group-lg shadow-sm">
-                        <input type="text" class="form-control border-0" placeholder="Digite sua dúvida..."
-                            aria-label="Buscar">
-                        <div class="input-group-append">
-                            <button class="btn btn-light text-primary font-weight-bold px-4" type="button">Buscar</button>
+                    <form action="{{ route('kb.index') }}" method="GET">
+                        <div class="input-group input-group-lg shadow-sm">
+                            <input type="text" name="q" class="form-control border-0" placeholder="Digite sua dúvida..."
+                                aria-label="Buscar" value="{{ $query ?? '' }}">
+                            <div class="input-group-append">
+                                <button class="btn btn-light text-primary font-weight-bold px-4"
+                                    type="submit">Buscar</button>
+                            </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+
+    @if(isset($searchResults))
+        <div class="container pb-5">
+            <h3 class="mb-4">Resultados para: "{{ $query }}"</h3>
+            @if($searchResults->count() > 0)
+                <div class="row">
+                    @foreach ($searchResults as $article)
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <a href="{{ route('kb.show', $article->slug ?? 'artigo-' . $article->id) }}"
+                                class="card kb-card h-100 text-decoration-none">
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div class="cat-icon text-primary" style="width: 48px; height: 48px;">
+                                            <x-heroicon-o-document-text class="w-6 h-6" style="width: 24px; height: 24px;" />
+                                        </div>
+                                        <span class="small text-muted">
+                                            {{ $article->updated_at->format('d/m/Y') }}
+                                        </span>
+                                    </div>
+
+                                    <h5 class="mb-2 text-dark font-weight-bold">{{ $article->title }}</h5>
+
+                                    <p class="small text-muted mb-4 flex-grow-1"
+                                        style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+                                        {{ Str::limit(html_entity_decode(strip_tags($article->content)), 120) }}
+                                    </p>
+
+                                    <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                                        <span class="font-weight-bold small text-primary">Ler artigo</span>
+                                        <x-heroicon-m-arrow-right class="w-4 h-4 text-primary" style="width: 16px; height: 16px;" />
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{{ route('kb.index') }}" class="btn btn-outline-secondary">Limpar busca</a>
+                </div>
+            @else
+                <div class="text-center py-5">
+                    <div class="mb-3 text-muted">
+                        <x-heroicon-o-magnifying-glass class="w-12 h-12 mx-auto" style="width: 48px; height: 48px; opacity: 0.5;" />
+                    </div>
+                    <h3 class="text-gray-500 mb-2">Nenhum resultado encontrado</h3>
+                    <p class="text-muted mb-4">Tente usar outros termos ou navegue pelas categorias abaixo.</p>
+                    <a href="{{ route('kb.index') }}" class="btn btn-primary">
+                        Ver todas as categorias
+                    </a>
+                </div>
+            @endif
+            <hr class="my-5">
+        </div>
+    @endif
 
     <!-- Categorias Grid -->
     <div class="container pb-5">
