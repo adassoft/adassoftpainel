@@ -32,7 +32,7 @@ class KbController extends Controller
                 'articles' => function ($query) {
                     $query->where('is_active', true)
                         ->where('is_public', true) // Na home, só mostra os públicos
-                        ->orderBy('updated_at', 'desc')
+                        ->orderBy('sort_order', 'asc')
                         ->take(5); // Limita 5 por card na home
                 }
             ])
@@ -56,7 +56,7 @@ class KbController extends Controller
         $articles = $category->articles()
             ->where('is_active', true)
             ->where('is_public', true)
-            ->orderBy('updated_at', 'desc')
+            ->orderBy('sort_order', 'asc')
             ->paginate(12);
 
         return view('kb.category', compact('category', 'articles'));

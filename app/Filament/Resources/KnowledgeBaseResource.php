@@ -47,6 +47,12 @@ class KnowledgeBaseResource extends Resource
                         ->columnSpan(2),
                 ]),
 
+                Forms\Components\TextInput::make('sort_order')
+                    ->label('Ordem')
+                    ->numeric()
+                    ->default(0)
+                    ->columnSpan(1),
+
                 Forms\Components\TextInput::make('slug')
                     ->label('URL Amigável (Slug)')
                     ->unique(ignoreRecord: true)
@@ -177,11 +183,17 @@ class KnowledgeBaseResource extends Resource
                     ->label('Ativo')
                     ->boolean(),
 
+                Tables\Columns\TextInputColumn::make('sort_order')
+                    ->label('Ordem')
+                    ->sortable()
+                    ->rules(['numeric', 'min:0']),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('sort_order', 'asc')
             ->filters([
                 //
             ])

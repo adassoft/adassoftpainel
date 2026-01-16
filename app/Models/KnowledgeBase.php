@@ -14,6 +14,7 @@ class KnowledgeBase extends Model
         'tags',
         'is_public',
         'is_active',
+        'sort_order',
         'video_url',
         'helpful_count',
         'not_helpful_count',
@@ -23,6 +24,7 @@ class KnowledgeBase extends Model
         'tags' => 'array',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
+        'sort_order' => 'integer',
         'helpful_count' => 'integer',
         'not_helpful_count' => 'integer',
     ];
