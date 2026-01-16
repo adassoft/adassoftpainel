@@ -21,10 +21,12 @@ class KnowledgeBase extends Model
         'helpful_count',
         'not_helpful_count',
         'author_id',
+        'faq',
     ];
 
     protected $casts = [
         'tags' => 'array',
+        'faq' => 'array',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
         'sort_order' => 'integer',
@@ -109,6 +111,46 @@ class KnowledgeBase extends Model
                 $schema['@type'] = 'HowTo';
                 $schema['step'] = $steps;
             }
+        }
+
+        // Logic for FAQPage Schema
+        $faqSchema = null;
+        if (!empty($this->faq) && is_array($this->faq)) {
+            $faqQuestions = [];
+            foreach ($this->faq as $item) {
+                if (!empty($item['question']) && !empty($item['answer'])) {
+                    $faqQuestions[] = [
+                        '@type' => 'Question',
+                        'name' => $item['question'],
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => strip_tags($item['answer'], '<a><p><b><strong><ul><ol><li><br>')
+                        ]
+                    ];
+                }
+            }
+
+            if (!empty($faqQuestions)) {
+                $faqSchema = [
+                    '@type' => 'FAQPage',
+                    'mainEntity' => $faqQuestions
+                ];
+            }
+        }
+
+        // If we have FAQ, return a @graph with both schemas
+        if ($faqSchema) {
+            $graph = [
+                '@context' => 'https://schema.org',
+                '@graph' => [
+                    $schema, // The Article/HowTo
+                    $faqSchema // The FAQPage
+                ]
+            ];
+            // Remove context from the child article as it's now in graph root
+            unset($graph['@graph'][0]['@context']);
+
+            return json_encode($graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
 
         return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

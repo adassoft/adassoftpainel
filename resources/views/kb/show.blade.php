@@ -204,6 +204,42 @@
                                 </div>
                             @endif
 
+                            <!-- FAQ Section -->
+                            @if(!empty($article->faq) && is_array($article->faq))
+                                <div class="mt-5 mb-5">
+                                    <h3 class="font-weight-bold mb-4">Perguntas Frequentes</h3>
+                                    <div class="accordion" id="faqAccordion">
+                                        @foreach($article->faq as $index => $item)
+                                            @if(!empty($item['question']) && !empty($item['answer']))
+                                                <div class="card border-0 mb-2 shadow-sm" style="border-radius: 8px; overflow: hidden;">
+                                                    <div class="card-header bg-white p-0" id="heading{{ $index }}">
+                                                        <h2 class="mb-0">
+                                                            <button class="btn btn-link btn-block text-left font-weight-bold text-dark p-3 d-flex justify-content-between align-items-center"
+                                                                type="button"
+                                                                data-toggle="collapse"
+                                                                data-target="#collapse{{ $index }}"
+                                                                aria-expanded="false"
+                                                                aria-controls="collapse{{ $index }}"
+                                                                style="text-decoration: none; box-shadow: none;">
+                                                                {{ $item['question'] }}
+                                                                <i class="fas fa-chevron-down text-muted small"></i>
+                                                            </button>
+                                                        </h2>
+                                                    </div>
+
+                                                    <div id="collapse{{ $index }}" class="collapse" aria-labelledby="heading{{ $index }}"
+                                                        data-parent="#faqAccordion">
+                                                        <div class="card-body bg-light text-muted">
+                                                            {!! nl2br(e($item['answer'])) !!}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                             <!-- Feedback Section (Simples) -->
                             <!-- Feedback Section -->
                             <div class="mt-5 pt-4 border-top text-center" id="feedback-section">

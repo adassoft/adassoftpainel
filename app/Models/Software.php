@@ -82,13 +82,15 @@ class Software extends Model
         'disponivel_revenda',
         'api_key_hash',
         'api_key_hint',
-        'api_key_gerada_em'
+        'api_key_gerada_em',
+        'faq',
     ];
 
     protected $casts = [
         'api_key_gerada_em' => 'datetime',
         'data_cadastro' => 'datetime',
         'disponivel_revenda' => 'boolean',
+        'faq' => 'array',
     ];
 
     public function plans()
@@ -104,5 +106,81 @@ class Software extends Model
     public function updateRepository()
     {
         return $this->belongsTo(Download::class, 'id_update_repo');
+    }
+
+    public function getJsonLdAttribute()
+    {
+        $url = url('/produto/' . $this->slug);
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $this->nome_software,
+            'description' => $this->descricao,
+            'image' => $this->imagem && !str_starts_with($this->imagem, 'http') ? asset('storage/' . $this->imagem) : $this->imagem,
+            'brand' => [
+                '@type' => 'Brand',
+                'name' => $this->brand ?? 'Adassoft'
+            ],
+            'offers' => [],
+        ];
+
+        if ($this->gtin)
+            $schema['gtin'] = $this->gtin;
+        if ($this->categoria)
+            $schema['category'] = $this->categoria;
+
+        // Add Offers (Plans)
+        if ($this->plans->count() > 0) {
+            foreach ($this->plans as $plan) {
+                $preco = $plan->preco_venda;
+                $schema['offers'][] = [
+                    '@type' => 'Offer',
+                    'name' => ($plan->nome ?? 'Plano') . ' (' . ($plan->recorrencia ?? 1) . ' Meses)',
+                    'price' => number_format($preco, 2, '.', ''),
+                    'priceCurrency' => 'BRL',
+                    'availability' => 'https://schema.org/InStock',
+                    'url' => $url . '#planos'
+                ];
+            }
+        }
+
+        // FAQ Schema
+        $faqSchema = null;
+        if (!empty($this->faq) && is_array($this->faq)) {
+            $faqQuestions = [];
+            foreach ($this->faq as $item) {
+                if (!empty($item['question']) && !empty($item['answer'])) {
+                    $faqQuestions[] = [
+                        '@type' => 'Question',
+                        'name' => $item['question'],
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => strip_tags($item['answer'], '<a><p><b><strong><ul><ol><li><br>')
+                        ]
+                    ];
+                }
+            }
+            if (!empty($faqQuestions)) {
+                $faqSchema = [
+                    '@type' => 'FAQPage',
+                    'mainEntity' => $faqQuestions
+                ];
+            }
+        }
+
+        if ($faqSchema) {
+            $graph = [
+                '@context' => 'https://schema.org',
+                '@graph' => [
+                    $schema,
+                    $faqSchema
+                ]
+            ];
+            unset($graph['@graph'][0]['@context']);
+            return json_encode($graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+
+        return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 }

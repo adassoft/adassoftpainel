@@ -3,6 +3,9 @@
 @section('title', $product->nome_software)
 
 @section('content')
+    <script type="application/ld+json">
+        {!! $product->json_ld !!}
+    </script>
 
     <!-- Navbar is handled in layout -->
 
@@ -192,4 +195,45 @@
         @endif
     </div>
 
+    <!-- FAQ Section -->
+    @if(!empty($product->faq) && is_array($product->faq))
+        <div class="py-12 bg-light border-top">
+            <div class="container mx-auto px-4">
+                 <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Perguntas Frequentes</h2>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="accordion" id="faqAccordion">
+                            @foreach($product->faq as $index => $item)
+                                @if(!empty($item['question']) && !empty($item['answer']))
+                                    <div class="card border-0 mb-3 shadow-sm rounded-lg overflow-hidden">
+                                        <div class="card-header bg-white p-0" id="heading{{ $index }}">
+                                            <h2 class="mb-0">
+                                                <button class="btn btn-link btn-block text-left font-weight-bold text-dark p-4 d-flex justify-content-between align-items-center text-decoration-none" 
+                                                        type="button" 
+                                                        data-toggle="collapse" 
+                                                        data-target="#collapse{{ $index }}" 
+                                                        aria-expanded="false" 
+                                                        aria-controls="collapse{{ $index }}">
+                                                    {{ $item['question'] }}
+                                                    <i class="fas fa-chevron-down text-gray-400"></i>
+                                                </button>
+                                            </h2>
+                                        </div>
+
+                                        <div id="collapse{{ $index }}" class="collapse" aria-labelledby="heading{{ $index }}" data-parent="#faqAccordion">
+                                            <div class="card-body bg-gray-50 text-gray-600 p-4">
+                                                {!! nl2br(e($item['answer'])) !!}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 @endsection

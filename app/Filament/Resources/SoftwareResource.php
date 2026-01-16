@@ -407,6 +407,60 @@ class SoftwareResource extends Resource
                                             ->schema([
                                                 \App\Filament\Components\SeoForm::make(),
                                             ]),
+
+                                        Tabs\Tab::make('FAQ do Produto')
+                                            ->icon('heroicon-o-chat-bubble-left-right')
+                                            ->schema([
+                                                Forms\Components\Repeater::make('faq')
+                                                    ->label('Perguntas e Respostas')
+                                                    ->itemLabel(fn(array $state): ?string => $state['question'] ?? null)
+                                                    ->schema([
+                                                        TextInput::make('question')->required()->label('Pergunta')->columnSpanFull(),
+                                                        Textarea::make('answer')->required()->label('Resposta')->rows(2)->columnSpanFull(),
+                                                    ])
+                                                    ->collapsible()
+                                                    ->cloneable()
+                                                    ->reorderableWithButtons()
+                                                    ->hintAction(
+                                                        Action::make('gerar_faq_produto')
+                                                            ->label('Gerar FAQ com IA')
+                                                            ->icon('heroicon-o-sparkles')
+                                                            ->color('info')
+                                                            ->requiresConfirmation()
+                                                            ->action(function (Forms\Get $get, Forms\Set $set) {
+                                                                $nome = $get('nome_software');
+                                                                $desc = $get('descricao');
+                                                                if (!$nome) {
+                                                                    \Filament\Notifications\Notification::make()->title('Preencha o nome do software.')->warning()->send();
+                                                                    return;
+                                                                }
+
+                                                                \Filament\Notifications\Notification::make()->title('Gerando FAQ...')->info()->send();
+
+                                                                try {
+                                                                    $service = new \App\Services\GeminiService();
+                                                                    $prompt = "Crie 4 perguntas frequentes (FAQ) comerciais e técnicas para o software '{$nome}'.
+                                                                    Descrição: {$desc}
+                                                                    
+                                                                    Foque em: Suporte, Instalação, Licença e Funcionalidades.
+                                                                    Retorne APENAS JSON array: [{\"question\": \"...\", \"answer\": \"...\"}]";
+
+                                                                    $response = $service->generateContent($prompt);
+                                                                    if ($response['success']) {
+                                                                        $json = str_replace(['```json', '```'], '', $response['reply']);
+                                                                        $faq = json_decode($json, true);
+                                                                        if (is_array($faq)) {
+                                                                            $current = $get('faq') ?? [];
+                                                                            $set('faq', array_merge($current, $faq));
+                                                                            \Filament\Notifications\Notification::make()->title('FAQ Gerado!')->success()->send();
+                                                                        }
+                                                                    }
+                                                                } catch (\Exception $e) {
+                                                                    \Filament\Notifications\Notification::make()->title('Erro')->body($e->getMessage())->danger()->send();
+                                                                }
+                                                            })
+                                                    )
+                                            ]),
                                     ]),
                             ]),
 
