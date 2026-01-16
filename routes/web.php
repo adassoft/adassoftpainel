@@ -113,6 +113,10 @@ Route::get('/ml/auth', [\App\Http\Controllers\MercadoLibreController::class, 'au
 Route::get('/ml/callback', [\App\Http\Controllers\MercadoLibreController::class, 'callback'])->name('ml.callback');
 Route::post('/ml/notifications', [\App\Http\Controllers\MercadoLibreController::class, 'webhook'])->name('ml.webhook');
 
+Route::middleware(['auth'])->group(function () {
+    Route::post('/tinymce/upload', [\App\Http\Controllers\TinyMceUploadController::class, 'upload'])->name('tinymce.upload');
+});
+
 
 
 // === Gerenciador de Redirecionamentos (SEO) ===

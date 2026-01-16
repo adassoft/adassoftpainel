@@ -83,8 +83,7 @@ class KnowledgeBaseResource extends Resource
                                     ->columnSpanFull()
                                     ->minHeight(400)
                                     ->maxHeight(600)
-                                    ->fileAttachmentsDirectory('kb-images')
-                                    ->fileAttachmentsVisibility('public')
+                                    ->imagesUploadUrl(fn() => route('tinymce.upload'))
 
                                     ->showMenuBar()
                                     ->hintAction(
