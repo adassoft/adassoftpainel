@@ -43,4 +43,82 @@ class KnowledgeBase extends Model
     {
         return $this->categories->first();
     }
+
+    public function getJsonLdAttribute()
+    {
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => $this->title,
+            'datePublished' => $this->created_at->toIso8601String(),
+            'dateModified' => $this->updated_at->toIso8601String(),
+            'author' => [
+                '@type' => 'Organization',
+                'name' => 'Adassoft',
+            ],
+            'description' => \Illuminate\Support\Str::limit(strip_tags($this->content), 160),
+        ];
+
+        // Se o título começar com "Como", tenta gerar Schema de HowTo
+        if (stripos($this->title, 'Como') === 0) {
+            $steps = $this->extractHowToSteps();
+            if (count($steps) >= 2) {
+                $schema['@type'] = 'HowTo';
+                $schema['step'] = $steps;
+            }
+        }
+
+        return json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    protected function extractHowToSteps()
+    {
+        $content = $this->content;
+        if (empty($content))
+            return [];
+
+        $steps = [];
+
+        // Utiliza DOMDocument para parsear HTML sem regex frágil
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        // Hack para UTF-8 charset
+        $dom->loadHTML('<?xml encoding="UTF-8">' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $xpath = new \DOMXPath($dom);
+        // Busca h2 ou h3, assumindo que são os passos
+        $headers = $xpath->query('//h2 | //h3');
+
+        foreach ($headers as $index => $header) {
+            $stepTitle = trim($header->textContent);
+
+            // Pega o conteúdo até o próximo header
+            $stepContent = '';
+            $node = $header->nextSibling;
+
+            while ($node) {
+                // Se encontrar outro header do mesmo nível ou superior, para
+                if (in_array(strtolower($node->nodeName), ['h1', 'h2', 'h3'])) {
+                    break;
+                }
+                $stepContent .= $dom->saveHTML($node);
+                $node = $node->nextSibling;
+            }
+
+            $stepText = trim(strip_tags($stepContent));
+            if (empty($stepText)) {
+                $stepText = "Veja os detalhes no passo acima.";
+            }
+
+            $steps[] = [
+                '@type' => 'HowToStep',
+                'position' => $index + 1,
+                'name' => $stepTitle,
+                'text' => \Illuminate\Support\Str::limit($stepText, 300), // Limita texto do passo
+            ];
+        }
+
+        return $steps;
+    }
 }

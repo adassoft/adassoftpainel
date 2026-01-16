@@ -109,6 +109,9 @@
 @endsection
 
 @section('content')
+    <script type="application/ld+json">
+            {!! $article->json_ld !!}
+        </script>
 
     <div class="bg-gray-100 py-5 min-vh-100" style="background-color: #f8f9fc;">
         <div class="container">
@@ -138,7 +141,8 @@
                                     {{ $article->updated_at->format('d/m/Y') }}</span>
                                 @foreach($article->categories as $cat)
                                     <a href="{{ route('kb.category', $cat->slug) }}" class="text-decoration-none mr-2">
-                                        <span class="badge badge-light text-uppercase tracking-wide px-2 py-1 text-primary border">
+                                        <span
+                                            class="badge badge-light text-uppercase tracking-wide px-2 py-1 text-primary border">
                                             {{ $cat->name }}
                                         </span>
                                     </a>
@@ -231,7 +235,8 @@
                 <div class="col-lg-4">
                     <div class="sidebar-kb">
                         @if($contextCategory && $contextCategory->articles->count() > 1)
-                            <h6 class="font-weight-bold text-uppercase text-gray-500 mb-3 pl-3">Nesta Categoria ({{ $contextCategory->name }})</h6>
+                            <h6 class="font-weight-bold text-uppercase text-gray-500 mb-3 pl-3">Nesta Categoria
+                                ({{ $contextCategory->name }})</h6>
                             <div class="bg-white rounded-lg shadow-sm p-3">
                                 @foreach($contextCategory->articles()->where('is_public', true)->orderBy('kb_category_knowledge_base.sort_order', 'asc')->get() as $related)
                                     <a href="{{ route('kb.show', ['slug' => $related->slug ?? 'artigo-' . $related->id, 'c' => $contextCategory->slug]) }}"
