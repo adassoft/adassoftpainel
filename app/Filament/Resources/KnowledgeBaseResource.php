@@ -238,21 +238,23 @@ class KnowledgeBaseResource extends Resource
 
                                                     $response = $service->generateContent($prompt);
                                                     if ($response['success']) {
-                                                        $json = $response['reply'];
-                                                        // Clean markdown code blocks
-                                                        $json = preg_replace('/^```json\s*/i', '', $json);
-                                                        $json = preg_replace('/^```\s*/i', '', $json);
-                                                        $json = preg_replace('/\s*```$/', '', $json);
+                                                        // Tenta extrair o JSON usando regex para ignorar textos fora do array
+                                                        if (preg_match('/\[.*\]/s', $response['reply'], $matches)) {
+                                                            $jsonString = $matches[0];
+                                                            $faq = json_decode($jsonString, true);
 
-                                                        $faq = json_decode($json, true);
-
-                                                        if (is_array($faq)) {
-                                                            $current = $get('faq') ?? [];
-                                                            $set('faq', array_merge($current, $faq));
-                                                            \Filament\Notifications\Notification::make()->title('FAQ Gerado!')->success()->send();
+                                                            if (is_array($faq)) {
+                                                                $current = $get('faq') ?? [];
+                                                                $set('faq', array_merge($current, $faq));
+                                                                \Filament\Notifications\Notification::make()->title('FAQ Gerado!')->success()->send();
+                                                            } else {
+                                                                throw new \Exception('Falha ao decodificar JSON: ' . json_last_error_msg());
+                                                            }
                                                         } else {
-                                                            throw new \Exception('Falha ao decodificar JSON da IA.');
+                                                            throw new \Exception('A IA não retornou um JSON array válido.');
                                                         }
+                                                    } else {
+                                                        throw new \Exception($response['error'] ?? 'Erro desconhecido na API.');
                                                     }
                                                 } catch (\Exception $e) {
                                                     \Filament\Notifications\Notification::make()->title('Erro')->body($e->getMessage())->danger()->send();
