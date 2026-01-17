@@ -119,6 +119,10 @@ end;
 procedure TfrmRegistro.lblOfflineClick(Sender: TObject);
 var
   Token, MachineID: string;
+  FInput: TForm;
+  mToken: TMemo;
+  btnOK, btnCancel: TButton;
+  lblInfo: TLabel;
 begin
   // 1. Copia o ID da máquina para facilitar
   MachineID := FShield.GetMachineFingerprint;
@@ -127,19 +131,75 @@ begin
   ShowMessage('O seu CÓDIGO DE INSTALAÇÃO foi copiado para a área de transferência.' + #13#10 +
               'Envie este código para o suporte técnico para receber sua Chave de Ativação.');
 
-  Token := '';
-  if InputQuery('Ativação Offline', 'Cole o Token recebido do suporte:', Token) then
-  begin
-    Token := Trim(Token);
-    if Token = '' then Exit;
+  // 2. Cria formulário customizado com Memo
+  FInput := TForm.Create(nil);
+  try
+    FInput.Caption := 'Ativação Offline';
+    FInput.Position := poScreenCenter;
+    FInput.Width := 500;
+    FInput.Height := 300;
+    FInput.BorderStyle := bsDialog;
+    
+    lblInfo := TLabel.Create(FInput);
+    lblInfo.Parent := FInput;
+    lblInfo.Caption := 'Cole abaixo o Token completo recebido do suporte:';
+    lblInfo.Left := 10;
+    lblInfo.Top := 10;
+    lblInfo.AutoSize := True;
+    
+    mToken := TMemo.Create(FInput);
+    mToken.Parent := FInput;
+    mToken.SetBounds(10, 30, 460, 180);
+    mToken.ScrollBars := ssVertical;
+    
+    btnOK := TButton.Create(FInput);
+    btnOK.Parent := FInput;
+    btnOK.Caption := 'Ativar';
+    btnOK.ModalResult := mrOk;
+    btnOK.SetBounds(310, 225, 75, 25);
+    btnOK.Default := True;
+    
+    btnCancel := TButton.Create(FInput);
+    btnCancel.Parent := FInput;
+    btnCancel.Caption := 'Cancelar';
+    btnCancel.ModalResult := mrCancel;
+    btnCancel.SetBounds(395, 225, 75, 25);
+    btnCancel.Cancel := True;
+    
+    if FInput.ShowModal = mrOk then
+    begin
+       Token := Trim(mToken.Lines.Text); 
+       // Limpeza
+       Token := StringReplace(Token, #13, '', [rfReplaceAll]);
+       Token := StringReplace(Token, #10, '', [rfReplaceAll]);
+       Token := StringReplace(Token, ' ', '', [rfReplaceAll]);
 
-    Screen.Cursor := crHourGlass;
-    try
-      try
-        // Carrega e valida o token localmente usando OfflineSecret configurado no TShieldConfig
-        FShield.ActivateOffline(Token); 
-        
-        if FShield.License.IsValid then
+       if Token = '' then Exit;
+
+       Screen.Cursor := crHourGlass;
+       try
+         try
+           FShield.ActivateOffline(Token); 
+           
+           if FShield.License.IsValid then
+           begin
+             ShowMessage('Licença ativada com sucesso (Offline)!');
+             ModalResult := mrOk; // Fecha a tela de registro se ativado ?
+           end
+           else
+             ShowMessage('O Token informado é inválido ou não pertence a esta máquina.');
+         except
+            on E: Exception do
+              ShowMessage('Erro na ativação: ' + E.Message);
+         end;
+       finally
+         Screen.Cursor := crDefault;
+       end;
+    end;
+  finally
+    FInput.Free;
+  end;
+end;
         begin
           ShowMessage('Licença ativada com sucesso (Offline)!');
           AtualizarUI;
