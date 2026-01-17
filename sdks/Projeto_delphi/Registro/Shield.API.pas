@@ -170,8 +170,8 @@ begin
     Url := Url + '/software/' + IntToStr(SoftwareId) + '/plans';
     
     // Auth Params para Middleware
-    Url := Url + '?api_key=' + TIdURI.ParamsEncode(FConfig.ApiKey);
-    Url := Url + '&timestamp=' + TIdURI.ParamsEncode(DateToISO8601(Now, False));
+    // api_key enviada via Header X-API-KEY no CreateClient
+    Url := Url + '?timestamp=' + TIdURI.ParamsEncode(DateToISO8601(Now, False));
     
     try
       RespString := Http.Get(Url);
@@ -388,7 +388,7 @@ begin
     
     Url := Url + '?software_id=' + IntToStr(SoftwareId) + 
                  '&current_version=' + TIdURI.ParamsEncode(CurrentVersion) +
-                 '&api_key=' + TIdURI.ParamsEncode(FConfig.ApiKey) +
+                 // api_key vai no Header
                  '&timestamp=' + TIdURI.ParamsEncode(DateToISO8601(Now, False));
 
     try
