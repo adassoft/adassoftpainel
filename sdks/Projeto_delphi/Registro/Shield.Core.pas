@@ -32,6 +32,7 @@ type
     function Authenticate(const Email, Senha, InstalacaoID: string): Boolean;
     function GenerateOfflineChallenge(const Serial, InstalacaoID: string): string;
     function ActivateOffline(const ActivationKeyString: string): Boolean;
+    function DeactivateTerminal: Boolean;
     procedure Logout;
     
     // Renovação e Pagamento
@@ -702,6 +703,46 @@ begin
   except
     on E: Exception do
       raise Exception.Create('Erro ao processar ativação: ' + E.Message);
+  end;
+end;
+
+function TShield.DeactivateTerminal: Boolean;
+var
+  Payload, Resp: TJSONObject;
+begin
+  Result := False;
+  
+  // Requer Token válido (sessão ativa)
+  if FSession.Token = '' then Exit;
+
+  Payload := BuildCommonPayload;
+  try
+    Payload.AddPair('action', 'remover_terminal');
+    // Envia token no corpo pois ValidationController lê do input
+    Payload.AddPair('token', FSession.Token);
+    
+    // O ID do terminal para remoção é o Fingerprint desta máquina
+    Payload.AddPair('terminal_id', GetMachineFingerprint);
+    
+    try
+      // Envia requisição
+      Resp := FAPI.PostRequest('remover_terminal', Payload, FSession.Token);
+      try
+         // Verifica sucesso
+         if (Resp <> nil) and (Resp.GetValue('success') <> nil) and (Resp.GetValue<TJSONBool>('success').AsBoolean) then
+         begin
+            Result := True;
+            // Desloga localmente para garantir consistência
+            Logout;
+         end;
+      finally
+         if Resp <> nil then Resp.Free;
+      end;
+    except
+       // Em caso de erro de rede, retorna False mas mantém estado local (usuário deve tentar novamente)
+    end;
+  finally
+    Payload.Free;
   end;
 end;
 

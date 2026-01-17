@@ -237,6 +237,16 @@ class LicenseResource extends Resource
                             // 2. Assina com o Hash da Chave
                             $token = $service->generateOfflineSignedToken($payload, $apiKey->key_hash);
 
+                            // 3. Registrar o Terminal Offline para consumir a licença no servidor
+                            // A vaga será ocupada imediatamente, impedindo uso simultâneo indevido.
+                            $service->registerTerminalUsage(
+                                $record->serial_atual,
+                                $data['instalacao_id'],     // Usa ID como MAC
+                                'Link Offline (Painel)',    // Nome Computador
+                                $data['instalacao_id'],     // Install ID
+                                request()->ip() ?? '127.0.0.1'
+                            );
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Token Gerado')
                                 ->body(new \Illuminate\Support\HtmlString("Copie o token abaixo:<br><br><code style='user-select:all; background:#f3f4f6; padding:5px; border-radius:4px; word-break:break-all;'>{$token}</code>"))
