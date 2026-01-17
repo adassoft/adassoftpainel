@@ -104,24 +104,23 @@ procedure TfrmRegistro.CriarBotaoOffline;
 var
   lbl: TLabel;
 begin
-  // Cria um Label clicável abaixo do botão Ativar para opção Offline
   lbl := TLabel.Create(Self);
   lbl.Parent := pnlLogin;
-  lbl.Caption := 'Possui um Token? Validar Offline';
+  lbl.Caption := 'Validar Token Offline';
   lbl.Cursor := crHandPoint;
-  lbl.Font.Color := clWebOrangeRed; // Destaque sutil
+  lbl.Font.Color := clWebOrangeRed;
   lbl.Font.Style := [fsUnderline];
-  lbl.Alignment := taCenter;
   
-  // Posiciona relativo ao btnAtivar
-  lbl.Top := btnAtivar.Top + btnAtivar.Height + 15;
-  lbl.Left := btnAtivar.Left;
-  lbl.Width := btnAtivar.Width;
-  lbl.Anchors := [akTop, akLeft, akRight]; // Segue o botão
+  // Alinhamento à Direita abaixo do botão Entrar
+  lbl.Alignment := taRightJustify;
+  lbl.Width := 180; 
+  lbl.Top := btnAtivar.Top + btnAtivar.Height + 10;
+  // Calcula Left para terminar junto com o botão
+  lbl.Left := (btnAtivar.Left + btnAtivar.Width) - lbl.Width;
+  
+  lbl.Anchors := [akTop, akRight];
   
   lbl.OnClick := lblOfflineClick;
-  
-  // Ajusta altura do painel se necessário (opcional, pnlLogin costuma ter espaço)
 end;
 
 procedure TfrmRegistro.lblOfflineClick(Sender: TObject);
