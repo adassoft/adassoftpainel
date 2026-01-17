@@ -73,7 +73,7 @@ begin
   // Configuracao (Pegue a API Key no painel Shield)
   Config := TShieldConfig.Create(
     'https://adassoft.com/api/v1/adassoft', // URL Base (Novo Padrão REST)
-    '5c8'+'59c8'+'72'+'e798'+'b747'+'1b'+'80e17'+'6fba'+'2f'+'7599ed'+'d2f'+'596c'+'a47'+'9'+'418bf'+'21'+'c495'+'5c8'+'7a'+'7', // API Key Ofuscada
+    'fbac1306269762a1ee130f56ce5a91d5a694ffd27d0ce0393c97602cbbae7dd4', // API Key Ofuscada
     1,                                                  // ID do Software (Teste Dev)
     '3.10.14',                                          // Versao
     'acee687fad9efe533960f47bcff2f37c5966aef4c655b488a7a2d83635f6bbed' // Segredo validacao offline (Ofuscado)

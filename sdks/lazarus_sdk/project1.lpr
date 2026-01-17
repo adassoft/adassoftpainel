@@ -23,10 +23,11 @@ begin
   
   // 1. Configuração
   Config := TShieldConfig.Create(
-    'http://localhost/shield', // URL
-    '123456',                  // API Key
-    1,                         // Software ID
-    '1.0.0'                    // Versão
+    'https://adassoft.com/api/v1/adassoft', // URL Base
+    'COLE_SUA_API_KEY_AQUI',                // API Key
+    1,                                      // Software ID
+    '1.0.0',                                // Versão
+    'COLE_SEU_HASH_OFFLINE_AQUI'            // Segredo Offline (Hash)
   );
   
   Shield := TShield.Create(Config);

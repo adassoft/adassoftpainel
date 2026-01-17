@@ -72,11 +72,11 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   // Configuracao (Pegue a API Key no painel Shield)
   Config := TShieldConfig.Create(
-    'https://adassoft.com/api/v1/adassoft', // URL Base (Novo Padrão REST)
-    '5c8'+'59c8'+'72'+'e798'+'b747'+'1b'+'80e17'+'6fba'+'2f'+'7599ed'+'d2f'+'596c'+'a47'+'9'+'418bf'+'21'+'c495'+'5c8'+'7a'+'7', // API Key Ofuscada
-    1,                                                  // ID do Software (Teste Dev)
-    '3.10.14',                                          // Versao
-    '989'+'25'+'a4f'+'90'+'39d94'+'40'+'be06'+'dbf'+'92'+'5105'+'84'+'5'+'f62c'+'2d1'+'0'+'421'+'eb7'+'92'+'790'+'10'+'c'+'9b35'+'2568b' // Segredo validacao offline (Ofuscado)
+    'https://adassoft.com/api/v1/adassoft', // URL Base
+    'COLE_SUA_API_KEY_AQUI',                // API Key de Conexão (Chave Raw iniciada com sk_...)
+    1,                                      // ID do Software
+    '1.0.0',                                // Versão
+    'COLE_SEU_HASH_OFFLINE_AQUI'            // Segredo Offline (Hash SHA-256 obtido no botão "Ver Segredo" do Painel)
   );
 
   MeuShield := TShield.Create(Config);

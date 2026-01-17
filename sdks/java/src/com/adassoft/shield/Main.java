@@ -10,8 +10,8 @@ public class Main {
         System.out.println("=== Shield SDK Java Demo ===");
 
         // 1. Configuração
-        String apiUrl = "http://localhost/shield";
-        String apiKey = "123456";
+        String apiUrl = "https://adassoft.com/api/v1/adassoft";
+        String apiKey = "COLE_SUA_API_KEY_AQUI";
         int softwareId = 1;
         String version = "1.0.0";
 
