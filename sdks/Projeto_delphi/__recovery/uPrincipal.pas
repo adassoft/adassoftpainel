@@ -76,7 +76,7 @@ begin
     '5c8'+'59c8'+'72'+'e798'+'b747'+'1b'+'80e17'+'6fba'+'2f'+'7599ed'+'d2f'+'596c'+'a47'+'9'+'418bf'+'21'+'c495'+'5c8'+'7a'+'7', // API Key Ofuscada
     1,                                                  // ID do Software (Teste Dev)
     '3.10.14',                                          // Versao
-    '9db826265cf4d74a4f26021189b2b9bec850bbb1eb2219136a39e662c062c657' // Segredo validacao offline (Ofuscado)
+    'acee687fad9efe533960f47bcff2f37c5966aef4c655b488a7a2d83635f6bbed' // Segredo validacao offline (Ofuscado)
   );
 
   MeuShield := TShield.Create(Config);

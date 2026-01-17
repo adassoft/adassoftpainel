@@ -151,7 +151,28 @@ trait LegacyLicenseGenerator
 
         $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $encoded = $this->shield_base64url_encode($json);
-        $assinatura = hash_hmac('sha256', $encoded, $this->getLicenseSecret());
+
+        // Determinar chave (Prioridade: Específica Online -> Global)
+        $secret = $this->getLicenseSecret();
+
+        if (isset($payload['software_id'])) {
+            $apiKey = \App\Models\ApiKey::where('software_id', $payload['software_id'])
+                ->where('status', 'ativo')
+                ->get()
+                ->filter(function ($k) {
+                    $scopes = $k->scopes;
+                    if (is_string($scopes))
+                        $scopes = json_decode($scopes, true) ?? [];
+                    return is_array($scopes) && in_array('online_activation', $scopes);
+                })
+                ->first();
+
+            if ($apiKey) {
+                $secret = $apiKey->key_hash;
+            }
+        }
+
+        $assinatura = hash_hmac('sha256', $encoded, $secret);
 
         return $encoded . '.' . $assinatura;
     }
@@ -191,27 +212,33 @@ trait LegacyLicenseGenerator
         // Determinar chave correta
         $secret = $this->getLicenseSecret(); // Default (Online Global)
 
-        if (isset($payload['modo']) && str_contains($payload['modo'], 'offline')) {
-            // Tenta buscar chave específica do software no banco
-            if (isset($payload['software_id'])) {
-                $apiKey = \App\Models\ApiKey::where('software_id', $payload['software_id'])
-                    ->where('status', 'ativo')
-                    ->get()
-                    ->filter(function ($k) {
-                        $scopes = $k->scopes;
-                        if (is_string($scopes))
-                            $scopes = json_decode($scopes, true) ?? [];
-                        return is_array($scopes) && in_array('offline_activation', $scopes);
-                    })
-                    ->first();
+        if (isset($payload['software_id'])) {
+            // Se for modo Offline, busca chave offline
+            $targetScope = (isset($payload['modo']) && str_contains($payload['modo'], 'offline'))
+                ? 'offline_activation'
+                : 'online_activation';
 
-                if ($apiKey) {
-                    $secret = $apiKey->key_hash;
-                } else {
-                    // Fallback para segredo offline global se não achar específica
+            $apiKey = \App\Models\ApiKey::where('software_id', $payload['software_id'])
+                ->where('status', 'ativo')
+                ->get()
+                ->filter(function ($k) use ($targetScope) {
+                    $scopes = $k->scopes;
+                    if (is_string($scopes))
+                        $scopes = json_decode($scopes, true) ?? [];
+                    return is_array($scopes) && in_array($targetScope, $scopes);
+                })
+                ->first();
+
+            if ($apiKey) {
+                $secret = $apiKey->key_hash;
+            } else {
+                if ($targetScope === 'offline_activation') {
                     $secret = $this->getOfflineSecret();
                 }
-            } else {
+                // Se for Online e não achou chave específica, mantém a Global ($secret)
+            }
+        } else {
+            if (isset($payload['modo']) && str_contains($payload['modo'], 'offline')) {
                 $secret = $this->getOfflineSecret();
             }
         }
@@ -220,13 +247,12 @@ trait LegacyLicenseGenerator
         $esperado = hash_hmac('sha256', $encoded, $secret);
 
         if (!hash_equals($esperado, $assinatura)) {
-            // Fallback: Tenta validar com a global de licença caso modo não esteja setado mas seja offline antigo
+            // Fallbacks de Retrocompatibilidade
             $esperadoBackup = hash_hmac('sha256', $encoded, $this->getLicenseSecret());
             if (!hash_equals($esperadoBackup, $assinatura)) {
-                // Fallback 2: Tenta global offline explicitamente
                 $esperadoBackup2 = hash_hmac('sha256', $encoded, $this->getOfflineSecret());
                 if (!hash_equals($esperadoBackup2, $assinatura)) {
-                    throw new Exception("Assinatura inválida! O token pode ter sido adulterado.");
+                    throw new Exception("Assinatura inválida! O token pode ter sido adulterado (Scope Check Failed).");
                 }
             }
         }
