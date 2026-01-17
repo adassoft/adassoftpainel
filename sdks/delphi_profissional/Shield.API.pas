@@ -217,7 +217,7 @@ begin
       end;
       on E: EIdHTTPProtocolException do
       begin
-         raise Exception.Create('Erro HTTP (' + IntToStr(E.ReplyErrorCode) + '): ' + E.ErrorMessage);
+         raise Exception.Create('Erro HTTP: ' + E.Message);
       end;
       on E: Exception do
       begin
