@@ -169,7 +169,16 @@
 
             <h5 class="text-xl font-bold mt-6 mb-2 text-primary-600">Dica: Ativação Offline Manual</h5>
             <p class="mb-4">
-                Caso precise ativar sem internet, copie o Token da licença no Painel (Ações > Ver Token) e use o código abaixo:
+                O painel oferece duas formas de ativação offline:
+            </p>
+            <ul class="list-disc pl-5 mb-4 text-gray-600">
+                <li><strong>Método Simples:</strong> Vá em <em>Gestão de Clientes > Licenças</em>, clique em "Ações >
+                    Ver Token" e copie o token. O cliente apenas cola este token.</li>
+                <li><strong>Método Seguro (Challenge):</strong> Vá em <em>Gestão de Clientes > Ativação Offline</em>.
+                    Cole o "Challenge" gerado pelo software do cliente para receber um token de reposta exclusivo.</li>
+            </ul>
+            <p class="mb-4">
+                Para testes rápidos, use o Método Simples com o código abaixo:
             </p>
             <div class="code-block">
                 <pre>
