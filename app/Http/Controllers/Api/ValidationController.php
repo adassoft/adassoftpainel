@@ -407,11 +407,8 @@ class ValidationController extends Controller
 
         $validacao = $this->licenseService->validateSerialFull($serial, $softwareId);
 
-        \Illuminate\Support\Facades\Log::info("DEBUG VALIDAR_SERIAL", [
-            'serial' => $serial,
-            'software_id_request' => $request->input('software_id'), // Se vier
-            'resultado' => $validacao
-        ]);
+        // Log removido para producao
+
 
         // Registro de Terminal
         $instalacaoId = $request->input('codigo_instalacao');
@@ -492,7 +489,8 @@ class ValidationController extends Controller
     {
         $softwareId = (int) $request->input('software_id');
 
-        \Illuminate\Support\Facades\Log::info('Shield fetchNews Called', ['software_id' => $softwareId]);
+        // Log removido para producao
+
 
         return response()->json([
             'success' => true,
@@ -513,11 +511,8 @@ class ValidationController extends Controller
                     ->orWhereNull('software_id');
             });
 
-            \Illuminate\Support\Facades\Log::info('Shield Debug News', [
-                'software_id' => $softwareId,
-                'count_found' => (clone $query)->count(),
-                'bindings' => $query->getBindings()
-            ]);
+            // Log removido para producao
+
 
             $newsResults = $query->latest()->limit(5)->get()->map(function ($n) {
                 return [
@@ -530,7 +525,8 @@ class ValidationController extends Controller
                 ];
             });
 
-            \Illuminate\Support\Facades\Log::info('Shield Debug News Payload', ['count' => count($newsResults), 'data' => $newsResults]);
+            // Log removido para producao
+
 
             return $newsResults->values()->toArray();
         } catch (\Exception $e) {
