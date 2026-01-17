@@ -187,7 +187,10 @@
 <span class="keyword">var</span>
   Token: <span class="keyword">String</span>;
 <span class="keyword">begin</span>
-  Token := <span class="function">InputBox</span>(<span class="string">'Ativação Offline'</span>, <span class="string">'Cole o Token de Ativação:'</span>, <span class="string">''</span>);
+  <span class="function">Clipboard</span>.AsText := MeuShield.GetMachineFingerprint;
+  <span class="function">ShowMessage</span>(<span class="string">'Código de instalação copiado! Envie ao suporte.'</span>);
+
+  Token := <span class="function">InputBox</span>(<span class="string">'Ativação Offline'</span>, <span class="string">'Cole o Token Recebido:'</span>, <span class="string">''</span>);
   <span class="keyword">if</span> Token = <span class="string">''</span> <span class="keyword">then</span> <span class="keyword">Exit</span>;
 
   <span class="keyword">try</span>
