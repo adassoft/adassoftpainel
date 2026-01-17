@@ -515,10 +515,18 @@ class ValidationController extends Controller
 
 
             $newsResults = $query->latest()->limit(5)->get()->map(function ($n) {
+                // Limpeza de HTML para clients legados (Delphi VCL)
+                $msg = $n->conteudo ?? '';
+                // Converte quebras de linha HTML para texto
+                $msg = str_ireplace(['<br>', '<br/>', '<br />'], "\n", $msg);
+                $msg = str_ireplace(['</p>', '</div>'], "\n\n", $msg);
+                $msg = strip_tags($msg);
+                $msg = trim(html_entity_decode($msg));
+
                 return [
                     'id' => $n->id, // Inteiro
                     'titulo' => $n->titulo ?? 'Sem título',
-                    'mensagem' => $n->conteudo ?? '',
+                    'mensagem' => $msg, // Texto limpo
                     'link' => $n->link_acao ?? '', // Garante string vazia se null
                     'prioridade' => $n->prioridade ?? 'normal',
                     'data' => $n->created_at->toIso8601String()
