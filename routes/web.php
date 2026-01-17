@@ -8,10 +8,19 @@ Route::get('/', [ShopController::class, 'index'])->name('home');
 Route::get('/produto/{id}', [\App\Http\Controllers\ProductController::class, 'show'])->name('product.show');
 Route::get('/downloads', [\App\Http\Controllers\DownloadController::class, 'index'])->name('downloads');
 Route::get('/downloads/{id}', [\App\Http\Controllers\DownloadController::class, 'show'])->name('downloads.show');
-Route::get('/downloads/{id}/baixar', [\App\Http\Controllers\DownloadController::class, 'downloadFile'])->name('downloads.file');
-Route::get('/downloads/version/{id}', [\App\Http\Controllers\DownloadController::class, 'downloadVersion'])->name('downloads.version.file');
+Route::get('/downloads/{id}/baixar', [
+    \App\Http\Controllers\DownloadController::class,
+    'downloadFile'
+])->name('downloads.file');
+Route::get('/downloads/version/{id}', [
+    \App\Http\Controllers\DownloadController::class,
+    'downloadVersion'
+])->name('downloads.version.file');
 Route::get('/seja-parceiro', [\App\Http\Controllers\ResellerController::class, 'index'])->name('reseller.lp');
-Route::get('/revenda/cadastro', [\App\Http\Controllers\ResellerController::class, 'register'])->name('reseller.register');
+Route::get('/revenda/cadastro', [
+    \App\Http\Controllers\ResellerController::class,
+    'register'
+])->name('reseller.register');
 Route::post('/revenda/cadastro', [\App\Http\Controllers\ResellerController::class, 'store'])->name('reseller.store');
 
 Route::get('/parceiros', function () {
@@ -27,9 +36,18 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'ind
 
 // Checkout routes public (auth handled inside)
 Route::get('/checkout/{planId}', [\App\Http\Controllers\CheckoutController::class, 'start'])->name('checkout.start');
-Route::post('/checkout/{planId}/pix', [\App\Http\Controllers\CheckoutController::class, 'processPix'])->name('checkout.pix');
-Route::get('/checkout/download/{id}', [\App\Http\Controllers\CheckoutController::class, 'startDownload'])->name('checkout.download.start');
-Route::post('/checkout/download/{id}/process', [\App\Http\Controllers\CheckoutController::class, 'processDownloadPix'])->name('checkout.download.process');
+Route::post('/checkout/{planId}/pix', [
+    \App\Http\Controllers\CheckoutController::class,
+    'processPix'
+])->name('checkout.pix');
+Route::get('/checkout/download/{id}', [
+    \App\Http\Controllers\CheckoutController::class,
+    'startDownload'
+])->name('checkout.download.start');
+Route::post('/checkout/download/{id}/process', [
+    \App\Http\Controllers\CheckoutController::class,
+    'processDownloadPix'
+])->name('checkout.download.process');
 Route::post('/checkout/auth', [\App\Http\Controllers\CheckoutController::class, 'authenticate'])->name('checkout.auth');
 
 Route::get('/checkout/success/{order}', function (\App\Models\Order $order) {
@@ -83,14 +101,16 @@ Route::middleware(['auth'])->group(function () {
     /*
     // Rota de Emergência (Desativada por Segurança)
     Route::get('/sys/force-db-update', function () {
-        // Verificação de administrador removida temporariamente para correção
+    // Verificação de administrador removida temporariamente para correção
 
-        try {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-            return '<h1>Banco de Dados Atualizado com Sucesso!</h1><pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre> <br> <a href="/admin">Voltar para o Painel</a>';
-        } catch (\Exception $e) {
-            return '<h1>Erro ao Atualizar</h1><pre>' . $e->getMessage() . '</pre>';
-        }
+    try {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return '<h1>Banco de Dados Atualizado com Sucesso!</h1>
+    <pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre> <br> <a href="/admin">Voltar para o Painel</a>';
+    } catch (\Exception $e) {
+    return '<h1>Erro ao Atualizar</h1>
+    <pre>' . $e->getMessage() . '</pre>';
+    }
     });
     */
 });
@@ -114,7 +134,10 @@ Route::get('/ml/callback', [\App\Http\Controllers\MercadoLibreController::class,
 Route::post('/ml/notifications', [\App\Http\Controllers\MercadoLibreController::class, 'webhook'])->name('ml.webhook');
 
 Route::middleware(['auth'])->group(function () {
-    Route::post('/tinymce/upload', [\App\Http\Controllers\TinyMceUploadController::class, 'upload'])->name('tinymce.upload');
+    Route::post('/tinymce/upload', [
+        \App\Http\Controllers\TinyMceUploadController::class,
+        'upload'
+    ])->name('tinymce.upload');
 });
 
 
@@ -136,7 +159,7 @@ Route::fallback(function () {
     }
 
     // Se quiser, descomente abaixo para enviar qualquer 404 para o blog
-    // return redirect('https://blog.adassoft.com/' . $path);
+// return redirect('https://blog.adassoft.com/' . $path);
 
     abort(404);
 });
