@@ -506,10 +506,10 @@ class ValidationController extends Controller
 
             $newsResults = $query->latest()->limit(5)->get()->map(function ($n) {
                 return [
-                    'id' => $n->id,
-                    'titulo' => $n->titulo,
-                    'mensagem' => $n->conteudo, // Shield espera 'mensagem', Model tem 'conteudo'
-                    'link' => $n->link_acao,
+                    'id' => $n->id, // Inteiro
+                    'titulo' => $n->titulo ?? 'Sem título',
+                    'mensagem' => $n->conteudo ?? '',
+                    'link' => $n->link_acao ?? '', // Garante string vazia se null
                     'prioridade' => $n->prioridade ?? 'normal',
                     'data' => $n->created_at->toIso8601String()
                 ];
