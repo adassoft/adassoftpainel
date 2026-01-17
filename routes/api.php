@@ -38,7 +38,7 @@ Route::prefix('v1/adassoft')->middleware(['throttle:60,1', 'shield.auth'])->grou
     Route::post('/orders/status', [ValidationController::class, 'checkPaymentStatus']);
 
     // Notícias (Endpoint Dedicado)
-    Route::get('/news', [ValidationController::class, 'fetchNews']);
+    Route::match(['get', 'post'], '/news', [ValidationController::class, 'fetchNews']);
 
     // Updates Automáticos (SDK)
     Route::get('/updates/check', [\App\Http\Controllers\Api\UpdateController::class, 'check']);
