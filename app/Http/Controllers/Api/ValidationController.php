@@ -374,6 +374,7 @@ class ValidationController extends Controller
             'token' => $token,
             'expira_em' => $payload['expira_em'],
             'alerta_cobranca' => $alertaCobranca, // Novo campo para o SDK
+            'noticias' => $this->getNoticias((int) $softwareId), // INJECTED
             'licenca' => [
                 'serial' => $license->serial_atual,
                 'valido' => ($license->status === 'ativo'),
@@ -472,12 +473,46 @@ class ValidationController extends Controller
             }
         }
 
+        // --- INJECT NOTICIAS ---
+        // Recupera notícias para este software
+        $noticias = $this->getNoticias((int) $softwareId);
+
         return response()->json([
             'success' => true,
             'validacao' => $validacao,
+            'noticias' => $noticias, // Injeta raiz -> Delphi le aqui
             'timestamp' => now()->toDateTimeString()
         ]);
     }
+
+    // Helper para buscar noticias
+    private function getNoticias(int $softwareId)
+    {
+        try {
+            // Assume cliente final por enquanto (publico = 'todos')
+            $query = \App\Models\News::active()->where('publico', 'todos');
+
+            // Filtra software específico OU null (global/todos softwares)
+            $query->where(function ($q) use ($softwareId) {
+                $q->where('software_id', $softwareId)
+                    ->orWhereNull('software_id');
+            });
+
+            return $query->latest()->limit(5)->get()->map(function ($n) {
+                return [
+                    'id' => $n->id,
+                    'titulo' => $n->titulo,
+                    'mensagem' => $n->conteudo, // Shield espera 'mensagem', Model tem 'conteudo'
+                    'link' => $n->link_acao,
+                    'prioridade' => $n->prioridade ?? 'normal',
+                    'data' => $n->created_at->toIso8601String()
+                ];
+            });
+        } catch (\Exception $e) {
+            return []; // Fail safe
+        }
+    }
+
     // === Métodos de Compatibilidade Legado (SDK Delphi) ===
 
     public function listPlans(Request $request, $software_id = null)
