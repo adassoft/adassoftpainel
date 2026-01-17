@@ -56,6 +56,8 @@ class ValidationController extends Controller
                     throw new Exception("Em implementação: solicitar_recuperacao_senha");
                 case 'validar_codigo_recuperacao':
                     throw new Exception("Em implementação: validar_codigo_recuperacao");
+                case 'buscar_noticias': // <--- Nova Action Integrada
+                    return $this->fetchNews($request);
                 default:
                     throw new Exception('Ação não reconhecida: ' . $action);
             }
