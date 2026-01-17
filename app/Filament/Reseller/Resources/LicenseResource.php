@@ -303,8 +303,49 @@ class LicenseResource extends Resource
                     ->color('warning')
                     ->button()
                     ->extraAttributes(['class' => 'force-btn-height'])
-                    ->tooltip('Copiar Token')
-                    ->action(fn($record) => \Filament\Notifications\Notification::make()->title('Token copiado!')->body($record->serial_atual)->success()->send()),
+                    ->tooltip('Copiar Serial')
+                    ->action(fn($record) => \Filament\Notifications\Notification::make()->title('Serial copiado!')->body($record->serial_atual)->success()->send()),
+
+                Tables\Actions\Action::make('generateOfflineToken')
+                    ->label('')
+                    ->icon('heroicon-m-qr-code')
+                    ->color('gray')
+                    ->button()
+                    ->extraAttributes(['class' => 'force-btn-height'])
+                    ->tooltip('Gerar Token Offline')
+                    ->form([
+                        Forms\Components\TextInput::make('instalacao_id')
+                            ->label('Código de Instalação (Hardware ID)')
+                            ->helperText('Cole o código que o cliente enviou.')
+                            ->required()
+                            ->maxLength(255),
+                    ])
+                    ->action(function (array $data, License $record, \App\Services\LicenseService $service) {
+                        $payload = [
+                            'serial' => $record->serial_atual,
+                            'empresa_codigo' => $record->empresa_codigo,
+                            'software_id' => $record->software_id,
+                            'instalacao_id' => $data['instalacao_id'],
+                            'terminais' => $record->terminais_permitidos,
+                            'validade' => $record->data_expiracao ? $record->data_expiracao->format('Y-m-d') : null,
+                            'emitido_em' => now()->toIso8601String(),
+                            'modo' => 'offline_manual'
+                        ];
+
+                        if ($record->vitalicia) {
+                            unset($payload['validade']);
+                            $payload['vitalicia'] = true;
+                        }
+
+                        $token = $service->generateToken($payload);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Token Gerado')
+                            ->body(new \Illuminate\Support\HtmlString("Copie o token abaixo:<br><br><code style='user-select:all; background:#f3f4f6; padding:5px; border-radius:4px; word-break:break-all;'>{$token}</code>"))
+                            ->persistent()
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([
