@@ -337,7 +337,28 @@ class LicenseResource extends Resource
                             $payload['vitalicia'] = true;
                         }
 
-                        $token = $service->generateOfflineSignedToken($payload);
+                        // 1. Busca a chave de ativação offline do software (pelo escopo)
+                        $apiKey = \App\Models\ApiKey::where('software_id', $record->software_id)
+                            ->where('status', 'ativo')
+                            ->get()
+                            ->filter(function ($k) {
+                            $scopes = $k->scopes;
+                            if (is_string($scopes))
+                                $scopes = json_decode($scopes, true) ?? [];
+                            return in_array('offline_activation', $scopes);
+                        })
+                            ->first();
+
+                        if (!$apiKey) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Erro de Configuração')
+                                ->body('Não foi encontrada uma API Key Ativa com o escopo "offline_activation" para este software.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        $token = $service->generateOfflineSignedToken($payload, $apiKey->key_hash);
 
                         \Filament\Notifications\Notification::make()
                             ->title('Token Gerado')

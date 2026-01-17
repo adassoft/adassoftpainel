@@ -212,9 +212,31 @@ class LicenseResource extends Resource
                                 $payload['vitalicia'] = true;
                             }
 
-                            $token = $service->generateOfflineSignedToken($payload);
+                            // 1. Busca a chave de ativação offline do software (pelo escopo)
+                            // Usamos filter na collection para garantir compatibilidade JSON/Array
+                            $apiKey = \App\Models\ApiKey::where('software_id', $record->software_id)
+                                ->where('status', 'ativo')
+                                ->get()
+                                ->filter(function ($k) {
+                                $scopes = $k->scopes;
+                                if (is_string($scopes))
+                                    $scopes = json_decode($scopes, true) ?? [];
+                                return in_array('offline_activation', $scopes);
+                            })
+                                ->first();
 
-                            // Exibe o token em um Modal "fake" ou Notification
+                            if (!$apiKey) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Erro de Configuração')
+                                    ->body('Não foi encontrada uma API Key Ativa com o escopo "offline_activation" para este software.')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+
+                            // 2. Assina com o Hash da Chave
+                            $token = $service->generateOfflineSignedToken($payload, $apiKey->key_hash);
+
                             \Filament\Notifications\Notification::make()
                                 ->title('Token Gerado')
                                 ->body(new \Illuminate\Support\HtmlString("Copie o token abaixo:<br><br><code style='user-select:all; background:#f3f4f6; padding:5px; border-radius:4px; word-break:break-all;'>{$token}</code>"))

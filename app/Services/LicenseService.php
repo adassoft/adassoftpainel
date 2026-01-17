@@ -156,13 +156,13 @@ class LicenseService
         return $encoded . '.' . $signature;
     }
 
-    public function generateOfflineSignedToken(array $payload): string
+    public function generateOfflineSignedToken(array $payload, string $customSecret): string
     {
         ksort($payload);
         $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $encoded = $this->base64url_encode($json);
-        // Usa EXPLICITAMENTE o segredo offline
-        $signature = hash_hmac('sha256', $encoded, $this->offlineSecret);
+        // Usa a chave fornecida (que deve ser o hash da API Key offline do software)
+        $signature = hash_hmac('sha256', $encoded, $customSecret);
         return $encoded . '.' . $signature;
     }
 
