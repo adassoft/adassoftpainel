@@ -489,6 +489,9 @@ class ValidationController extends Controller
     public function fetchNews(Request $request)
     {
         $softwareId = (int) $request->input('software_id');
+
+        \Illuminate\Support\Facades\Log::info('Shield fetchNews Called', ['software_id' => $softwareId]);
+
         return response()->json([
             'success' => true,
             'noticias' => $this->getNoticias($softwareId)
