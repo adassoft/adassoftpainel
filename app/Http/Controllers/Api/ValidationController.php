@@ -517,7 +517,7 @@ class ValidationController extends Controller
 
             \Illuminate\Support\Facades\Log::info('Shield Debug News Payload', ['count' => count($newsResults), 'data' => $newsResults]);
 
-            return $newsResults;
+            return $newsResults->values()->toArray();
         } catch (\Exception $e) {
             return []; // Fail safe
         }
