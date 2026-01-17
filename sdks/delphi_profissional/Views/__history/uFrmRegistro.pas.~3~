@@ -50,12 +50,10 @@ type
     procedure lblCriarContaClick(Sender: TObject);
     procedure btnComprarClick(Sender: TObject);
     procedure lblInstalacaoIDClick(Sender: TObject);
-    procedure lblOfflineClick(Sender: TObject); 
   private
     FShield: TShield;
     procedure AtualizarUI;
     procedure SetStatusColor(const IsValid: Boolean);
-    procedure CriarBotaoOffline;
   public
     class procedure Exibir(AShield: TShield);
   end;
@@ -96,119 +94,6 @@ begin
   lblInstalacaoID.ShowHint := True;
   lblInstalacaoID.Hint := 'Clique para copiar o código';
   lblInstalacaoID.OnClick := lblInstalacaoIDClick;
-
-  CriarBotaoOffline;
-end;
-
-procedure TfrmRegistro.CriarBotaoOffline;
-var
-  lbl: TLabel;
-begin
-  lbl := TLabel.Create(Self);
-  // Garante que esteja no mesmo container do botão para evitar ser coberto por GroupBox
-  lbl.Parent := btnAtivar.Parent; 
-  lbl.BringToFront; 
-  
-  lbl.Caption := 'Validar Token Offline';
-  lbl.Cursor := crHandPoint;
-  lbl.Font.Color := clWebOrangeRed;
-  lbl.Font.Style := [fsUnderline];
-  
-  // Alinhamento à Direita abaixo do botão Entrar
-  lbl.Alignment := taRightJustify;
-  lbl.Width := 180; 
-  lbl.Top := btnAtivar.Top + btnAtivar.Height + 10;
-  // Calcula Left para terminar junto com o botão
-  lbl.Left := (btnAtivar.Left + btnAtivar.Width) - lbl.Width;
-  
-  lbl.Anchors := [akTop, akRight];
-  
-  lbl.OnClick := lblOfflineClick;
-end;
-
-procedure TfrmRegistro.lblOfflineClick(Sender: TObject);
-var
-  Token, MachineID: string;
-  FInput: TForm;
-  mToken: TMemo;
-  btnOK, btnCancel: TButton;
-  lblInfo: TLabel;
-begin
-  // 1. Copia o ID da máquina para facilitar
-  MachineID := FShield.GetMachineFingerprint;
-  Clipboard.AsText := MachineID;
-  
-  ShowMessage('O seu CÓDIGO DE INSTALAÇÃO foi copiado para a área de transferência.' + #13#10 +
-              'Envie este código para o suporte técnico para receber sua Chave de Ativação.');
-
-  // 2. Cria formulário customizado com Memo para suportar texto longo
-  FInput := TForm.Create(nil);
-  try
-    FInput.Caption := 'Ativação Offline';
-    FInput.Position := poScreenCenter;
-    FInput.Width := 500;
-    FInput.Height := 300;
-    FInput.BorderStyle := bsDialog;
-    
-    lblInfo := TLabel.Create(FInput);
-    lblInfo.Parent := FInput;
-    lblInfo.Caption := 'Cole abaixo o Token completo recebido do suporte:';
-    lblInfo.Left := 10;
-    lblInfo.Top := 10;
-    lblInfo.AutoSize := True;
-    
-    mToken := TMemo.Create(FInput);
-    mToken.Parent := FInput;
-    mToken.SetBounds(10, 30, 460, 180);
-    mToken.ScrollBars := ssVertical;
-    
-    btnOK := TButton.Create(FInput);
-    btnOK.Parent := FInput;
-    btnOK.Caption := 'Ativar';
-    btnOK.ModalResult := mrOk;
-    btnOK.SetBounds(310, 225, 75, 25);
-    btnOK.Default := True;
-    
-    btnCancel := TButton.Create(FInput);
-    btnCancel.Parent := FInput;
-    btnCancel.Caption := 'Cancelar';
-    btnCancel.ModalResult := mrCancel;
-    btnCancel.SetBounds(395, 225, 75, 25);
-    btnCancel.Cancel := True;
-    
-    if FInput.ShowModal = mrOk then
-    begin
-       Token := Trim(mToken.Lines.Text); 
-       // Limpeza básica para remover quebras acidentais na colagem
-       Token := StringReplace(Token, #13, '', [rfReplaceAll]);
-       Token := StringReplace(Token, #10, '', [rfReplaceAll]);
-       Token := StringReplace(Token, ' ', '', [rfReplaceAll]);
-
-       if Token = '' then Exit;
-
-       Screen.Cursor := crHourGlass;
-       try
-         try
-           FShield.ActivateOffline(Token); 
-           
-           if FShield.License.IsValid then
-           begin
-             ShowMessage('Licença ativada com sucesso (Offline)!');
-             ModalResult := mrOk; 
-           end
-           else
-             ShowMessage('O Token informado é inválido ou não pertence a esta máquina.');
-         except
-            on E: Exception do
-              ShowMessage('Erro na ativação: ' + E.Message);
-         end;
-       finally
-         Screen.Cursor := crDefault;
-       end;
-    end;
-  finally
-    FInput.Free;
-  end;
 end;
 
 procedure TfrmRegistro.AtualizarUI;
@@ -216,7 +101,7 @@ var
   Info: TLicenseInfo;
   Hoje: TDateTime;
 begin
-  lblInstalacaoID.Caption := 'Instalação: ' + FShield.GetMachineFingerprint;
+  lblInstalacaoID.Caption := 'Código da Instalação: ' + FShield.GetMachineFingerprint;
   Info := FShield.License;
   
   if Info.IsValid or (Info.Serial <> '') then
@@ -246,13 +131,8 @@ begin
     end
     else
     begin
-      // Correção visual do zero
       lblDiasRestantes.Caption := Format('%d dias restantes.', [Info.DiasRestantes]);
-      if Info.DiasRestantes <= 5 then
-         lblDiasRestantes.Font.Color := clRed
-      else
-         lblDiasRestantes.Font.Color := clBlue;
-         
+      lblDiasRestantes.Font.Color := clBlue; // Retorna cor padrão (assumindo azul pelo screenshot original "0 dias restantes" era azul escuro)
       lblDiasRestantes.Font.Style := [fsBold];
     end;
     
@@ -366,7 +246,7 @@ end;
 
 procedure TfrmRegistro.lblEsqueciSenhaClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', 'https://adassoft.com/app/password-reset/request', nil, nil, SW_SHOWNORMAL);
+  ShellExecute(0, 'open', 'https://express.adassoft.com/forgot-password.html', nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TfrmRegistro.lblCriarContaClick(Sender: TObject);

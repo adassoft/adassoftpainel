@@ -37,7 +37,15 @@ type
     DiasAviso: Integer;
     DataInicio: TDateTime;
     DataExpiracao: TDateTime;
+
     DiasRestantes: Integer;
+    UltimaVerificacao: TDateTime; // [ANTI-FRAUDE] Monitorar volta no tempo
+    
+    // [UPDATE] Atualização
+    UpdateAvailable: Boolean;
+    NovaVersao: string;
+    UpdateMessage: string;
+
     Status: TShieldStatus;
     Mensagem: string;
     AvisoMensagem: string;
@@ -62,6 +70,25 @@ type
     Descricao: string;
   end;
   TPlanArray = TArray<TPlan>;
+
+  TPaymentInfo = record
+    TransactionId: string;
+    QrCodeBase64: string;
+    QrCodePayload: string; // Copia e Cola
+    Valor: Double;
+    Vencimento: string;
+    procedure Clear;
+  end;
+
+  TUpdateInfo = record
+    UpdateAvailable: Boolean;
+    Version: string;
+    DownloadURL: string;
+    Changelog: string;
+    Size: string;
+    Mandatory: Boolean;
+    Hash: string;
+  end;
 
   TShieldCallback = reference to procedure(const Success: Boolean; const Msg: string);
 
@@ -94,6 +121,11 @@ begin
   Status := stUnchecked;
   Mensagem := '';
   AvisoMensagem := '';
+  
+  UpdateAvailable := False;
+  NovaVersao := '';
+  UpdateMessage := '';
+  
   SetLength(Noticias, 0);
 end;
 
@@ -118,6 +150,17 @@ procedure TUserInfo.Clear;
 begin
   Email := '';
   Nome := '';
+end;
+
+{ TPaymentInfo }
+
+procedure TPaymentInfo.Clear;
+begin
+  TransactionId := '';
+  QrCodeBase64 := '';
+  QrCodePayload := '';
+  Valor := 0;
+  Vencimento := '';
 end;
 
 end.

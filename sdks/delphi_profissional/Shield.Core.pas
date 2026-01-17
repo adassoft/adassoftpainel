@@ -1,9 +1,9 @@
-unit Shield.Core;
+﻿unit Shield.Core;
 
 interface
 
 uses
-  System.SysUtils, System.Classes, System.JSON, System.DateUtils, System.IOUtils, System.Generics.Collections,
+  System.SysUtils, System.Classes, System.JSON, System.DateUtils, System.IOUtils, System.Generics.Collections, System.NetEncoding,
   Shield.Types, Shield.Config, Shield.Security, Shield.API;
 
 type
@@ -31,11 +31,17 @@ type
     function CheckLicense(const Serial: string = ''): Boolean;
     function Authenticate(const Email, Senha, InstalacaoID: string): Boolean;
     function GenerateOfflineChallenge(const Serial, InstalacaoID: string): string;
+    function ActivateOffline(const ActivationKeyString: string): Boolean;
     procedure Logout;
     
     // Renovação e Pagamento
     function GetAvailablePlans: TPlanArray;
-    function CheckoutPlan(const PlanId: Integer): string;
+    function CheckoutPlan(const PlanId: Integer): TPaymentInfo;
+
+    function CheckPaymentStatus(const TransactionId: string): string;
+
+    // Heartbeat Monitor
+    procedure RegisterActivity;
     
     // Propriedades
     property License: TLicenseInfo read FLicense;
@@ -48,7 +54,10 @@ type
     
     // Cadastro (Novos métodos 2FA)
     function SolicitarCodigoCadastro(const Nome, Email, CNPJ, Razao: string): string;
-    function ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string): Boolean;
+    function ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const Parceiro: string = ''): Boolean;
+    
+    // Atualização
+    function CheckForUpdate(const CurrentVersion: string): TUpdateInfo;
   end;
 
 implementation
@@ -75,8 +84,58 @@ end;
 
 destructor TShield.Destroy;
 begin
+  if FIsInitialized then
+    SaveCache; // Salva estado ao fechar (Anti-Rollback)
+    
   FAPI.Free;
   inherited;
+end;
+
+procedure TShield.RegisterActivity;
+begin
+  // 1. Verificação Local (Anti-Rollback e Validade Básica)
+  if FLicense.Status = stValid then
+  begin
+    if (FLicense.DataExpiracao > 0) and (Now > FLicense.DataExpiracao) then
+    begin
+       FLicense.Status := stExpired;
+       FLicense.Mensagem := 'Licença expirada durante o uso.';
+    end
+    else
+    begin
+       FLicense.UltimaVerificacao := Now;
+    end;
+    SaveCache;
+  end;
+
+  // 2. Verificação Online Silenciosa (Heartbeat)
+  // Tenta conectar. Se conseguir e disser que está inválido, bloqueia.
+  // Se der erro de conexão, ignora e mantêm o cache local.
+  TThread.CreateAnonymousThread(procedure
+  begin
+    try
+      // CheckLicense interno já faz a chamada e atualiza FLicense.Status
+      // Precisamos tomar cuidado para não sobrescrever um status stValid local com stOfflineError
+      // Então vamos fazer uma chamada manual para não alterar o estado em caso de falha de rede
+      var TempShield: TShield;
+      var TempConfig: TShieldConfig;
+      
+      // Maneira simplificada: Usar o próprio CheckLicense, mas tratando exceções
+      // O CheckLicense atual já tem fallback para cache.
+      // Se ele retornar False, significa que ou expirou, ou foi bloqueado, ou o cache sumiu.
+      try
+         TThread.Synchronize(nil, procedure
+         begin
+            CheckLicense; // Chamada síncrona na thread principal para evitar conflito de memória
+         end);
+      except
+        // Ignora erros de conexão no heartbeat
+      end;
+      
+    except
+      // Engole exceções gerais de thread
+    end;
+  end).Start;
 end;
 
 function TShield.GetCachePath: string;
@@ -122,6 +181,15 @@ begin
           FLicense.DiasRestantes := Trunc(FLicense.DataExpiracao) - Trunc(Now);
       end;
         
+      if Obj.GetValue('terminais_permitidos') <> nil then
+        FLicense.TerminaisPermitidos := StrToIntDef(Obj.GetValue('terminais_permitidos').Value, 0);
+
+      if Obj.GetValue('terminais_utilizados') <> nil then
+        FLicense.TerminaisUtilizados := StrToIntDef(Obj.GetValue('terminais_utilizados').Value, 0);
+
+      if Obj.GetValue('data_inicio') <> nil then
+        FLicense.DataInicio := ISO8601ToDate(Obj.GetValue('data_inicio').Value);
+        
       // Recupera Aviso offline
       if Obj.GetValue('aviso_licenca') <> nil then
         FLicense.AvisoMensagem := Obj.GetValue('aviso_licenca').Value;
@@ -151,6 +219,34 @@ begin
             if NItem.GetValue('data') <> nil then
                FLicense.Noticias[I].DataPublicacao := ISO8601ToDate(NItem.GetValue('data').Value);
          end;
+      end;
+      
+      // Recupera Última Verificação (Anti-Rollback)
+      if Obj.GetValue('ultima_verificacao') <> nil then
+        FLicense.UltimaVerificacao := ISO8601ToDate(Obj.GetValue('ultima_verificacao').Value);
+
+      // [FIX] Validar Status OFFLINE baseado no Cache carregado e Anti-Tamper
+      if (FLicense.Serial <> '') and (FSession.Token <> '') then
+      begin
+        // 1. Verifica Validade Temporal
+        if (FLicense.DataExpiracao > 0) and (FLicense.DataExpiracao < Now) then
+        begin
+          FLicense.Status := stExpired;
+          FLicense.Mensagem := 'Licença expirada (Cache).';
+        end
+        // 2. Verifica Relógio Voltado (Anti-Tamper - 10 min tolerância)
+        else if (FLicense.UltimaVerificacao > 0) and (Now < (FLicense.UltimaVerificacao - (10.0 / 1440.0))) then
+        begin
+          FLicense.Status := stInvalid;
+          FLicense.Mensagem := 'Inconsistência de data rigorosa detectada. Horário do sistema retroagiu.';
+        end
+        else
+        begin
+          FLicense.Status := stValid;
+          // Se horário atual for maior, atualiza.
+          if Now > FLicense.UltimaVerificacao then
+             FLicense.UltimaVerificacao := Now;
+        end;
       end;
 
     finally
@@ -182,8 +278,21 @@ begin
     if FLicense.DataExpiracao > 0 then
       Obj.AddPair('data_expiracao', DateToISO8601(FLicense.DataExpiracao));
       
+    if FLicense.TerminaisPermitidos > 0 then
+      Obj.AddPair('terminais_permitidos', TJSONNumber.Create(FLicense.TerminaisPermitidos));
+
+    if FLicense.TerminaisUtilizados > 0 then
+      Obj.AddPair('terminais_utilizados', TJSONNumber.Create(FLicense.TerminaisUtilizados));
+
+    if FLicense.DataInicio > 0 then
+      Obj.AddPair('data_inicio', DateToISO8601(FLicense.DataInicio));
+      
     if FLicense.AvisoMensagem <> '' then
       Obj.AddPair('aviso_licenca', FLicense.AvisoMensagem);
+      
+    // Salva Anti-Tamper timestamp
+    if FLicense.UltimaVerificacao > 0 then
+      Obj.AddPair('ultima_verificacao', DateToISO8601(FLicense.UltimaVerificacao));
       
     // Salvar array de Noticias
     if Length(FLicense.Noticias) > 0 then
@@ -222,6 +331,8 @@ begin
     
   Result.AddPair('mac_address', TShieldSecurity.DetectPrimaryMacAddress);
   Result.AddPair('nome_computador', GetEnvironmentVariable('COMPUTERNAME'));
+  // Proteção contra Replay Attack (Necessário para todas as chamadas autenticadas)
+  Result.AddPair('timestamp', DateToISO8601(Now, False));
 end;
 
 function TShield.Authenticate(const Email, Senha, InstalacaoID: string): Boolean;
@@ -245,13 +356,28 @@ begin
       if (Resp.GetValue('success') <> nil) and (Resp.GetValue('success') is TJSONBool) and
          (Resp.GetValue<TJSONBool>('success').AsBoolean) then
       begin
-        FSession.Token := Resp.GetValue('token').Value;
+    // Verificacao de nulo para 'token'
+        if Resp.GetValue('token') <> nil then
+           FSession.Token := Resp.GetValue('token').Value
+        else
+           FSession.Token := ''; // Ou raise Exception
+
         ProcessApiResponse(Resp);
         SaveCache;
         Result := True;
       end
       else
-        raise Exception.Create(Resp.GetValue('mensagem').Value);
+      begin
+        // Verificacao de nulo para 'mensagem' ou 'error'
+        if Resp.GetValue('mensagem') <> nil then
+           raise Exception.Create(Resp.GetValue('mensagem').Value)
+        else if Resp.GetValue('error') <> nil then
+           raise Exception.Create(Resp.GetValue('error').Value)
+        else if Resp.GetValue('message') <> nil then
+           raise Exception.Create(Resp.GetValue('message').Value)
+        else
+           raise Exception.Create('Erro desconhecido. Resposta: ' + Resp.ToString);
+      end;
     finally
       Resp.Free;
     end;
@@ -287,16 +413,56 @@ begin
       
     Payload.AddPair('codigo_instalacao', GetMachineFingerprint);
 
-    Resp := FAPI.PostRequest('validar_serial', Payload);
     try
-      if Resp.GetValue('validacao') <> nil then
-        ProcessApiResponse(Resp);
+      // Tenta Online
+      Resp := FAPI.PostRequest('validar_serial', Payload);
+      try
+        // Verifica se a API retornou erro explícito (ex: API Key Bloqueada, Software Inativo)
+        if (Resp.GetValue('error') <> nil) or 
+           ((Resp.GetValue('success') <> nil) and (Resp.GetValue('success') is TJSONBool) and not Resp.GetValue<TJSONBool>('success').AsBoolean) then
+        begin
+             // Se o servidor respondeu com ERRO, derruba a licença imediatamente.
+             FLicense.Status := stInvalid;
+             if Resp.GetValue('message') <> nil then
+                FLicense.Mensagem := Resp.GetValue('message').Value
+             else if Resp.GetValue('error') <> nil then
+                FLicense.Mensagem := Resp.GetValue('error').Value
+             else
+                FLicense.Mensagem := 'Licença ou Chave de Acesso bloqueada pelo servidor.';
+        end
+        else if Resp.GetValue('validacao') <> nil then
+        begin
+           // Resposta padrão de sucesso/validação
+           ProcessApiResponse(Resp);
+        end;
+          
+        Result := FLicense.IsValid;
         
-      Result := FLicense.IsValid;
-      SaveCache;
-    finally
-      Resp.Free;
+        if Result then
+           FLicense.UltimaVerificacao := Now;
+           
+        SaveCache;
+      finally
+        Resp.Free;
+      end;
+    except
+      on E: Exception do
+      begin
+        // [FIX] Falha de Rede -> Fallback para Cache Local
+        // Apenas se for erro de REDE (Exception). Erro de Lógica/Bloqueio (API Key) cai no if acima.
+        if FLicense.Status = stValid then
+        begin
+             // Mantém validade do cache
+        end
+        else
+        begin
+          FLicense.Status := stOfflineError;
+          FLicense.Mensagem := 'Sem conexão e sem licença válida em cache. (' + E.Message + ')';
+        end;
+      end;
     end;
+    
+    Result := FLicense.IsValid;
   finally
     Payload.Free;
   end;
@@ -321,7 +487,8 @@ begin
 
   if ValObj.GetValue('valido') <> nil then
   begin
-    if ValObj.GetValue<TJSONBool>('valido').AsBoolean then
+    var sVal := ValObj.GetValue('valido').Value.ToLower;
+    if (sVal = 'true') or (sVal = '1') then
       FLicense.Status := stValid
     else
       FLicense.Status := stInvalid;
@@ -361,11 +528,19 @@ begin
   begin
       sDate := ValObj.GetValue('data_inicio').Value;
       if sDate <> '' then
-         FLicense.DataInicio := ISO8601ToDate(sDate);
+      begin
+         try
+           FLicense.DataInicio := ISO8601ToDate(sDate);
+         except
+           FLicense.DataInicio := 0;
+         end;
+      end;
   end;
   
   if ValObj.GetValue('dias_restantes') <> nil then
-    FLicense.DiasRestantes :=  StrToIntDef(ValObj.GetValue('dias_restantes').Value, 0);
+    FLicense.DiasRestantes :=  StrToIntDef(ValObj.GetValue('dias_restantes').Value, 0)
+  else if FLicense.DataExpiracao > 0 then
+    FLicense.DiasRestantes := Trunc(FLicense.DataExpiracao) - Trunc(Now);
 
   if ValObj.GetValue('terminais_permitidos') <> nil then
     FLicense.TerminaisPermitidos := StrToIntDef(ValObj.GetValue('terminais_permitidos').Value, 0);
@@ -390,6 +565,28 @@ begin
     FLicense.AvisoMensagem := ValObj.GetValue('aviso_licenca').Value
   else
     FLicense.AvisoMensagem := '';
+
+  // [UPDATE] Check Nova Versão
+  if ValObj.GetValue('update') <> nil then
+  begin
+    var UpdateObj := ValObj.GetValue('update');
+    // Em Delphi 10.3+ GetValue pode retornar TJSONValue que precisa de cast seguro
+    if (UpdateObj <> nil) and (UpdateObj is TJSONObject) then
+    begin
+       var JUpd := TJSONObject(UpdateObj);
+       if JUpd.GetValue('disponivel') <> nil then
+          FLicense.UpdateAvailable := JUpd.GetValue<TJSONBool>('disponivel').AsBoolean;
+       
+       if FLicense.UpdateAvailable then
+       begin
+           if JUpd.GetValue('nova_versao') <> nil then
+              FLicense.NovaVersao := JUpd.GetValue('nova_versao').Value;
+           
+           if JUpd.GetValue('mensagem') <> nil then
+              FLicense.UpdateMessage := JUpd.GetValue('mensagem').Value;
+       end;
+    end;
+  end;
 
   // Parse Noticias
   if ValObj.GetValue('noticias') <> nil then
@@ -455,6 +652,59 @@ begin
   end;
 end;
 
+function TShield.ActivateOffline(const ActivationKeyString: string): Boolean;
+var
+  Parts: TArray<string>;
+  PayloadB64, Signature, CalculatedHash, JsonStr: string;
+  Obj: TJSONObject;
+begin
+  Result := False;
+  // Formato: PAYLOAD_BASE64.SIGNATURE_HEX
+  Parts := ActivationKeyString.Split(['.']);
+  if Length(Parts) <> 2 then
+    raise Exception.Create('Código de ativação inválido (Formato incorreto).');
+    
+  PayloadB64 := Parts[0];
+  Signature := Parts[1];
+  
+  // Valida Assinatura
+  CalculatedHash := TShieldSecurity.ComputeOfflineHash(PayloadB64, FConfig.OfflineSecret);
+  
+  if not SameText(CalculatedHash, Signature) then
+     raise Exception.Create('Código de ativação inválido (Assinatura não confere).');
+     
+  // Decodifica Payload
+  try
+    JsonStr := TNetEncoding.Base64.Decode(PayloadB64);
+    Obj := TJSONObject.ParseJSONValue(JsonStr) as TJSONObject;
+    if Obj = nil then raise Exception.Create('Payload corrompido.');
+    
+    try
+      // Valida se é para ESTA máquina
+      if Obj.GetValue('instalacao_id') <> nil then
+      begin
+         if Obj.GetValue('instalacao_id').Value <> GetMachineFingerprint then
+            raise Exception.Create('Este código de ativação não é para este computador.');
+      end;
+      
+      // Aplica a licença
+      ProcessApiResponse(Obj);
+      
+      // Força status valido se não vier explícito
+      FLicense.Status := stValid;
+      FLicense.Mensagem := 'Ativado Offline com Sucesso';
+      
+      SaveCache;
+      Result := True;
+    finally
+      Obj.Free;
+    end;
+  except
+    on E: Exception do
+      raise Exception.Create('Erro ao processar ativação: ' + E.Message);
+  end;
+end;
+
 procedure TShield.Logout;
 begin
   FSession.Clear;
@@ -479,7 +729,11 @@ begin
       Item := JsonArr.Items[I] as TJSONObject;
       Result[I].Id := StrToIntDef(Item.GetValue('id').Value, 0);
       Result[I].Nome := Item.GetValue('nome_plano').Value;
-      Result[I].Valor := StrToFloatDef(Item.GetValue('valor').Value, 0.0);
+      
+      // Garante parsing correto de decimal com Ponto (JSON) independente do Locale do Windows
+      var ValStr := Item.GetValue('valor').Value;
+      Result[I].Valor := StrToFloatDef(ValStr, 0.0, TFormatSettings.Invariant);
+      
       Result[I].Descricao := Item.GetValue('recorrencia').Value; 
     end;
   finally
@@ -487,31 +741,20 @@ begin
   end;
 end;
 
-function TShield.CheckoutPlan(const PlanId: Integer): string;
-var
-  CodTransacao: string;
+function TShield.CheckoutPlan(const PlanId: Integer): TPaymentInfo;
 begin
   if (FSession.Token = '') and (FLicense.Serial = '') then
     raise Exception.Create('É necessário estar autenticado ou ter um serial para criar um pedido.');
     
-  CodTransacao := FAPI.CreateOrder(PlanId, FLicense.Serial, FSession.Token);
+  Result := FAPI.CreateOrder(PlanId, FLicense.Serial, FSession.Token);
   
-  if (Pos('http://', LowerCase(CodTransacao)) = 1) or 
-     (Pos('https://', LowerCase(CodTransacao)) = 1) then
-  begin
-     Result := CodTransacao;
-  end
-  else
-  begin
-     // Constroi URL de Checkout dinamicamente
-     Result := StringReplace(FConfig.BaseUrl, '/api/v1/adassoft', '', [rfReplaceAll, rfIgnoreCase]);
-     if (Result <> '') and (Result[Length(Result)] = '/') then Delete(Result, Length(Result), 1);
-     
-     // Fallback limpo
-     if Result = '' then Result := 'https://express.adassoft.com';
-     
-     Result := Result + '/checkout/pay/' + CodTransacao;
-  end;
+  if Result.TransactionId = '' then
+     raise Exception.Create('Erro ao criar pedido. API não retornou ID.');
+end;
+
+function TShield.CheckPaymentStatus(const TransactionId: string): string;
+begin
+   Result := FAPI.CheckPaymentStatus(TransactionId, FSession.Token);
 end;
 
 // Novos Métodos de Cadastro
@@ -527,6 +770,8 @@ begin
     Payload.AddPair('email', Email);
     Payload.AddPair('cnpj', CNPJ);
     Payload.AddPair('razao', Razao);
+    // Timestamp obrigatório para evitar Replay Attack
+    Payload.AddPair('timestamp', DateToISO8601(Now, False));
     
     Resp := FAPI.RegisterUser(Payload);
     try
@@ -558,7 +803,7 @@ begin
   end;
 end;
 
-function TShield.ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string): Boolean;
+function TShield.ConfirmarCadastro(const Nome, Email, Senha, CNPJ, Razao, WhatsApp, Codigo: string; const Parceiro: string = ''): Boolean;
 var
   Payload, Resp: TJSONObject;
 begin
@@ -573,6 +818,14 @@ begin
     Payload.AddPair('razao', Razao);
     Payload.AddPair('whatsapp', WhatsApp);
     Payload.AddPair('codigo', Codigo);
+    // Timestamp obrigatório
+    Payload.AddPair('timestamp', DateToISO8601(Now, False));
+    
+    if Parceiro <> '' then
+       Payload.AddPair('codigo_parceiro', Parceiro);
+
+    // Enviar ID do Software para criar licença de avaliação
+    Payload.AddPair('software_id', TJSONNumber.Create(FConfig.SoftwareId));
     
     Resp := FAPI.RegisterUser(Payload);
     try
@@ -597,6 +850,49 @@ begin
     end;
   finally
     Payload.Free;
+  end;
+end;
+
+
+    
+function TShield.CheckForUpdate(const CurrentVersion: string): TUpdateInfo;
+var
+  Json: TJSONObject;
+begin
+  Result.UpdateAvailable := False;
+  Result.Version := CurrentVersion;
+  Result.DownloadURL := '';
+  Result.Changelog := '';
+  Result.Size := '';
+  Result.Mandatory := False;
+  Result.Hash := '';
+  
+  Json := FAPI.CheckUpdate(FConfig.SoftwareId, CurrentVersion);
+  try
+    if Json = nil then Exit;
+    
+    if (Json.GetValue('update_available') is TJSONTrue) then
+    begin
+       Result.UpdateAvailable := True;
+       if Json.GetValue('version') <> nil then
+         Result.Version := Json.GetValue('version').Value;
+       if Json.GetValue('url') <> nil then
+         Result.DownloadURL := Json.GetValue('url').Value;
+       if Json.GetValue('changelog') <> nil then
+         Result.Changelog := Json.GetValue('changelog').Value;
+       if Json.GetValue('size') <> nil then 
+         Result.Size := Json.GetValue('size').Value;
+         
+       if (Json.GetValue('mandatory') is TJSONTrue) then
+         Result.Mandatory := True
+       else
+         Result.Mandatory := False;
+         
+       if Json.GetValue('hash') <> nil then
+         Result.Hash := Json.GetValue('hash').Value;
+    end;
+  finally
+    Json.Free;
   end;
 end;
 

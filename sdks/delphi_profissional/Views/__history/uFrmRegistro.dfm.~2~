@@ -12,8 +12,10 @@ object frmRegistro: TfrmRegistro
   Font.Height = -11
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
+  PixelsPerInch = 96
   TextHeight = 13
   object Bevel1: TBevel
     Left = 0
@@ -35,26 +37,24 @@ object frmRegistro: TfrmRegistro
     ParentBackground = False
     TabOrder = 0
     object lblInstalacaoID: TLabel
-      Left = 83
+      Left = 248
       Top = 13
-      Width = 401
+      Width = 236
       Height = 15
-      Cursor = crHandPoint
       Alignment = taRightJustify
       AutoSize = False
-      Caption = 'Instala'#231#227'o: ...'
+      Caption = 'C'#243'digo da Instala'#231#227'o: ...'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = 33023
       Font.Height = -12
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
-      OnClick = lblInstalacaoIDClick
     end
     object Label1: TLabel
       Left = 16
       Top = 11
-      Width = 119
+      Width = 126
       Height = 17
       Caption = 'Registro de Licen'#231'a'
       Font.Charset = DEFAULT_CHARSET
@@ -83,7 +83,7 @@ object frmRegistro: TfrmRegistro
       object Label2: TLabel
         Left = 24
         Top = 56
-        Width = 35
+        Width = 37
         Height = 13
         Caption = 'E-mail:'
         Font.Charset = DEFAULT_CHARSET
@@ -96,7 +96,7 @@ object frmRegistro: TfrmRegistro
       object Label3: TLabel
         Left = 24
         Top = 88
-        Width = 35
+        Width = 38
         Height = 13
         Caption = 'Senha:'
         Font.Charset = DEFAULT_CHARSET
@@ -109,7 +109,7 @@ object frmRegistro: TfrmRegistro
       object lblEsqueciSenha: TLabel
         Left = 67
         Top = 115
-        Width = 97
+        Width = 95
         Height = 13
         Cursor = crHandPoint
         Caption = 'Esqueceu a senha?'
@@ -124,7 +124,7 @@ object frmRegistro: TfrmRegistro
       object Label4: TLabel
         Left = 24
         Top = 27
-        Width = 290
+        Width = 275
         Height = 13
         Caption = 'Por favor, digite seus dados de login e clique em [Entrar]'
         Font.Charset = DEFAULT_CHARSET
@@ -178,11 +178,9 @@ object frmRegistro: TfrmRegistro
       object LabelInfo: TLabel
         Left = 24
         Top = 32
-        Width = 377
+        Width = 369
         Height = 13
-        Caption = 
-          'Para ativar ou adquirir uma licen'#231'a, '#233' necess'#225'rio criar uma cont' +
-          'a primeiro.'
+        Caption = 'Para ativar ou adquirir uma licen'#231'a, '#233' necess'#225'rio criar uma conta primeiro.'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
@@ -193,7 +191,7 @@ object frmRegistro: TfrmRegistro
       object LabelInfo2: TLabel
         Left = 24
         Top = 51
-        Width = 269
+        Width = 245
         Height = 13
         Caption = #201' r'#225'pido, f'#225'cil e voc'#234' j'#225' sai logado automaticamente.'
         Font.Charset = DEFAULT_CHARSET
@@ -230,9 +228,9 @@ object frmRegistro: TfrmRegistro
     TabOrder = 2
     Visible = False
     object lblStatusTexto: TLabel
-      Left = 144
+      Left = 200
       Top = 46
-      Width = 249
+      Width = 99
       Height = 17
       Alignment = taCenter
       AutoSize = False
@@ -245,10 +243,10 @@ object frmRegistro: TfrmRegistro
       ParentFont = False
     end
     object lblDiasRestantes: TLabel
-      Left = 112
+      Left = 152
       Top = 96
-      Width = 307
-      Height = 19
+      Width = 193
+      Height = 13
       Alignment = taCenter
       AutoSize = False
       Caption = '14 dias restantes'
@@ -262,14 +260,14 @@ object frmRegistro: TfrmRegistro
     object lblDataInicio: TLabel
       Left = 24
       Top = 81
-      Width = 56
+      Width = 65
       Height = 13
       Caption = '01/01/2025'
     end
     object lblDataFim: TLabel
-      Left = 417
+      Left = 408
       Top = 81
-      Width = 56
+      Width = 65
       Height = 13
       Alignment = taRightJustify
       Caption = '01/01/2026'
@@ -290,26 +288,26 @@ object frmRegistro: TfrmRegistro
       ParentFont = False
     end
     object pnlStatusColor: TPanel
-      Left = 144
+      Left = 192
       Top = 67
-      Width = 249
-      Height = 7
+      Width = 113
+      Height = 4
       BevelOuter = bvNone
       Color = clLime
       ParentBackground = False
       TabOrder = 0
     end
     object pbTempo: TProgressBar
-      Left = 112
-      Top = 80
-      Width = 299
+      Left = 95
+      Top = 79
+      Width = 307
       Height = 15
       TabOrder = 1
     end
     object pbTerminais: TProgressBar
-      Left = 112
+      Left = 95
       Top = 137
-      Width = 299
+      Width = 307
       Height = 15
       TabOrder = 2
     end
@@ -325,7 +323,7 @@ object frmRegistro: TfrmRegistro
     object lblSuporteZap: TLabel
       Left = 8
       Top = 8
-      Width = 140
+      Width = 143
       Height = 13
       Caption = 'Suporte Zap: 3899999-9999'
       Font.Charset = DEFAULT_CHARSET
@@ -338,7 +336,7 @@ object frmRegistro: TfrmRegistro
     object lblSuporteEmail: TLabel
       Left = 8
       Top = 27
-      Width = 156
+      Width = 157
       Height = 13
       Caption = 'E-mail: suporte@adassoft.com'
     end

@@ -17,6 +17,7 @@ type
     class function EncryptString(const PlainText: string): string;
     class function DecryptString(const EncryptedText: string): string;
     class function DetectPrimaryMacAddress: string;
+    class function ComputeOfflineHash(const Input, MsgSecret: string): string;
   end;
 
 implementation
@@ -207,6 +208,12 @@ begin
   finally
     Reg.Free;
   end;
+end;
+
+class function TShieldSecurity.ComputeOfflineHash(const Input, MsgSecret: string): string;
+begin
+  // Gera HMAC SHA-256
+  Result := THashSHA2.GetHMAC(Input, MsgSecret);
 end;
 
 end.

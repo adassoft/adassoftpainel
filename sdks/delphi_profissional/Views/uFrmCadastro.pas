@@ -1,4 +1,4 @@
-unit uFrmCadastro;
+﻿unit uFrmCadastro;
 
 interface
 
@@ -31,8 +31,12 @@ type
     edtWhatsapp: TEdit;
     LabelCodigo: TLabel;
     edtCodigo: TEdit;
+    LabelParceiro: TLabel;
+    edtParceiro: TEdit;
+    btnReenviar: TButton;
     procedure btnCadastrarClick(Sender: TObject);
     procedure btnCancelarClick(Sender: TObject);
+    procedure btnReenviarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
     FShield: TShield;
@@ -66,6 +70,7 @@ begin
   FEstado := ecSolicitar;
   LabelCodigo.Visible := False;
   edtCodigo.Visible := False;
+  btnReenviar.Visible := False;
   btnCadastrar.Caption := 'Enviar Código de Validação';
 end;
 
@@ -102,8 +107,9 @@ begin
         edtCodigo.Visible := True;
         btnCadastrar.Caption := 'CONFIRMAR CADASTRO';
         
-        edtEmail.Enabled := False; 
+    edtParceiro.Enabled := False; 
         edtCodigo.SetFocus;
+        btnReenviar.Visible := True; // Mostra botão de reenvio
       except
         on E: Exception do
           ShowMessage(E.Message);
@@ -127,7 +133,7 @@ begin
     try
       try
          if FShield.ConfirmarCadastro(edtNome.Text, edtEmail.Text, edtSenha.Text, 
-                                      edtCNPJ.Text, edtRazao.Text, edtWhatsapp.Text, edtCodigo.Text) then
+                                      edtCNPJ.Text, edtRazao.Text, edtWhatsapp.Text, edtCodigo.Text, edtParceiro.Text) then
          begin
            ShowMessage('Cadastro realizado com sucesso! Você já está autenticado.');
            ModalResult := mrOk;
@@ -139,6 +145,27 @@ begin
     finally
       Screen.Cursor := crDefault;
     end;
+  end;
+end;
+
+procedure TfrmCadastro.btnReenviarClick(Sender: TObject);
+var
+  Msg: string;
+begin
+  if MessageDlg('Deseja reenviar o código para ' + edtEmail.Text + '?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  begin
+      Screen.Cursor := crHourGlass;
+      try
+        try
+          Msg := FShield.SolicitarCodigoCadastro(edtNome.Text, edtEmail.Text, edtCNPJ.Text, edtRazao.Text);
+          ShowMessage(Msg); 
+        except
+          on E: Exception do
+            ShowMessage('Erro ao reenviar: ' + E.Message);
+        end;
+      finally
+        Screen.Cursor := crDefault;
+      end;
   end;
 end;
 
