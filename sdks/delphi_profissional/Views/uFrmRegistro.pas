@@ -47,11 +47,12 @@ type
     procedure btnDesvincularClick(Sender: TObject);
     procedure lblEsqueciSenhaClick(Sender: TObject);
     procedure lblCriarContaClick(Sender: TObject);
-    procedure btnComprarClick(Sender: TObject);
+    procedure lblOfflineClick(Sender: TObject); 
   private
     FShield: TShield;
     procedure AtualizarUI;
     procedure SetStatusColor(const IsValid: Boolean);
+    procedure CriarBotaoOffline;
   public
     class procedure Exibir(AShield: TShield);
   end;
@@ -85,6 +86,67 @@ begin
   lblEsqueciSenha.Cursor := crHandPoint;
   lblEsqueciSenha.Font.Style := [fsUnderline];
   lblEsqueciSenha.Font.Color := clBlue;
+  
+  CriarBotaoOffline;
+end;
+
+procedure TfrmRegistro.CriarBotaoOffline;
+var
+  lbl: TLabel;
+begin
+  // Cria um Label clicável abaixo do botão Ativar para opção Offline
+  lbl := TLabel.Create(Self);
+  lbl.Parent := pnlLogin;
+  lbl.Caption := 'Possui um Token? Validar Offline';
+  lbl.Cursor := crHandPoint;
+  lbl.Font.Color := clWebOrangeRed; // Destaque sutil
+  lbl.Font.Style := [fsUnderline];
+  lbl.Alignment := taCenter;
+  
+  // Posiciona relativo ao btnAtivar
+  lbl.Top := btnAtivar.Top + btnAtivar.Height + 15;
+  lbl.Left := btnAtivar.Left;
+  lbl.Width := btnAtivar.Width;
+  lbl.Anchors := [akTop, akLeft, akRight]; // Segue o botão
+  
+  lbl.OnClick := lblOfflineClick;
+  
+  // Ajusta altura do painel se necessário (opcional, pnlLogin costuma ter espaço)
+end;
+
+procedure TfrmRegistro.lblOfflineClick(Sender: TObject);
+var
+  Token: string;
+begin
+  Token := '';
+  if InputQuery('Ativação Offline', 'Cole abaixo o Token de Ativação (Hash):', Token) then
+  begin
+    Token := Trim(Token);
+    if Token = '' then Exit;
+
+    Screen.Cursor := crHourGlass;
+    try
+      try
+        // Carrega e valida o token localmente usando OfflineSecret configurado no TShieldConfig
+        FShield.License.LoadFromToken(Token); 
+        
+        if FShield.License.IsValid then
+        begin
+          ShowMessage('Licença ativada com sucesso (Offline)!');
+          AtualizarUI;
+        end
+        else
+        begin
+          ShowMessage('Token inválido ou expirado. Verifique se copiou todo o código.');
+        end;
+      except
+        on E: Exception do
+          ShowMessage('Erro na validação do token: ' + E.Message);
+      end;
+    finally
+      Screen.Cursor := crDefault;
+    end;
+  end;
 end;
 
 procedure TfrmRegistro.AtualizarUI;
