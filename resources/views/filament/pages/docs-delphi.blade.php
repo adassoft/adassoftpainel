@@ -192,7 +192,7 @@
 
   <span class="keyword">try</span>
     <span class="comment">// Valida a assinatura usando o OfflineSecret definido no Config</span>
-    MeuShield.License.LoadFromToken(Token);
+    MeuShield.ActivateOffline(Token);
 
     <span class="keyword">if</span> MeuShield.License.IsValid <span class="keyword">then</span>
     <span class="function">ShowMessage</span>(<span class="string">'Ativado com Sucesso!'</span>)

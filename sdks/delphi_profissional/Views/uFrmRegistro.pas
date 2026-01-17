@@ -128,7 +128,7 @@ begin
     try
       try
         // Carrega e valida o token localmente usando OfflineSecret configurado no TShieldConfig
-        FShield.License.LoadFromToken(Token); 
+        FShield.ActivateOffline(Token); 
         
         if FShield.License.IsValid then
         begin
