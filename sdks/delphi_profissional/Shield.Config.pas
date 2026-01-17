@@ -21,14 +21,16 @@ implementation
 
 { TShieldConfig }
 
+uses System.SysUtils;
+
 class function TShieldConfig.Create(const AUrl, AKey: string; ASoftId: Integer;
   ASoftVer, ASecret: string): TShieldConfig;
 begin
-  Result.BaseUrl := AUrl;
-  Result.ApiKey := AKey;
+  Result.BaseUrl := Trim(AUrl);
+  Result.ApiKey := Trim(AKey);
   Result.SoftwareId := ASoftId;
-  Result.SoftwareVersion := ASoftVer;
-  Result.OfflineSecret := ASecret;
+  Result.SoftwareVersion := Trim(ASoftVer);
+  Result.OfflineSecret := Trim(ASecret);
   Result.CacheDir := ''; // Padrão: AppData/Local
 end;
 
