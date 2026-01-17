@@ -128,10 +128,17 @@ end;
 
 procedure TfrmRegistro.lblOfflineClick(Sender: TObject);
 var
-  Token: string;
+  Token, MachineID: string;
 begin
+  // 1. Copia o ID da máquina para facilitar
+  MachineID := FShield.GetMachineFingerprint;
+  Clipboard.AsText := MachineID;
+  
+  ShowMessage('O seu CÓDIGO DE INSTALAÇÃO foi copiado para a área de transferência.' + #13#10 +
+              'Envie este código para o suporte técnico para receber sua Chave de Ativação.');
+
   Token := '';
-  if InputQuery('Ativação Offline', 'Cole abaixo o Token de Ativação (Hash):', Token) then
+  if InputQuery('Ativação Offline', 'Cole o Token recebido do suporte:', Token) then
   begin
     Token := Trim(Token);
     if Token = '' then Exit;
