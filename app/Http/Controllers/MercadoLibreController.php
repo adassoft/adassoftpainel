@@ -120,7 +120,7 @@ class MercadoLibreController extends Controller
         // Para MVP, faremos inline, mas retornando 200 no final. Se der timeout, ML reenvia.
 
         $data = $request->all();
-        Log::info('ML Webhook:', $data);
+        // Log::info('ML Webhook:', $data);
 
         // Verifica Tópico
         $topic = $data['topic'] ?? ($data['type'] ?? null); // orders_v2 ou orders

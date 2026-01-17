@@ -45,19 +45,19 @@ class EnsureCompanyExists
         $needsUpdate = false;
 
         if (empty($user->empresa_id)) {
-            \Illuminate\Support\Facades\Log::info('Middleware Redirect: empresa_id is empty for user ' . $user->id);
+            // \Illuminate\Support\Facades\Log::info('Middleware Redirect: empresa_id is empty for user ' . $user->id);
             $needsUpdate = true;
         } else {
             // Check if linked company has valid data
             $empresa = $user->empresa;
             if (!$empresa) {
-                \Illuminate\Support\Facades\Log::info('Middleware Redirect: Relationship failed. empresa_id=' . $user->empresa_id . ' but model is null.');
+                // \Illuminate\Support\Facades\Log::info('Middleware Redirect: Relationship failed. empresa_id=' . $user->empresa_id . ' but model is null.');
                 $needsUpdate = true; // Link exists (ID) but record deleted?
             } else {
                 $cnpj = preg_replace('/\D/', '', $empresa->cnpj ?? '');
                 $len = strlen($cnpj);
                 if (!in_array($len, [11, 14])) {
-                    \Illuminate\Support\Facades\Log::info('Middleware Redirect: Invalid CNPJ length (' . $len . ') for company ' . $empresa->codigo);
+                    // \Illuminate\Support\Facades\Log::info('Middleware Redirect: Invalid CNPJ length (' . $len . ') for company ' . $empresa->codigo);
                     $needsUpdate = true;
                 }
             }

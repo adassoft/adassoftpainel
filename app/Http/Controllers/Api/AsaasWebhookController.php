@@ -16,7 +16,7 @@ class AsaasWebhookController extends Controller
         $data = $request->all();
 
         // Log básico para debug (storage/logs/laravel.log)
-        Log::info('Asaas Webhook Payload:', $data);
+        // Log::info('Asaas Webhook Payload:', $data);
 
         $event = $data['event'] ?? null;
         // Eventos de interesse
@@ -33,7 +33,7 @@ class AsaasWebhookController extends Controller
 
         if (in_array($status, $paidStatuses)) {
 
-            Log::info("Processando webhook para ref: {$externalReference} | Status: {$status}");
+            // Log::info("Processando webhook para ref: {$externalReference} | Status: {$status}");
 
             if (!$externalReference) {
                 Log::warning('Webhook Asaas recebido sem externalReference.');
@@ -47,7 +47,7 @@ class AsaasWebhookController extends Controller
                 ->first();
 
             if ($order) {
-                Log::info("Pedido encontrado: ID {$order->id}");
+                // Log::info("Pedido encontrado: ID {$order->id}");
 
                 // Atualiza Status Universal e Campos Legados
                 $order->update([

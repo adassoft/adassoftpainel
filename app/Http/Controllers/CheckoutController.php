@@ -24,7 +24,7 @@ class CheckoutController extends Controller
             return redirect()->route('login');
         }
 
-        Log::info("Iniciando Checkout para Plano ID: {$planId}");
+        // Log::info("Iniciando Checkout para Plano ID: {$planId}");
 
         $plan = Plano::with('software')->find($planId);
 
@@ -33,7 +33,7 @@ class CheckoutController extends Controller
             abort(404, 'Plano não encontrado.');
         }
 
-        Log::info("Plano encontrado: {$plan->nome_plano}. Verificando disponibilidade para revenda...");
+        // Log::info("Plano encontrado: {$plan->nome_plano}. Verificando disponibilidade para revenda...");
 
         // Security check
         if (!$plan->is_ativo_revenda) {
@@ -128,7 +128,7 @@ class CheckoutController extends Controller
             // Self-Heal: Try to find company by legacy CNPJ
             $legacyCnpj = preg_replace('/\D/', '', $user->cnpj);
 
-            \Illuminate\Support\Facades\Log::info('Checkout Self-Heal Attempt', ['legacy_clean' => $legacyCnpj]);
+            // \Illuminate\Support\Facades\Log::info('Checkout Self-Heal Attempt', ['legacy_clean' => $legacyCnpj]);
 
             if (!empty($legacyCnpj)) {
                 $company = \App\Models\Company::where('cnpj', $legacyCnpj)->first();
