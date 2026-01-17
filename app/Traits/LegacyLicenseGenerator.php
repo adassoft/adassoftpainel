@@ -180,18 +180,55 @@ trait LegacyLicenseGenerator
 
         [$encoded, $assinatura] = $parts;
 
-        // Verificar Assinatura
-        $esperado = hash_hmac('sha256', $encoded, $this->getLicenseSecret());
-        if (!hash_equals($esperado, $assinatura)) {
-            throw new Exception("Assinatura inválida! O token pode ter sido adulterado.");
-        }
-
-        // Decodificar Base64URL
+        // Decodificar sem validar (para identificar software/modo)
         $json = base64_decode(strtr($encoded, '-_', '+/'));
         $payload = json_decode($json, true);
 
         if (!$payload) {
             throw new Exception("Erro ao decodificar carga útil do token.");
+        }
+
+        // Determinar chave correta
+        $secret = $this->getLicenseSecret(); // Default (Online Global)
+
+        if (isset($payload['modo']) && str_contains($payload['modo'], 'offline')) {
+            // Tenta buscar chave específica do software no banco
+            if (isset($payload['software_id'])) {
+                $apiKey = \App\Models\ApiKey::where('software_id', $payload['software_id'])
+                    ->where('status', 'ativo')
+                    ->get()
+                    ->filter(function ($k) {
+                        $scopes = $k->scopes;
+                        if (is_string($scopes))
+                            $scopes = json_decode($scopes, true) ?? [];
+                        return is_array($scopes) && in_array('offline_activation', $scopes);
+                    })
+                    ->first();
+
+                if ($apiKey) {
+                    $secret = $apiKey->key_hash;
+                } else {
+                    // Fallback para segredo offline global se não achar específica
+                    $secret = $this->getOfflineSecret();
+                }
+            } else {
+                $secret = $this->getOfflineSecret();
+            }
+        }
+
+        // Verificar Assinatura
+        $esperado = hash_hmac('sha256', $encoded, $secret);
+
+        if (!hash_equals($esperado, $assinatura)) {
+            // Fallback: Tenta validar com a global de licença caso modo não esteja setado mas seja offline antigo
+            $esperadoBackup = hash_hmac('sha256', $encoded, $this->getLicenseSecret());
+            if (!hash_equals($esperadoBackup, $assinatura)) {
+                // Fallback 2: Tenta global offline explicitamente
+                $esperadoBackup2 = hash_hmac('sha256', $encoded, $this->getOfflineSecret());
+                if (!hash_equals($esperadoBackup2, $assinatura)) {
+                    throw new Exception("Assinatura inválida! O token pode ter sido adulterado.");
+                }
+            }
         }
 
         return $payload;
