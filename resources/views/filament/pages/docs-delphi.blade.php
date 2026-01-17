@@ -163,6 +163,38 @@
       <span class="keyword">end</span>;
   <span class="keyword">end</span>;
 <span class="keyword">end</span>;
+<span class="keyword">end</span>;
+</pre>
+            </div>
+
+            <h5 class="text-xl font-bold mt-6 mb-2 text-primary-600">Dica: Ativação Offline Manual</h5>
+            <p class="mb-4">
+                Caso precise ativar sem internet, copie o Token da licença no Painel (Ações > Ver Token) e use o código abaixo:
+            </p>
+            <div class="code-block">
+                <pre>
+<span class="comment">// Exemplo de botão "Ativar Offline"</span>
+<span class="keyword">procedure</span> <span class="function">TFormLogin.btnOfflineClick</span>(Sender: <span class="class">TObject</span>);
+<span class="keyword">var</span>
+  Token: <span class="keyword">String</span>;
+<span class="keyword">begin</span>
+  Token := <span class="function">InputBox</span>(<span class="string">'Ativação Offline'</span>, <span class="string">'Cole o Token de Ativação:'</span>, <span class="string">''</span>);
+  <span class="keyword">if</span> Token = <span class="string">''</span> <span class="keyword">then</span> <span class="keyword">Exit</span>;
+
+  <span class="keyword">try</span>
+    <span class="comment">// Valida a assinatura usando o OfflineSecret definido no Config</span>
+    MeuShield.License.LoadFromToken(Token);
+
+    <span class="keyword">if</span> MeuShield.License.IsValid <span class="keyword">then</span>
+    <span class="function">ShowMessage</span>(<span class="string">'Ativado com Sucesso!'</span>)
+    <span class="keyword">else</span>
+    <span class="function">ShowMessage</span>(<span class="string">'Token inválido.'</span>);
+
+  <span class="keyword">except</span>
+    <span class="keyword">on</span> E: Exception <span class="keyword">do</span>
+      <span class="function">ShowMessage</span>(<span class="string">'Erro: '</span> + E.Message);
+  <span class="keyword">end</span>;
+<span class="keyword">end</span>;
 </pre>
             </div>
         </x-filament::card>
