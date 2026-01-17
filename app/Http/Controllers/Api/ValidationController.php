@@ -411,16 +411,19 @@ class ValidationController extends Controller
         ]);
 
         // Registro de Terminal
-        if ($validacao['valido'] && !empty($macAddress)) {
+        $instalacaoId = $request->input('codigo_instalacao');
+        // Prioriza InstalacaoID (Fingerprint) como Identificador Único Universal para compatibilidade Offline/Online
+        $uniqueId = $instalacaoId ?: $macAddress;
+
+        if ($validacao['valido'] && !empty($uniqueId)) {
             $ip = $request->ip();
             $computerName = $request->input('nome_computador') ?? 'PC-Unknown';
-            $instalacaoId = $request->input('codigo_instalacao') ?? $macAddress;
 
             $registroTerminal = $this->licenseService->registerTerminalUsage(
                 $serial,
-                $macAddress,
+                $uniqueId, // Usa Fingerprint como chave 'MAC' no banco para garantir match
                 $computerName,
-                $instalacaoId,
+                $instalacaoId ?? $uniqueId,
                 $ip
             );
 

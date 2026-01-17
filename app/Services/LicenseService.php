@@ -278,6 +278,12 @@ class LicenseService
             $terminal->NOME_COMPUTADOR = $computerName;
             $terminal->FK_EMPRESA = $license->empresa_codigo; // Vincula à empresa da licença
             $terminal->save();
+        } else {
+            // Se já existe, verifica se o nome mudou (ex: ativação Offline tinha nome genérico)
+            if ($terminal->NOME_COMPUTADOR !== $computerName) {
+                $terminal->NOME_COMPUTADOR = $computerName;
+                $terminal->save();
+            }
         }
 
         // Verifica vínculo
