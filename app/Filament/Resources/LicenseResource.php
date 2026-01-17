@@ -212,7 +212,7 @@ class LicenseResource extends Resource
                                 $payload['vitalicia'] = true;
                             }
 
-                            $token = $service->generateToken($payload);
+                            $token = $service->generateOfflineSignedToken($payload);
 
                             // Exibe o token em um Modal "fake" ou Notification
                             \Filament\Notifications\Notification::make()

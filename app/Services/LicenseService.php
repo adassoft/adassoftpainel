@@ -156,6 +156,16 @@ class LicenseService
         return $encoded . '.' . $signature;
     }
 
+    public function generateOfflineSignedToken(array $payload): string
+    {
+        ksort($payload);
+        $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $encoded = $this->base64url_encode($json);
+        // Usa EXPLICITAMENTE o segredo offline
+        $signature = hash_hmac('sha256', $encoded, $this->offlineSecret);
+        return $encoded . '.' . $signature;
+    }
+
     protected function base64url_encode(string $data): string
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');

@@ -337,7 +337,7 @@ class LicenseResource extends Resource
                             $payload['vitalicia'] = true;
                         }
 
-                        $token = $service->generateToken($payload);
+                        $token = $service->generateOfflineSignedToken($payload);
 
                         \Filament\Notifications\Notification::make()
                             ->title('Token Gerado')
