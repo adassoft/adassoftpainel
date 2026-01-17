@@ -485,6 +485,16 @@ class ValidationController extends Controller
         ]);
     }
 
+    // Endpoint dedicado para noticias
+    public function fetchNews(Request $request)
+    {
+        $softwareId = (int) $request->input('software_id');
+        return response()->json([
+            'success' => true,
+            'noticias' => $this->getNoticias($softwareId)
+        ]);
+    }
+
     // Helper para buscar noticias
     private function getNoticias(int $softwareId)
     {
