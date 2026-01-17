@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.JSON, IdHTTP, IdSSLOpenSSL, IdURI, System.DateUtils,
-  IdStack, IdExceptions, // <--- Adicionado
+  IdStack, // IdExceptions removido
   Shield.Types, Shield.Config;
 
 type
