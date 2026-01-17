@@ -208,6 +208,22 @@ class ManageApiKeys extends Page implements HasForms, HasTable
                             Notification::make()->success()->title('Chave revogada.')->send();
                         }),
 
+                    Action::make('view_offline_secret')
+                        ->label('Ver Segredo Offline')
+                        ->icon('heroicon-o-eye')
+                        ->color('info')
+                        ->visible(fn(ApiKey $record) => in_array('offline_activation', $record->scopes ?? []))
+                        ->modalHeading('Segredo para Ativação Offline (Delphi)')
+                        ->modalDescription('Copie este valor e cole no campo OfflineSecret do seu código Delphi (uPrincipal.pas). NÃO use a chave Raw para isso.')
+                        ->modalContent(fn(ApiKey $record) => new \Illuminate\Support\HtmlString("
+                            <div class='p-4 bg-gray-100 rounded border'>
+                                <p class='text-sm text-gray-500 mb-2'>Hash SHA-256 (Use este como segredo):</p>
+                                <code class='break-all select-all font-mono text-lg'>{$record->key_hash}</code>
+                            </div>
+                        "))
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Fechar'),
+
                     Action::make('delete')
                         ->label('Excluir')
                         ->icon('heroicon-o-trash')
