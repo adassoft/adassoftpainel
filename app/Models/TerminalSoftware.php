@@ -17,7 +17,9 @@ class TerminalSoftware extends Model
         'licenca_id',
         'ultima_atividade',
         'ativo',
-        'data_vinculo'
+        'data_vinculo',
+        'instalacao_id',
+        'ip_origem'
     ];
 
     protected $casts = [
