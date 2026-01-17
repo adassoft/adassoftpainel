@@ -498,6 +498,12 @@ class ValidationController extends Controller
                     ->orWhereNull('software_id');
             });
 
+            \Illuminate\Support\Facades\Log::info('Shield Debug News', [
+                'software_id' => $softwareId,
+                'count_found' => (clone $query)->count(),
+                'bindings' => $query->getBindings()
+            ]);
+
             return $query->latest()->limit(5)->get()->map(function ($n) {
                 return [
                     'id' => $n->id,
