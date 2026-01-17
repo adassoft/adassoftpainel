@@ -80,7 +80,7 @@ implementation
 const
   API_BASE = 'https://adassoft.com/api/v1/adassoft';
   SOFTWARE_ID = 1; 
-  API_KEY = '5c8'+'59c8'+'72'+'e798'+'b747'+'1b'+'80e17'+'6fba'+'2f'+'7599ed'+'d2f'+'596c'+'a47'+'9'+'418bf'+'21'+'c495'+'5c8'+'7a'+'7';
+  API_KEY = 'COLE_SUA_API_KEY_AQUI';
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
