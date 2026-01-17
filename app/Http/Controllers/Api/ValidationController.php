@@ -504,7 +504,7 @@ class ValidationController extends Controller
                 'bindings' => $query->getBindings()
             ]);
 
-            return $query->latest()->limit(5)->get()->map(function ($n) {
+            $newsResults = $query->latest()->limit(5)->get()->map(function ($n) {
                 return [
                     'id' => $n->id,
                     'titulo' => $n->titulo,
@@ -514,6 +514,10 @@ class ValidationController extends Controller
                     'data' => $n->created_at->toIso8601String()
                 ];
             });
+
+            \Illuminate\Support\Facades\Log::info('Shield Debug News Payload', ['count' => count($newsResults), 'data' => $newsResults]);
+
+            return $newsResults;
         } catch (\Exception $e) {
             return []; // Fail safe
         }
