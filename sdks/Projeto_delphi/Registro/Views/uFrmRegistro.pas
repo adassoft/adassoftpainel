@@ -210,23 +210,6 @@ begin
     FInput.Free;
   end;
 end;
-        begin
-          ShowMessage('Licença ativada com sucesso (Offline)!');
-          AtualizarUI;
-        end
-        else
-        begin
-          ShowMessage('Token inválido ou expirado. Verifique se copiou todo o código.');
-        end;
-      except
-        on E: Exception do
-          ShowMessage('Erro na validação do token: ' + E.Message);
-      end;
-    finally
-      Screen.Cursor := crDefault;
-    end;
-  end;
-end;
 
 procedure TfrmRegistro.AtualizarUI;
 var
