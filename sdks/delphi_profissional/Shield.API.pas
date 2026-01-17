@@ -4,6 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.JSON, IdHTTP, IdSSLOpenSSL, IdURI, System.DateUtils,
+  IdStack, IdExceptions, // <--- Adicionado
   Shield.Types, Shield.Config;
 
 type
@@ -105,6 +106,13 @@ begin
         if Result = nil then
           raise Exception.Create('Invalid JSON response');
       except
+        on E: EIdSocketError do
+        begin
+           if (E.LastError = 11001) or (E.LastError = 11004) then
+             raise Exception.Create('Falha na conexão: Verifique sua internet (Host not found).')
+           else
+             raise Exception.Create('Erro de conexão (' + IntToStr(E.LastError) + '): ' + E.Message);
+        end;
         on E: EIdHTTPProtocolException do
         begin
           // Tenta ler o erro do corpo se houver
@@ -142,6 +150,13 @@ begin
       RespString := Http.Get(Url);
       Result := TJSONObject.ParseJSONValue(RespString) as TJSONObject;
     except
+       on E: EIdSocketError do
+       begin
+          if (E.LastError = 11001) or (E.LastError = 11004) then
+             raise Exception.Create('Falha na conexão: Verifique sua internet (Host not found).')
+          else
+             raise Exception.Create('Erro de conexão (' + IntToStr(E.LastError) + '): ' + E.Message);
+       end;
        on E: Exception do raise Exception.Create('Get Error: ' + E.Message);
     end;
   finally
@@ -191,9 +206,21 @@ begin
         JsonObj.Free;
       end;
     except
+      on E: EIdSocketError do
+      begin
+         if (E.LastError = 11001) or (E.LastError = 11004) then
+            raise Exception.Create('Falha na conexão: Verifique sua internet (Host not found).')
+         else if (E.LastError = 10060) then
+            raise Exception.Create('Falha na conexão: Time out. O servidor não respondeu.')
+         else
+            raise Exception.Create('Erro de Socket (' + IntToStr(E.LastError) + '): ' + E.Message);
+      end;
+      on E: EIdHTTPProtocolException do
+      begin
+         raise Exception.Create('Erro HTTP (' + IntToStr(E.ReplyErrorCode) + '): ' + E.ErrorMessage);
+      end;
       on E: Exception do
       begin
-         // Fallback silencioso ou re-raise
          raise Exception.Create('Erro ao buscar planos: ' + E.Message);
       end;
     end;
@@ -396,6 +423,13 @@ begin
       Result := TJSONObject.ParseJSONValue(RespString) as TJSONObject;
       if Result = nil then raise Exception.Create('Invalid JSON from CheckUpdate');
     except
+      on E: EIdSocketError do
+      begin
+         // Silencia erros de conexão no CheckUpdate para não incomodar, ou loga se necessário
+         // raise Exception.Create('Sem internet'); 
+         // Retorna nil ou objeto vazio para indicar falha silenciosa
+         Result := nil; 
+      end;
       on E: Exception do raise Exception.Create('CheckUpdate Error: ' + E.Message);
     end;
   finally
