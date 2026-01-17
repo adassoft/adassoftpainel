@@ -489,8 +489,8 @@ class ValidationController extends Controller
     private function getNoticias(int $softwareId)
     {
         try {
-            // Assume cliente final por enquanto (publico = 'todos')
-            $query = \App\Models\News::active()->where('publico', 'todos');
+            // Assume cliente final por enquanto (publico = 'todos' ou 'cliente')
+            $query = \App\Models\News::active()->whereIn('publico', ['todos', 'cliente']);
 
             // Filtra software específico OU null (global/todos softwares)
             $query->where(function ($q) use ($softwareId) {
