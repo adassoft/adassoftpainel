@@ -106,13 +106,13 @@ begin
         if Result = nil then
           raise Exception.Create('Invalid JSON response');
       except
-        on E: EIdSocketError do
-        begin
-           if (E.LastError = 11001) or (E.LastError = 11004) then
-             raise Exception.Create('Falha na conexão: Verifique sua internet (Host not found).')
-           else
-             raise Exception.Create('Erro de conexão (' + IntToStr(E.LastError) + '): ' + E.Message);
-        end;
+       on E: EIdSocketError do
+       begin
+          if (E.LastError = 11001) or (E.LastError = 11004) then
+             raise Exception.Create('Falha na conexao: Verifique sua internet (Host not found).')
+          else
+             raise Exception.Create('Erro de conexao (' + IntToStr(E.LastError) + '): ' + E.Message);
+       end;
         on E: EIdHTTPProtocolException do
         begin
           // Tenta ler o erro do corpo se houver
@@ -153,9 +153,9 @@ begin
        on E: EIdSocketError do
        begin
           if (E.LastError = 11001) or (E.LastError = 11004) then
-             raise Exception.Create('Falha na conexão: Verifique sua internet (Host not found).')
+             raise Exception.Create('Falha na conexao: Verifique sua internet (Host not found).')
           else
-             raise Exception.Create('Erro de conexão (' + IntToStr(E.LastError) + '): ' + E.Message);
+             raise Exception.Create('Erro de conexao (' + IntToStr(E.LastError) + '): ' + E.Message);
        end;
        on E: Exception do raise Exception.Create('Get Error: ' + E.Message);
     end;
@@ -209,9 +209,9 @@ begin
       on E: EIdSocketError do
       begin
          if (E.LastError = 11001) or (E.LastError = 11004) then
-            raise Exception.Create('Falha na conexão: Verifique sua internet (Host not found).')
+            raise Exception.Create('Falha na conexao: Verifique sua internet (Host not found).')
          else if (E.LastError = 10060) then
-            raise Exception.Create('Falha na conexão: Time out. O servidor não respondeu.')
+            raise Exception.Create('Falha na conexao: Time out. O servidor nao respondeu.')
          else
             raise Exception.Create('Erro de Socket (' + IntToStr(E.LastError) + '): ' + E.Message);
       end;
