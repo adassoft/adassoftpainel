@@ -167,27 +167,46 @@ class ValidationController extends Controller
         $path = '';
         $filename = 'update.zip';
 
-        // 1. Tenta pegar do Repositório de Downloads (Prioridade)
-        if ($software->id_download_repo) {
-            $dl = \App\Models\Download::find($software->id_download_repo);
-            if ($dl) {
-                \Illuminate\Support\Facades\Log::info("API Download: Software {$softwareId} linked to Repo {$dl->id} '{$dl->titulo}'");
+        // 1. Tenta pegar do Repositório de UPDATES (Prioridade Absoluta para Atualizador)
+        if ($software->id_update_repo) {
+            $dlUpdate = \App\Models\Download::find($software->id_update_repo);
+            if ($dlUpdate) {
+                \Illuminate\Support\Facades\Log::info("API Download: Checking UPDATE REPO {$dlUpdate->id} '{$dlUpdate->titulo}'");
 
-                // Prioridade: Pega a última versão lançada (Update mais recente)
-                $lastVersion = $dl->versions()->orderBy('data_lancamento', 'desc')->first();
-
-                \Illuminate\Support\Facades\Log::info("API Versions: Found " . $dl->versions()->count() . ". LastID: " . ($lastVersion->id ?? 'NULL'));
+                // Busca última versão neste repositório
+                $lastVersion = $dlUpdate->versions()->orderBy('data_lancamento', 'desc')->first();
 
                 if ($lastVersion && !empty($lastVersion->arquivo_path)) {
                     $path = $lastVersion->arquivo_path;
-                    // Gera nome amigável com a versão
-                    $filename = $dl->slug . '-' . $lastVersion->versao . '.zip';
-                    \Illuminate\Support\Facades\Log::info("API Download: Selected VERSION {$path}");
+                    $filename = $dlUpdate->slug . '-' . $lastVersion->versao . '.zip';
+                    \Illuminate\Support\Facades\Log::info("API Download: Selected UPDATE VERSION {$path}");
                 } else {
-                    // Fallback: Arquivo principal do Repositório
+                    // Se não tiver versão no Repo de Updates, pega o arquivo principal dele (se hover)
+                    if (!empty($dlUpdate->arquivo_path)) {
+                        $path = $dlUpdate->arquivo_path;
+                        $filename = $dlUpdate->slug . '.zip';
+                        \Illuminate\Support\Facades\Log::info("API Download: Selected UPDATE MAIN {$path}");
+                    }
+                }
+            }
+        }
+
+        // 2. Se não achou path, tenta Repositório de Download (Fallback para Instalador Principal)
+        if (empty($path) && $software->id_download_repo) {
+            $dl = \App\Models\Download::find($software->id_download_repo);
+            if ($dl) {
+                \Illuminate\Support\Facades\Log::info("API Download: Checking DOWNLOAD REPO {$dl->id} '{$dl->titulo}' (Fallback)");
+
+                $lastVersion = $dl->versions()->orderBy('data_lancamento', 'desc')->first();
+
+                if ($lastVersion && !empty($lastVersion->arquivo_path)) {
+                    $path = $lastVersion->arquivo_path;
+                    $filename = $dl->slug . '-' . $lastVersion->versao . '.zip';
+                    \Illuminate\Support\Facades\Log::info("API Download: Selected DOWNLOAD VERSION {$path}");
+                } else {
                     $path = $dl->arquivo_path;
                     $filename = $dl->slug . '.zip';
-                    \Illuminate\Support\Facades\Log::info("API Download: Selected MAIN (Fallback) {$path}");
+                    \Illuminate\Support\Facades\Log::info("API Download: Selected DOWNLOAD MAIN {$path}");
                 }
             }
         }
