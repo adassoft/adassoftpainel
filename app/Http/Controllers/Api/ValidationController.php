@@ -40,19 +40,19 @@ class ValidationController extends Controller
 
             switch ($action) {
                 case 'emitir_token':
-                    $this->checkScope($request, 'Emitir Token');
+                    $this->checkScope($request, 'emitir_token');
                     return $this->emitirToken($request);
                 case 'validar_serial':
-                    $this->checkScope($request, 'Validar Serial');
+                    $this->checkScope($request, 'validar_serial');
                     return $this->validarSerial($request);
                 case 'status_licenca':
-                    $this->checkScope($request, 'Status Licença');
+                    $this->checkScope($request, 'status_licenca');
                     return $this->statusLicenca($request);
                 case 'listar_terminais':
-                    $this->checkScope($request, 'Listar Terminais');
+                    $this->checkScope($request, 'listar_terminais');
                     return $this->listarTerminais($request);
                 case 'remover_terminal':
-                    $this->checkScope($request, 'Remover Terminal');
+                    $this->checkScope($request, 'remover_terminal');
                     return $this->removerTerminal($request);
                 case 'cadastrar_empresa_usuario':
                     throw new Exception("Em implementação: cadastrar_empresa_usuario");
@@ -64,12 +64,12 @@ class ValidationController extends Controller
                     // Notícias geralmente acompanham a validação, mas se quiser restringir, usamos Validar Serial ou um novo.
                     // Por enquanto deixo liberado ou atrelado a Validar Serial? 
                     // Melhor deixar liberado para não quebrar quem só quer notícias, ou exigir 'Validar Serial'.
-                    $this->checkScope($request, 'Validar Serial');
+                    $this->checkScope($request, 'validar_serial');
                     return $this->fetchNews($request);
                 case 'verificar_atualizacao':
                     // Permite checar update sem validar serial (apenas com Software ID)
                     // Exige scope básico (Validar Serial) pois é operação de manutenção
-                    $this->checkScope($request, 'Validar Serial');
+                    $this->checkScope($request, 'validar_serial');
                     return $this->verificarAtualizacao($request);
                 default:
                     throw new Exception('Ação não reconhecida: ' . $action);
