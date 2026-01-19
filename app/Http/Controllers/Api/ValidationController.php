@@ -71,6 +71,11 @@ class ValidationController extends Controller
                     // Exige scope básico (Validar Serial) pois é operação de manutenção
                     $this->checkScope($request, 'validar_serial');
                     return $this->verificarAtualizacao($request);
+
+                case 'download_update':
+                    $this->checkScope($request, 'validar_serial');
+                    return $this->downloadUpdate($request);
+
                 default:
                     throw new Exception('Ação não reconhecida: ' . $action);
             }
@@ -80,8 +85,9 @@ class ValidationController extends Controller
                 'success' => false,
                 'error' => $e->getMessage(),
                 'mensagem' => $e->getMessage(),
+                'line' => $e->getLine(),
                 'timestamp' => now()->toDateTimeString()
-            ], 400);
+            ], $e->getCode() ?: 400);
         }
     }
 
@@ -94,12 +100,18 @@ class ValidationController extends Controller
             throw new Exception('Software ID obrigatório');
 
         $software = \App\Models\Software::find($softwareId);
-        if (!$software)
-            throw new Exception('Software não encontrado.');
+        if (!$software) {
+            return response()->json(['success' => false, 'error' => 'Software não encontrado.'], 404);
+        }
 
         // Se status do software for inativo, não permitir update
         if (strtolower($software->status ?? '') === 'inativo') {
-            throw new Exception('Software descontinuado.');
+            // Em vez de erro fatal, retornamos indisponível com mensagem
+            // throw new Exception('Software descontinuado ou inativo.');
+            return response()->json([
+                'success' => true,
+                'update' => ['disponivel' => false, 'mensagem' => 'Software descontinuado.']
+            ]);
         }
 
         $response = [
@@ -112,16 +124,90 @@ class ValidationController extends Controller
 
         $versaoServer = trim($software->versao ?? '');
 
+        // Define a URL de Download
+        // Prioriza Rota de API para garantir download sem sessão web
+        $urlDownload = $software->url_download;
+
+        // Se existe um arquivo vinculado (Repo ou Local), geramos link direto da API
+        if ($software->id_download_repo || $software->arquivo_software) {
+            $apiKey = $request->header('X-API-KEY') ?? $request->input('api_key');
+            // Nota: Passar API Key na URL é necessário pois o Atualizador (IdHTTP GET) não envia headers customizados no download.
+            $urlDownload = url('/api/v1/adassoft') . '?action=download_update&software_id=' . $softwareId . '&api_key=' . $apiKey . '&timestamp=' . time();
+        }
+
+        $response = [
+            'success' => true,
+            'update' => [
+                'disponivel' => false,
+                'versao_atual' => $versaoServer,
+                'url_download' => $urlDownload,
+                'mensagem' => 'Nova versão disponível: ' . $versaoServer
+            ]
+        ];
+
         if ($versaoCliente && !empty($versaoServer) && version_compare(trim($versaoCliente), $versaoServer, '<')) {
-            $response['update'] = [
-                'disponivel' => true,
-                'nova_versao' => $versaoServer,
-                'mensagem' => "Nova versão {$versaoServer} disponível.",
-                'url_download' => $software->url_download ?? ''
-            ];
+            $response['update']['disponivel'] = true;
         }
 
         return response()->json($response);
+    }
+
+
+    private function downloadUpdate(Request $request)
+    {
+        $softwareId = (int) $request->input('software_id');
+        $software = \App\Models\Software::find($softwareId);
+
+        if (!$software)
+            abort(404, 'Software not found');
+
+        $path = '';
+        $filename = 'update.zip';
+
+        // 1. Tenta pegar do Repositório de Downloads (Prioridade)
+        if ($software->id_download_repo) {
+            $dl = \App\Models\Download::find($software->id_download_repo);
+            if ($dl) {
+                $path = $dl->arquivo_path;
+                $filename = $dl->slug . '.zip';
+            }
+        }
+
+        // 2. Fallback para arquivo direto no software
+        if (empty($path)) {
+            $path = $software->arquivo_software;
+        }
+
+        if (empty($path)) {
+            // Se não tiver local, tenta redirecionar para URL externa se houver
+            if ($software->url_download && filter_var($software->url_download, FILTER_VALIDATE_URL)) {
+                return redirect()->away($software->url_download);
+            }
+            abort(404, 'Nenhum arquivo de atualização vinculado.');
+        }
+
+        // Resolver Path Físico
+        $fullPath = '';
+        $candidates = [
+            storage_path('app/products/' . $path),
+            storage_path('app/public/' . $path),
+            storage_path('app/' . $path),
+            public_path($path)
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (file_exists($candidate) && is_file($candidate)) {
+                $fullPath = $candidate;
+                break;
+            }
+        }
+
+        if (!$fullPath) {
+            \Illuminate\Support\Facades\Log::error("API Download Update Falhou: Arquivo físico não encontrado. Path DB: {$path}");
+            abort(404, 'Arquivo físico não encontrado no servidor.');
+        }
+
+        return response()->download($fullPath, $filename);
     }
 
     private function checkScope(Request $request, string $scope)
