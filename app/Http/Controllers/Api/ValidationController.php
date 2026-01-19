@@ -132,7 +132,9 @@ class ValidationController extends Controller
         if ($software->id_download_repo || $software->arquivo_software) {
             $apiKey = $request->header('X-API-KEY') ?? $request->input('api_key');
             // Nota: Passar API Key na URL é necessário pois o Atualizador (IdHTTP GET) não envia headers customizados no download.
-            $urlDownload = url('/api/v1/adassoft') . '?action=download_update&software_id=' . $softwareId . '&api_key=' . $apiKey . '&timestamp=' . time();
+            // Usar ISO8601 compatível com Middleware VerifyShieldApiKey
+            $ts = urlencode(now()->toIso8601String());
+            $urlDownload = url('/api/v1/adassoft') . '?action=download_update&software_id=' . $softwareId . '&api_key=' . $apiKey . '&timestamp=' . $ts;
         }
 
         $response = [
