@@ -187,16 +187,8 @@ class CompanyResource extends Resource
 
                 Tables\Columns\IconColumn::make('bloqueado')
                     ->label('Bloq.')
-                    ->icon(fn(string $state): string => match ($state) {
-                        'S' => 'heroicon-o-lock-closed',
-                        'N' => 'heroicon-o-lock-open',
-                        default => 'heroicon-o-lock-open',
-                    })
-                    ->color(fn(string $state): string => match ($state) {
-                        'S' => 'danger',
-                        'N' => 'success',
-                        default => 'gray',
-                    }),
+                    ->icon(fn($state) => $state === 'S' ? 'heroicon-o-lock-closed' : 'heroicon-o-lock-open')
+                    ->color(fn($state) => $state === 'S' ? 'danger' : 'success'),
 
                 Tables\Columns\TextColumn::make('saldo')
                     ->label('Saldo')
