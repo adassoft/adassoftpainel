@@ -146,7 +146,17 @@ class CompanyResource extends Resource
                 Tables\Columns\TextColumn::make('razao')
                     ->label('Empresa')
                     ->description(fn(Company $record) => $record->cnpj)
-                    ->searchable(['razao', 'cnpj', 'usuarios.email', 'usuarios.login', 'usuarios.nome'])
+                    ->searchable(query: function ($query, string $search) {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('razao', 'like', "%{$search}%")
+                                ->orWhere('cnpj', 'like', "%{$search}%")
+                                ->orWhereHas('usuarios', function ($qUsers) use ($search) {
+                                    $qUsers->where('email', 'like', "%{$search}%")
+                                        ->orWhere('login', 'like', "%{$search}%")
+                                        ->orWhere('nome', 'like', "%{$search}%");
+                                });
+                        });
+                    })
                     ->sortable()
                     ->weight(\Filament\Support\Enums\FontWeight::Bold),
 
