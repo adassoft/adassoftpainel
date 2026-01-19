@@ -68,6 +68,11 @@ class Company extends Model
         return $this->hasMany(User::class, 'cnpj', 'cnpj');
     }
 
+    public function usuarios()
+    {
+        return $this->hasMany(User::class, 'empresa_id', 'codigo');
+    }
+
     public function revenda()
     {
         return $this->belongsTo(Company::class, 'revenda_id', 'codigo');

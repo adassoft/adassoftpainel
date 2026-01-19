@@ -91,7 +91,7 @@ class CompanyResource extends Resource
                 Forms\Components\Group::make()
                     ->columnSpan(1)
                     ->schema([
-                        Forms\Components\Section::make('Licenciamento e Status')
+                        Forms\Components\Section::make('Acesso ao Painel')
                             ->icon('heroicon-o-key')
                             ->schema([
                                 Forms\Components\TextInput::make('status')
@@ -100,7 +100,7 @@ class CompanyResource extends Resource
                                     ->maxLength(20)
                                     ->default('Ativo')
                                     ->disabled(fn($record) => $record?->revenda_padrao)
-                                    ->dehydrated(), // Garante que envia o valor mesmo disabled
+                                    ->dehydrated(),
 
                                 Forms\Components\Select::make('bloqueado')
                                     ->label('Bloqueio')
@@ -108,17 +108,6 @@ class CompanyResource extends Resource
                                     ->default('N')
                                     ->disabled(fn($record) => $record?->revenda_padrao)
                                     ->dehydrated(),
-
-                                Forms\Components\DatePicker::make('validade_licenca')
-                                    ->label('Validade Licença'),
-
-                                Forms\Components\TextInput::make('nterminais')
-                                    ->label('Nº Terminais')
-                                    ->numeric(),
-
-                                Forms\Components\DateTimePicker::make('data_ultima_ativacao')
-                                    ->label('Última Ativação')
-                                    ->disabled(),
                             ]),
 
                         Forms\Components\Section::make('Financeiro')
@@ -149,7 +138,7 @@ class CompanyResource extends Resource
                 Tables\Columns\TextColumn::make('razao')
                     ->label('Empresa')
                     ->description(fn(Company $record) => $record->cnpj)
-                    ->searchable(['razao', 'cnpj'])
+                    ->searchable(['razao', 'cnpj', 'usuarios.email', 'usuarios.login', 'usuarios.nome'])
                     ->sortable()
                     ->weight(\Filament\Support\Enums\FontWeight::Bold),
 
@@ -166,12 +155,7 @@ class CompanyResource extends Resource
                     ->icon('heroicon-m-phone')
                     ->copyable(),
 
-                Tables\Columns\TextColumn::make('validade_licenca')
-                    ->label('Validade')
-                    ->date('d/m/Y')
-                    ->sortable()
-                    ->color(fn($state) => $state < now() ? 'danger' : 'success')
-                    ->tooltip(fn($state) => $state < now() ? 'Licença Vencida' : 'Licença Ativa'),
+                // Removido Validade Licença da Tabela pois é legado
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
@@ -185,12 +169,16 @@ class CompanyResource extends Resource
 
                 Tables\Columns\IconColumn::make('bloqueado')
                     ->label('Bloq.')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-lock-closed')
-                    ->falseIcon('heroicon-o-lock-open')
-                    ->trueColor('danger')
-                    ->falseColor('success')
-                    ->toggleable(),
+                    ->icon(fn(string $state): string => match ($state) {
+                        'S' => 'heroicon-o-lock-closed',
+                        'N' => 'heroicon-o-lock-open',
+                        default => 'heroicon-o-lock-open',
+                    })
+                    ->color(fn(string $state): string => match ($state) {
+                        'S' => 'danger',
+                        'N' => 'success',
+                        default => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('saldo')
                     ->label('Saldo')

@@ -739,34 +739,43 @@ class ValidationController extends Controller
         // Recupera o Usuário e tenta extrair contexto da Licença do Token
         $user = $request->user();
         $cnpjRevenda = null;
+        $licencaAlvo = null;
 
-        // Tenta obter dados da Licença através do Token bearer, se disponível
+        // --- 1. Identificação da Licença (Prioridade) ---
+
+        // A) Via Token
         $token = $request->bearerToken() ?? $request->input('token');
         if ($token) {
             try {
-                // Decodifica o token para pegar o payload (assumindo que o método getPayloadFromToken existe e é acessível)
-                // Se for protected, usamos reflection ou duplicamos a lógica simples de decode se for JWT padrão
-                // Mas como estamos no Controller, podemos usar $this->getPayloadFromToken se for private/protected (php permite call interna)
+                // Tenta decodificar token mesmo se for protected (assumindo acesso local)
                 $payload = $this->getPayloadFromToken($token);
 
                 if (!empty($payload['licenca_id'])) {
-                    $licenca = \App\Models\License::find($payload['licenca_id']);
-                    if ($licenca && !empty($licenca->cnpj_revenda)) {
-                        $cnpjRevenda = preg_replace('/\D/', '', $licenca->cnpj_revenda);
-                    }
+                    $licencaAlvo = \App\Models\License::find($payload['licenca_id']);
                 } elseif (!empty($payload['serial'])) {
-                    $licenca = \App\Models\License::where('serial_atual', $payload['serial'])->first();
-                    if ($licenca && !empty($licenca->cnpj_revenda)) {
-                        $cnpjRevenda = preg_replace('/\D/', '', $licenca->cnpj_revenda);
-                    }
+                    $licencaAlvo = \App\Models\License::where('serial_atual', $payload['serial'])->first();
                 }
             } catch (\Exception $e) {
-                // Token inválido ou erro de parse, ignora e segue lógica padrão
+                // Token inválido, segue para próxima tentativa
             }
         }
 
-        // Fallback: Se não achou pela Licença, tenta pelo Representante da Empresa do Usuário
-        if (!$cnpjRevenda && $user) {
+        // B) Via Serial Direto (Request param)
+        if (!$licencaAlvo) {
+            $serial = $request->input('serial');
+            if (!empty($serial)) {
+                $licencaAlvo = \App\Models\License::where('serial_atual', $serial)->first();
+            }
+        }
+
+        // --- 2. Extração da Revenda da Licença ---
+        if ($licencaAlvo && !empty($licencaAlvo->cnpj_revenda)) {
+            $cnpjRevenda = preg_replace('/\D/', '', $licencaAlvo->cnpj_revenda);
+        }
+
+        // --- 3. Fallbacks de Contexto de Usuário (Sem Licença) ---
+        // Se não achou licença (ex: compra nova), tenta pelo cadastro do usuário logado
+        if (empty($cnpjRevenda) && $user) {
             // NEW: Tenta usar a relação direta por ID (Mais seguro e rápido)
             if ($user->empresa && $user->empresa->revenda) {
                 $cnpjRevenda = preg_replace('/\D/', '', $user->empresa->revenda->cnpj);
@@ -787,17 +796,40 @@ class ValidationController extends Controller
             }
         }
 
+        // --- 4. Fallback Final (Revenda Padrão) ---
+        if (empty($cnpjRevenda)) {
+            // PRIMEIRO: Busca Empresa marcada como Revenda Padrão no sistema
+            $masterCompany = \App\Models\Company::where('revenda_padrao', true)->first();
+
+            if ($masterCompany && !empty($masterCompany->cnpj)) {
+                $cnpjRevenda = preg_replace('/\D/', '', $masterCompany->cnpj);
+            }
+            // SEGUNDO: Legado - Busca Admin Principal se não houver empresa padrão definida
+            else {
+                $masterUser = \App\Models\User::where('acesso', 1)->orderBy('id')->first();
+                if ($masterUser && !empty($masterUser->cnpj)) {
+                    $cnpjRevenda = preg_replace('/\D/', '', $masterUser->cnpj);
+                }
+            }
+        }
+
         $planos = $query->orderBy('valor')->get()->map(function ($p) use ($cnpjRevenda) {
             $valorFinal = $p->valor;
 
-            // Se identificamos uma revenda, busca preço diferenciado
+            // Se identificamos uma revenda, aplicamos as regras dela
             if ($cnpjRevenda) {
                 $planoRevenda = \App\Models\PlanoRevenda::where('cnpj_revenda', $cnpjRevenda)
                     ->where('plano_id', $p->id)
                     ->first();
 
+                // REGRA CRÍTICA: Só mostra planos que a revenda explicitamente ATIVOU.
+                // Se não houver registro na tabela planos_revenda ou estiver com ativo=0, escondemos o plano.
+                if (!$planoRevenda || !$planoRevenda->ativo) {
+                    return null;
+                }
+
                 // Prioriza valor de venda da revenda se existir
-                if ($planoRevenda && isset($planoRevenda->valor_venda)) {
+                if (isset($planoRevenda->valor_venda)) {
                     $valorFinal = $planoRevenda->valor_venda;
                 }
             }
@@ -809,7 +841,7 @@ class ValidationController extends Controller
                 'recorrencia' => $p->recorrencia,
                 'status' => $p->status
             ];
-        });
+        })->filter()->values(); // Remove itens nulos (desativados) e reindexa o array JSON
 
         return response()->json(['planos' => $planos]);
     }
