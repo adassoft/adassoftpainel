@@ -26,7 +26,8 @@ class ValidationController extends Controller
         $method = $request->method();
 
         try {
-            if ($method === 'GET') {
+            // Se for GET e não for download, retorna status da API
+            if ($method === 'GET' && $action !== 'download_update') {
                 return response()->json([
                     'status' => 'online',
                     'version' => '2.0.0 (Laravel)',
@@ -34,7 +35,7 @@ class ValidationController extends Controller
                 ]);
             }
 
-            if ($method !== 'POST') {
+            if ($method !== 'POST' && $action !== 'download_update') {
                 throw new Exception('Método não suportado: ' . $method);
             }
 
