@@ -148,17 +148,33 @@ class LicenseResource extends Resource
                 Tables\Filters\SelectFilter::make('software_id')
                     ->label('Software')
                     ->relationship('software', 'nome_software'),
+
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'ativo' => 'Ativo',
                         'suspenso' => 'Suspenso',
                         'expirado' => 'Expirado',
                     ]),
+
+                Tables\Filters\Filter::make('expirando_7_dias')
+                    ->label('Expirando (7 dias)')
+                    ->query(
+                        fn(Builder $query) => $query
+                            ->where('status', 'ativo')
+                            ->where('data_expiracao', '>=', now()->startOfDay())
+                            ->where('data_expiracao', '<=', now()->addDays(7)->endOfDay())
+                    ),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make()
                         ->slideOver(),
+
+                    Tables\Actions\Action::make('whatsapp_alert')
+                        ->label('WhatsApp')
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                        ->color('success')
+                        ->url(fn(License $record) => "https://wa.me/55" . preg_replace('/\D/', '', $record->company->fone ?? '') . "?text=" . urlencode("Olá {$record->company->razao}, sua licença do sistema {$record->software->nome_software} vence dia " . ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '') . ". Regularize para evitar bloqueio."), true),
 
                     Tables\Actions\Action::make('suspend')
                         ->label('Suspender')

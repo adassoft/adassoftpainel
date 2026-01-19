@@ -24,7 +24,8 @@ class LicenseOverview extends BaseWidget
                 ->count())
                 ->description('Atenção necessária')
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
-                ->color('warning'),
+                ->color('warning')
+                ->url(\App\Filament\Resources\LicenseResource::getUrl('index', ['tableFilters[expirando_7_dias][isActive]' => 1])),
 
             Stat::make('Licenças Expiradas', \App\Models\License::where('data_expiracao', '<', now())->count())
                 ->description('Total expirado')
