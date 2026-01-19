@@ -171,17 +171,23 @@ class ValidationController extends Controller
         if ($software->id_download_repo) {
             $dl = \App\Models\Download::find($software->id_download_repo);
             if ($dl) {
+                \Illuminate\Support\Facades\Log::info("API Download: Software {$softwareId} linked to Repo {$dl->id} '{$dl->titulo}'");
+
                 // Prioridade: Pega a última versão lançada (Update mais recente)
                 $lastVersion = $dl->versions()->orderBy('data_lancamento', 'desc')->first();
+
+                \Illuminate\Support\Facades\Log::info("API Versions: Found " . $dl->versions()->count() . ". LastID: " . ($lastVersion->id ?? 'NULL'));
 
                 if ($lastVersion && !empty($lastVersion->arquivo_path)) {
                     $path = $lastVersion->arquivo_path;
                     // Gera nome amigável com a versão
                     $filename = $dl->slug . '-' . $lastVersion->versao . '.zip';
+                    \Illuminate\Support\Facades\Log::info("API Download: Selected VERSION {$path}");
                 } else {
                     // Fallback: Arquivo principal do Repositório
                     $path = $dl->arquivo_path;
                     $filename = $dl->slug . '.zip';
+                    \Illuminate\Support\Facades\Log::info("API Download: Selected MAIN (Fallback) {$path}");
                 }
             }
         }
