@@ -40,24 +40,37 @@ class ValidationController extends Controller
 
             switch ($action) {
                 case 'emitir_token':
+                    $this->checkScope($request, 'Emitir Token');
                     return $this->emitirToken($request);
                 case 'validar_serial':
+                    $this->checkScope($request, 'Validar Serial');
                     return $this->validarSerial($request);
                 case 'status_licenca':
+                    $this->checkScope($request, 'Status Licença');
                     return $this->statusLicenca($request);
                 case 'listar_terminais':
+                    $this->checkScope($request, 'Listar Terminais');
                     return $this->listarTerminais($request);
                 case 'remover_terminal':
+                    $this->checkScope($request, 'Remover Terminal');
                     return $this->removerTerminal($request);
                 case 'cadastrar_empresa_usuario':
-                    // Não prioritário, manter exception ou implementar depois
                     throw new Exception("Em implementação: cadastrar_empresa_usuario");
                 case 'solicitar_recuperacao_senha':
                     throw new Exception("Em implementação: solicitar_recuperacao_senha");
                 case 'validar_codigo_recuperacao':
                     throw new Exception("Em implementação: validar_codigo_recuperacao");
-                case 'buscar_noticias': // <--- Nova Action Integrada
+                case 'buscar_noticias':
+                    // Notícias geralmente acompanham a validação, mas se quiser restringir, usamos Validar Serial ou um novo.
+                    // Por enquanto deixo liberado ou atrelado a Validar Serial? 
+                    // Melhor deixar liberado para não quebrar quem só quer notícias, ou exigir 'Validar Serial'.
+                    $this->checkScope($request, 'Validar Serial');
                     return $this->fetchNews($request);
+                case 'verificar_atualizacao':
+                    // Permite checar update sem validar serial (apenas com Software ID)
+                    // Exige scope básico (Validar Serial) pois é operação de manutenção
+                    $this->checkScope($request, 'Validar Serial');
+                    return $this->verificarAtualizacao($request);
                 default:
                     throw new Exception('Ação não reconhecida: ' . $action);
             }
@@ -69,6 +82,56 @@ class ValidationController extends Controller
                 'mensagem' => $e->getMessage(),
                 'timestamp' => now()->toDateTimeString()
             ], 400);
+        }
+    }
+
+    private function verificarAtualizacao(Request $request)
+    {
+        $softwareId = (int) $request->input('software_id');
+        $versaoCliente = $request->input('versao_software');
+
+        if (!$softwareId)
+            throw new Exception('Software ID obrigatório');
+
+        $software = \App\Models\Software::find($softwareId);
+        if (!$software)
+            throw new Exception('Software não encontrado.');
+
+        // Se status do software for inativo, não permitir update
+        if (strtolower($software->status ?? '') === 'inativo') {
+            throw new Exception('Software descontinuado.');
+        }
+
+        $response = [
+            'success' => true,
+            'update' => [
+                'disponivel' => false,
+                'versao_atual' => $software->versao
+            ]
+        ];
+
+        $versaoServer = trim($software->versao ?? '');
+
+        if ($versaoCliente && !empty($versaoServer) && version_compare(trim($versaoCliente), $versaoServer, '<')) {
+            $response['update'] = [
+                'disponivel' => true,
+                'nova_versao' => $versaoServer,
+                'mensagem' => "Nova versão {$versaoServer} disponível.",
+                'url_download' => $software->url_download ?? ''
+            ];
+        }
+
+        return response()->json($response);
+    }
+
+    private function checkScope(Request $request, string $scope)
+    {
+        $allowedScopes = $request->input('_api_key_scopes');
+
+        if (is_array($allowedScopes)) {
+            if (!in_array($scope, $allowedScopes)) {
+                throw new Exception("Acesso Negado: Sua chave de API não tem permissão para '$scope'.", 403);
+            }
         }
     }
 
@@ -515,18 +578,10 @@ class ValidationController extends Controller
 
 
             $newsResults = $query->latest()->limit(5)->get()->map(function ($n) {
-                // Limpeza de HTML para clients legados (Delphi VCL)
-                $msg = $n->conteudo ?? '';
-                // Converte quebras de linha HTML para texto
-                $msg = str_ireplace(['<br>', '<br/>', '<br />'], "\n", $msg);
-                $msg = str_ireplace(['</p>', '</div>'], "\n\n", $msg);
-                $msg = strip_tags($msg);
-                $msg = trim(html_entity_decode($msg));
-
                 return [
                     'id' => $n->id, // Inteiro
                     'titulo' => $n->titulo ?? 'Sem título',
-                    'mensagem' => $msg, // Texto limpo
+                    'mensagem' => $n->conteudo ?? '', // Manda HTML bruto
                     'link' => $n->link_acao ?? '', // Garante string vazia se null
                     'prioridade' => $n->prioridade ?? 'normal',
                     'data' => $n->created_at->toIso8601String()

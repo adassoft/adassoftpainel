@@ -101,14 +101,15 @@ class ManageApiKeys extends Page implements HasForms, HasTable
 
                 CheckboxList::make('scopes')
                     ->label('Escopos Permitidos')
+                    ->helperText('O Atualizador requer a permissão "Validar Serial". O Login requer "Emitir Token".')
                     ->options([
-                        'emitir_token' => 'Emitir Token',
-                        'validar_serial' => 'Validar Serial',
-                        'status_licenca' => 'Status Licença',
+                        'emitir_token' => 'Emitir Token (Login de Usuários)',
+                        'validar_serial' => 'Validar Serial / Buscar Atualizações',
+                        'status_licenca' => 'Status Licença (Consultas)',
                         'listar_terminais' => 'Listar Terminais',
                         'remover_terminal' => 'Remover Terminal',
-                        'offline_activation' => 'Ativação Offline', // Para tokens que o Delphi valida
-                        'online_activation' => 'Ativação Online',   // Para tokens de sessão do Servidor
+                        'offline_activation' => 'Ativação Offline',
+                        'online_activation' => 'Ativação Online',
                     ])
                     ->columns(2)
                     ->default(array_keys([
