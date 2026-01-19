@@ -171,8 +171,18 @@ class ValidationController extends Controller
         if ($software->id_download_repo) {
             $dl = \App\Models\Download::find($software->id_download_repo);
             if ($dl) {
-                $path = $dl->arquivo_path;
-                $filename = $dl->slug . '.zip';
+                // Prioridade: Pega a última versão lançada (Update mais recente)
+                $lastVersion = $dl->versions()->orderBy('data_lancamento', 'desc')->first();
+
+                if ($lastVersion && !empty($lastVersion->arquivo_path)) {
+                    $path = $lastVersion->arquivo_path;
+                    // Gera nome amigável com a versão
+                    $filename = $dl->slug . '-' . $lastVersion->versao . '.zip';
+                } else {
+                    // Fallback: Arquivo principal do Repositório
+                    $path = $dl->arquivo_path;
+                    $filename = $dl->slug . '.zip';
+                }
             }
         }
 
