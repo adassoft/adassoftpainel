@@ -90,10 +90,11 @@ class GenerateGoogleFeed extends Command
             $content .= '</channel>' . PHP_EOL;
             $content .= '</rss>';
 
-            File::put(public_path('google_products.xml'), $content);
+            // Salva como .txt para evitar bloqueios de firewall em arquivos .xml
+            File::put(public_path('google_products.txt'), $content);
 
-            $this->info('Arquivo gerado com sucesso em: ' . public_path('google_products.xml'));
-            $this->info('URL Pública: ' . $baseUrl . '/google_products.xml');
+            $this->info('Arquivo gerado com sucesso em: ' . public_path('google_products.txt'));
+            $this->info('URL Pública: ' . $baseUrl . '/google_products.txt');
 
         } catch (\Exception $e) {
             $this->error('Erro ao gerar feed: ' . $e->getMessage());
