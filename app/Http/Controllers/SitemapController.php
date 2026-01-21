@@ -18,7 +18,8 @@ class SitemapController extends Controller
         // Static Pages
         $this->addUrl($content, route('home'), now());
         $this->addUrl($content, route('downloads'), now());
-        // $this->addUrl($content, route('kb.index'), now()); // Helps indexing, usually handled by category links
+        $this->addUrl($content, route('reseller.lp'), now()); // Seja Parceiro LP
+        $this->addUrl($content, route('developer.lp'), now()); // Desenvolvedores LP
 
         // Softwares (Products)
         $softwares = Software::where('status', true)->get();
