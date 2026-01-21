@@ -139,12 +139,15 @@ class Software extends Model
         // Add Offers (Plans)
         if ($this->plans->count() > 0) {
             foreach ($this->plans as $plan) {
-                $preco = $plan->preco_venda;
+                // Tenta pegar o preço de venda se carregado, senão usa valor base
+                $preco = $plan->valor_venda ?? $plan->valor;
+
                 $schema['offers'][] = [
                     '@type' => 'Offer',
                     'name' => ($plan->nome ?? 'Plano') . ' (' . ($plan->recorrencia ?? 1) . ' Meses)',
                     'price' => number_format($preco, 2, '.', ''),
                     'priceCurrency' => 'BRL',
+                    'priceValidUntil' => now()->addYear()->format('Y-12-31'),
                     'availability' => 'https://schema.org/InStock',
                     'url' => $url . '#planos'
                 ];
