@@ -88,7 +88,7 @@ class GenerateGoogleFeed extends Command
             File::put(public_path('google_products.xml'), $content);
 
             $this->info('Arquivo gerado com sucesso em: ' . public_path('google_products.xml'));
-            $this->info('URL Pública: ' . url('google_products.xml'));
+            $this->info('URL Pública: ' . $baseUrl . '/google_products.xml');
 
         } catch (\Exception $e) {
             $this->error('Erro ao gerar feed: ' . $e->getMessage());
