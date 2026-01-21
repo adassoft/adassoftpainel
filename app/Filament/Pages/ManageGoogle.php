@@ -74,6 +74,18 @@ class ManageGoogle extends Page implements HasForms
                                 3. Clique no seu site e copie o "<b>ID DA MÉTRICA</b>" (Começa com G-).
                             ')),
 
+                        TextInput::make('ga_api_secret')
+                            ->label('API Secret do Protocolo de Medição (GA4)')
+                            ->placeholder('Copie do Admin do GA4')
+                            ->password() // Ocultar por segurança visual
+                            ->revealable()
+                            ->helperText(new \Illuminate\Support\HtmlString('
+                                <strong>Para rastrear vendas via Backend (Renovações):</strong><br>
+                                1. No GA4, vá em <b>Admin</b> > <b>Fluxos de dados</b> > Selecione o fluxo.<br>
+                                2. Clique em <b>Protocolo de medição e secrets da API</b>.<br>
+                                3. Clique em <b>Criar</b> e copie o valor da "Chave secreta".
+                            ')),
+
                         TextInput::make('google_site_verification')
                             ->label('Código de Verificação do Search Console')
                             ->placeholder('Ex: U2983... (Apenas o código)')

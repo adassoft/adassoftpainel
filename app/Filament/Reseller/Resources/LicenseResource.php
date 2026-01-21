@@ -256,9 +256,27 @@ class LicenseResource extends Resource
                                 'licenca_id' => $record->id,
                                 'payment_method' => 'SALDO',
                                 'asaas_payment_id' => 'SALDO-' . time(), // Identificador interno para compatibilidade
-                                // 'condicao' => 'A VISTA', // Removido
                                 // 'forma_pagamento' => 'SALDO REVENDA' // Removido
                             ]);
+
+                            // Enviar Evento de Conversão para GA4 (Measurement Protocol)
+                            try {
+                                \App\Services\GoogleAnalyticsService::sendPurchaseEvent([
+                                    'transaction_id' => "RENOV-{$record->id}-" . time(),
+                                    'value' => $valor,
+                                    'user_id' => $user->id,
+                                    'items' => [
+                                        [
+                                            'item_id' => (string) $plano->id,
+                                            'item_name' => "Renovação {$record->software->nome_software} ({$plano->nome_plano})",
+                                            'price' => (float) $valor,
+                                            'quantity' => 1
+                                        ]
+                                    ]
+                                ]);
+                            } catch (\Exception $e) {
+                                // Silently fail details log
+                            }
 
                             $validadeAtual = \Carbon\Carbon::parse($record->data_expiracao);
                             $novaValidade = $validadeAtual->isFuture() ? $validadeAtual : now();
