@@ -255,8 +255,9 @@ class LicenseResource extends Resource
                                 'recorrencia' => 'RENOVACAO',
                                 'licenca_id' => $record->id,
                                 'payment_method' => 'SALDO',
-                                'condicao' => 'A VISTA',
-                                'forma_pagamento' => 'SALDO REVENDA'
+                                'asaas_payment_id' => 'SALDO-' . time(), // Identificador interno para compatibilidade
+                                // 'condicao' => 'A VISTA', // Removido
+                                // 'forma_pagamento' => 'SALDO REVENDA' // Removido
                             ]);
 
                             $validadeAtual = \Carbon\Carbon::parse($record->data_expiracao);
