@@ -46,8 +46,13 @@ class GenerateGoogleFeed extends Command
                 $priceFormatted = number_format($price, 2, '.', '') . ' BRL';
 
                 // Gera o link e substitui o domínio base pelo correto
-                $link = route('product.show', $soft->id);
-                $link = str_replace(url('/'), $baseUrl, $link);
+                // OBS: O usuário pediu explicitamente URL com SLUG (/produto/nome-do-software)
+                if ($soft->slug) {
+                    $link = $baseUrl . '/produto/' . $soft->slug;
+                } else {
+                    $link = route('product.show', $soft->id);
+                    $link = str_replace(url('/'), $baseUrl, $link);
+                }
 
                 $imageLink = $soft->imagem_destaque ?: $soft->imagem;
                 if ($imageLink) {
