@@ -79,10 +79,10 @@ class ManageGoogle extends Page implements HasForms
                             ->placeholder('Ex: U2983... (Apenas o código)')
                             ->helperText(new \Illuminate\Support\HtmlString('
                                 <strong>Onde encontrar:</strong><br>
-                                1. Acesse o <a href="https://search.google.com/search-console/settings/ownership" target="_blank" class="text-primary-600 underline">Google Search Console</a>.<br>
-                                2. Vá em <b>Verificação de propriedade</b> > <b>Tag HTML</b>.<br>
-                                3. Copie APENAS o código que está dentro de <code>content="..."</code>.<br>
-                                <i>Não cole a tag &lt;meta&gt; inteira, apenas o código alfanumérico.</i>
+                                1. Acesse o <a href="https://search.google.com/search-console" target="_blank" class="text-primary-600 underline">Google Search Console</a>.<br>
+                                2. Selecione sua propriedade e vá em <b>Configurações</b> (Menu lateral).<br>
+                                3. Clique em <b>Verificação de propriedade</b> > <b>Tag HTML</b>.<br>
+                                4. Copie APENAS o código dentro de <code>content="..."</code>.
                             ')),
                     ]),
 
