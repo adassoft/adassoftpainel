@@ -60,6 +60,21 @@ class ManageGoogle extends Page implements HasForms
                             ->label('Client Secret (Chave Secreta):'),
                     ]),
 
+                Section::make('Monitoramento e SEO (Google Search Console & Analytics)')
+                    ->icon('heroicon-o-chart-bar')
+                    ->extraAttributes(['class' => 'google-section-seo'])
+                    ->schema([
+                        TextInput::make('ga_measurement_id')
+                            ->label('Google Analytics 4 (ID de Medição)')
+                            ->placeholder('Ex: G-XXXXXXXXXX')
+                            ->helperText('O script será injetado automaticamente em todas as páginas públicas.'),
+
+                        TextInput::make('google_site_verification')
+                            ->label('Tag de Verificação do Site')
+                            ->placeholder('Ex: google-site-verification-code...')
+                            ->helperText('Código da meta tag para verificar a propriedade no Search Console.'),
+                    ]),
+
                 Section::make('Inteligência Artificial (Gemini API)')
                     ->icon('heroicon-o-cpu-chip')
                     ->extraAttributes(['class' => 'google-section-ai'])

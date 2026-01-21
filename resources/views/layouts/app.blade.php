@@ -56,8 +56,28 @@
 
     @if(!empty($seo->json_ld))
         <script type="application/ld+json">
-                            {!! json_encode($seo->json_ld) !!}
-                        </script>
+                                {!! json_encode($seo->json_ld) !!}
+                            </script>
+    @endif
+
+    @php
+        $gConfig = \App\Models\Configuration::where('chave', 'google_config')->first();
+        $gData = $gConfig ? json_decode($gConfig->valor, true) : [];
+    @endphp
+
+    @if(!empty($gData['google_site_verification']))
+        <meta name="google-site-verification" content="{{ $gData['google_site_verification'] }}">
+    @endif
+
+    @if(!empty($gData['ga_measurement_id']))
+        <!-- Google Analytics 4 (Global) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gData['ga_measurement_id'] }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', '{{ $gData['ga_measurement_id'] }}');
+        </script>
     @endif
 
     <!-- Favicon -->
