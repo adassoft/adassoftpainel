@@ -149,7 +149,26 @@ class Software extends Model
                     'priceCurrency' => 'BRL',
                     'priceValidUntil' => now()->addYear()->format('Y-12-31'),
                     'availability' => 'https://schema.org/InStock',
-                    'url' => $url . '#planos'
+                    'url' => $url . '#planos',
+                    'shippingDetails' => [
+                        '@type' => 'OfferShippingDetails',
+                        'shippingRate' => [
+                            '@type' => 'MonetaryAmount',
+                            'value' => 0,
+                            'currency' => 'BRL'
+                        ],
+                        'shippingDestination' => [
+                            '@type' => 'DefinedRegion',
+                            'addressCountry' => 'BR'
+                        ]
+                    ],
+                    'hasMerchantReturnPolicy' => [
+                        '@type' => 'MerchantReturnPolicy',
+                        'applicableCountry' => 'BR',
+                        'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                        'merchantReturnDays' => 7,
+                        'returnMethod' => 'https://schema.org/ReturnAtKiosk' // Representa contato online/suporte
+                    ]
                 ];
             }
         }
