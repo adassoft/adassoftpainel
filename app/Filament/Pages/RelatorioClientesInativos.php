@@ -61,6 +61,13 @@ class RelatorioClientesInativos extends Page implements HasTable
                     ->listWithLineBreaks()
                     ->limitList(3)
                     ->searchable(),
+                Tables\Columns\TextColumn::make('primeira_ativacao')
+                    ->label('Início (1ª Licença)')
+                    ->state(fn(Company $record) => $record->licenses()->min('data_criacao'))
+                    ->date('d/m/Y')
+                    ->sortable(query: function (Builder $query, string $direction) {
+                        return $query->orderByRaw("(SELECT MIN(data_criacao) FROM licencas_ativas WHERE licencas_ativas.empresa_codigo = empresa.codigo) $direction");
+                    }),
                 Tables\Columns\TextColumn::make('ultima_validade')
                     ->label('Última Expiração')
                     ->state(fn(Company $record) => $record->licenses()->max('data_expiracao'))
