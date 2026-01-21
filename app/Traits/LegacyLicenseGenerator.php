@@ -449,8 +449,38 @@ trait LegacyLicenseGenerator
             throw new Exception("Empresa cliente não encontrada. Verifique se o pedido tem vínculo com Usuário/Empresa ou Licença válida.");
         }
 
-        $recorrencia = $pedido->recorrencia ?? $pedido->plan?->recorrencia ?? 1;
-        $diasValidade = $recorrencia * 30;
+        $recorrenciaRaw = $pedido->recorrencia ?? $pedido->plan?->recorrencia ?? 1;
+        $meses = 1;
+
+        if (is_numeric($recorrenciaRaw) && (int) $recorrenciaRaw > 0) {
+            $meses = (int) $recorrenciaRaw;
+        } else {
+            // Tentar extrair do Plano se o pedido diz 'RENOVACAO' ou outro texto
+            $baseRecorrencia = ($recorrenciaRaw === 'RENOVACAO' && $pedido->plan)
+                ? $pedido->plan->recorrencia
+                : $recorrenciaRaw;
+
+            if (is_numeric($baseRecorrencia)) {
+                $meses = (int) $baseRecorrencia;
+            } else {
+                preg_match('/(\d+)/', (string) $baseRecorrencia, $matches);
+                if (!empty($matches[1])) {
+                    $meses = (int) $matches[1];
+                } else {
+                    $slug = \Illuminate\Support\Str::slug((string) $baseRecorrencia);
+                    if (str_contains($slug, 'anual'))
+                        $meses = 12;
+                    elseif (str_contains($slug, 'semestral'))
+                        $meses = 6;
+                    elseif (str_contains($slug, 'trimestral'))
+                        $meses = 3;
+                    else
+                        $meses = 1;
+                }
+            }
+        }
+
+        $diasValidade = $meses * 30;
 
         // Prioriza o software do PLANO, pois todo pedido tem plano. Fallback para direto se houver.
         $softwareId = $pedido->plan?->software_id ?? $pedido->software_id;

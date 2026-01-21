@@ -236,6 +236,8 @@ class LicenseResource extends Resource
                             'recorrencia' => 'RENOVACAO',
                             'licenca_id' => $record->id,
                             'payment_method' => 'SALDO', // Indica que a intenção é usar saldo (ou definir no pagamento)
+                            'asaas_payment_id' => 'RENOV-' . time(), // ID fictício para evitar erro na baixa
+                            'external_reference' => 'RENOV-' . $record->id . '-' . time(),
                         ]);
 
                         \Filament\Notifications\Notification::make()
