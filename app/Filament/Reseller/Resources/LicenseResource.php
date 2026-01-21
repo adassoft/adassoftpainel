@@ -207,8 +207,7 @@ class LicenseResource extends Resource
                         if ($planos->isEmpty()) {
                             return [
                                 Forms\Components\Placeholder::make('erro_plano')
-                                    ->content('Nenhum plano ativo encontrado para este software (ID: ' . $record->software_id . '). Contate o suporte.')
-                                    ->textHtml(),
+                                    ->content('Nenhum plano ativo encontrado para este software (ID: ' . $record->software_id . '). Contate o suporte.'),
                             ];
                         }
 
