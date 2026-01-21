@@ -234,14 +234,29 @@ class LicenseResource extends Resource
                             $saldoNovo = $saldoAnterior - $valor;
                             $empresaRevenda->forceFill(['saldo' => $saldoNovo])->save();
 
-                            \Illuminate\Support\Facades\DB::table('revenda_transacoes')->insert([
+                            \App\Models\CreditHistory::create([
+                                'empresa_cnpj' => preg_replace('/\D/', '', $empresaRevenda->cnpj),
                                 'usuario_id' => $user->id,
-                                'tipo' => 'debito',
+                                'tipo' => 'saida',
                                 'valor' => $valor,
-                                'saldo_anterior' => $saldoAnterior,
-                                'saldo_novo' => $saldoNovo,
                                 'descricao' => "Renovação Licença #{$record->id} - {$record->software->nome_software} ({$plano->nome_plano})",
-                                'data_transacao' => now(),
+                                'data_movimento' => now(),
+                            ]);
+
+                            // Gerar Pedido para contabilidade/receita
+                            \App\Models\Order::create([
+                                'user_id' => $user->id,
+                                'plano_id' => $plano->id,
+                                'cnpj_revenda' => preg_replace('/\D/', '', $empresaRevenda->cnpj),
+                                'valor' => $valor,
+                                'total' => $valor,
+                                'status' => 'paid',
+                                'paid_at' => now(),
+                                'recorrencia' => 'RENOVACAO',
+                                'licenca_id' => $record->id,
+                                'payment_method' => 'SALDO',
+                                'condicao' => 'A VISTA',
+                                'forma_pagamento' => 'SALDO REVENDA'
                             ]);
 
                             $validadeAtual = \Carbon\Carbon::parse($record->data_expiracao);
