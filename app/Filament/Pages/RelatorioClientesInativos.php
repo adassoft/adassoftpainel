@@ -76,9 +76,44 @@ class RelatorioClientesInativos extends Page implements HasTable
                         // Sort pela subquery da maior data
                         return $query->orderByRaw("(SELECT MAX(data_expiracao) FROM licencas_ativas WHERE licencas_ativas.empresa_codigo = empresa.codigo) $direction");
                     }),
+                Tables\Columns\TextColumn::make('classificacao')
+                    ->label('Perfil Histórico')
+                    ->badge()
+                    ->state(function (Company $record) {
+                        $teveRenovacaoOuLonga = $record->licenses()
+                            ->where(function ($q) {
+                                $q->whereNotNull('data_ultima_renovacao')
+                                    ->orWhereRaw('DATEDIFF(data_expiracao, data_criacao) > 45');
+                            })->exists();
+
+                        return $teveRenovacaoOuLonga ? 'Ex-Cliente' : 'Avaliação';
+                    })
+                    ->color(fn(string $state): string => match ($state) {
+                        'Ex-Cliente' => 'warning',
+                        'Avaliação' => 'gray',
+                        default => 'gray',
+                    }),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('perfil')
+                    ->label('Filtrar por Perfil')
+                    ->options([
+                        'avaliacao' => 'Apenas Testes/Avaliação',
+                        'ex_cliente' => 'Ex-Clientes (Já pagaram)',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if ($data['value'] === 'avaliacao') {
+                            $query->whereDoesntHave('licenses', function ($q) {
+                                $q->whereNotNull('data_ultima_renovacao')
+                                    ->orWhereRaw('DATEDIFF(data_expiracao, data_criacao) > 45');
+                            });
+                        } elseif ($data['value'] === 'ex_cliente') {
+                            $query->whereHas('licenses', function ($q) {
+                                $q->whereNotNull('data_ultima_renovacao')
+                                    ->orWhereRaw('DATEDIFF(data_expiracao, data_criacao) > 45');
+                            });
+                        }
+                    }),
             ])
             ->actions([
                 // Link para abrir o cadastro da empresa se necessário
