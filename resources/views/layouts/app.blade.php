@@ -56,8 +56,8 @@
 
     @if(!empty($seo->json_ld))
         <script type="application/ld+json">
-                                {!! json_encode($seo->json_ld) !!}
-                            </script>
+                                    {!! json_encode($seo->json_ld) !!}
+                                </script>
     @endif
 
     @php
@@ -374,6 +374,9 @@
                             href="{{ route('downloads') }}">Downloads</a>
                     </li>
                     <li class="nav-item mx-3">
+                        <a class="nav-link" href="https://blog.adassoft.com" target="_blank">Blog</a>
+                    </li>
+                    <li class="nav-item mx-3">
                         <a class="nav-link {{ Request::routeIs('kb.*') ? 'active-link' : '' }}"
                             href="{{ route('kb.index') }}">Ajuda</a>
                     </li>
@@ -500,6 +503,8 @@
                                 class="text-reset text-decoration-none hover-white">Início</a></li>
                         <li class="mb-2"><a href="{{ route('downloads') }}"
                                 class="text-reset text-decoration-none hover-white">Downloads</a></li>
+                        <li class="mb-2"><a href="https://blog.adassoft.com" target="_blank"
+                                class="text-reset text-decoration-none hover-white">Blog</a></li>
                         <li class="mb-2"><a href="{{ route('kb.index') }}"
                                 class="text-reset text-decoration-none hover-white">Central de Ajuda</a></li>
                         <li class="mb-2"><a href="{{ route('partners.index') }}"
