@@ -170,6 +170,30 @@ class LicenseResource extends Resource
                     ->extraAttributes(['class' => 'force-btn-height'])
                     ->tooltip('Renovar Licença')
                     ->modalHeading('Renovar Licença')
+                    ->before(function (License $record, Tables\Actions\Action $action) {
+                        $empresaCliente = $record->company;
+
+                        if (!$empresaCliente) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Erro de Vínculo')
+                                ->body("Esta licença não está vinculada a uma empresa válida.")
+                                ->danger()
+                                ->send();
+                            $action->halt();
+                        }
+
+                        $cnpjLimpo = preg_replace('/\D/', '', $empresaCliente->cnpj ?? '');
+                        if (empty($empresaCliente->razao) || empty($cnpjLimpo) || strlen($cnpjLimpo) < 11) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Cadastro do Cliente Incompleto')
+                                ->body("A empresa cliente (Cód: {$empresaCliente->codigo}) está com Razão Social ou CNPJ pendente. Atualize o cadastro do cliente antes de gerar a renovação.")
+                                ->danger()
+                                ->persistent()
+                                ->send();
+
+                            $action->halt();
+                        }
+                    })
                     ->modalDescription(fn(License $record) => "Confirma a renovação da licença do software {$record->software->nome_software}?")
                     ->form(function (License $record) {
                         $planos = \App\Models\Plano::where('software_id', $record->software_id)
