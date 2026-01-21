@@ -299,8 +299,8 @@
             background-color: var(--color-secondary) !important;
         }
     </style>
-    @if(!empty($branding['google_analytics_id']))
-        <!-- Google tag (gtag.js) -->
+    @if(empty($gData['ga_measurement_id']) && !empty($branding['google_analytics_id']))
+        <!-- Google tag (gtag.js) - Reseller/Legacy -->
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ $branding['google_analytics_id'] }}"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
