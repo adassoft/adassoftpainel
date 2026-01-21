@@ -52,12 +52,8 @@ class RelatorioClientesInativos extends Page implements HasTable
                     ->label('CNPJ')
                     ->searchable()
                     ->copyable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->label('Email Empresa')
-                    ->icon('heroicon-m-envelope')
-                    ->copyable(),
                 Tables\Columns\TextColumn::make('usuarios.email')
-                    ->label('Emails Usuários')
+                    ->label('Email(s)')
                     ->listWithLineBreaks()
                     ->limitList(3)
                     ->searchable(),
