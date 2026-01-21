@@ -251,7 +251,7 @@ class LicenseResource extends Resource
                                 'valor' => $valor,
                                 'total' => $valor,
                                 'status' => 'paid',
-                                'paid_at' => now(),
+                                // 'paid_at' => now(), // Removido pois a coluna não existe no banco
                                 'recorrencia' => 'RENOVACAO',
                                 'licenca_id' => $record->id,
                                 'payment_method' => 'SALDO',
