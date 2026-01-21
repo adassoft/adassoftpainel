@@ -203,12 +203,7 @@ class LicenseResource extends Resource
                                 ->dehydrated(false)
                                 ->default('R$ ' . number_format($planos->first()->valor, 2, ',', '.')),
 
-                            Forms\Components\Toggle::make('send_ga_event')
-                                ->label('Registrar Venda no Google Analytics?')
-                                ->default(true)
-                                ->onColor('success')
-                                ->offColor('gray')
-                                ->helperText('Desmarque se o cliente já pagou pelo Checkout Online (para não duplicar a venda no relatório).'),
+
                         ];
                     })
                     ->action(function (array $data, License $record) {
@@ -237,6 +232,16 @@ class LicenseResource extends Resource
                         }
 
                         \Illuminate\Support\Facades\DB::transaction(function () use ($empresaRevenda, $valor, $user, $record, $plano) {
+
+                            // Verificar se já existe um pedido RECENTE (24h) e PAGO para esta licença
+                            // Isso evita duplicar o evento GA4 se o cliente pagou no checkout (gerou pedido)
+                            $existingOrder = \App\Models\Order::where('licenca_id', $record->id)
+                                ->where('status', 'paid')
+                                ->where('created_at', '>=', now()->subHours(24))
+                                ->exists();
+
+                            $sendGaEvent = !$existingOrder;
+
                             $saldoAnterior = $empresaRevenda->saldo;
                             $saldoNovo = $saldoAnterior - $valor;
                             $empresaRevenda->forceFill(['saldo' => $saldoNovo])->save();
@@ -267,8 +272,7 @@ class LicenseResource extends Resource
                             ]);
 
                             // Enviar Evento de Conversão para GA4 (Measurement Protocol)
-                            // Apenas se o usuário optou por enviar (para evitar duplicidade com checkout)
-                            if (!empty($data['send_ga_event'])) {
+                            if ($sendGaEvent) {
                                 try {
                                     \App\Services\GoogleAnalyticsService::sendPurchaseEvent([
                                         'transaction_id' => "RENOV-{$record->id}-" . time(),
