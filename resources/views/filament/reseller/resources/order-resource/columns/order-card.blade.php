@@ -70,7 +70,7 @@
             <x-heroicon-m-calendar class="w-5 h-5 text-gray-400 shrink-0" />
             <div>
                 <span class="font-bold text-gray-700 dark:text-gray-200">Data:</span>
-                <span>{{ \Carbon\Carbon::parse($record->data)->format('d/m/Y') }}</span>
+                <span>{{ \Carbon\Carbon::parse($record->created_at)->format('d/m/Y H:i') }}</span>
             </div>
         </div>
 

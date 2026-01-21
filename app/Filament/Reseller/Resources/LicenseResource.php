@@ -246,7 +246,7 @@ class LicenseResource extends Resource
                             ->actions([
                                 \Filament\Notifications\Actions\Action::make('visualizar')
                                     ->label('Ir para Financeiro')
-                                    // ->url(route('filament.admin.resources.orders.index')) // Ajustar rota se souber, senão deixar sem
+                                    ->url(route('filament.reseller.resources.orders.index'))
                                     ->button(),
                             ])
                             ->send();
