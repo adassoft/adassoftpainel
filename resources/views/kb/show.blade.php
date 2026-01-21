@@ -106,6 +106,12 @@
             height: 100%;
             border: 0;
         }
+
+        /* Rich Text Styles for FAQ */
+        .kb-faq-content ul { padding-left: 20px; list-style-type: disc; margin-bottom: 1rem; }
+        .kb-faq-content ol { padding-left: 20px; list-style-type: decimal; margin-bottom: 1rem; }
+        .kb-faq-content p:last-child { margin-bottom: 0; }
+        .kb-faq-content a { color: var(--color-accent, #4e73df); text-decoration: underline; }
     </style>
 @endsection
 
@@ -252,8 +258,8 @@
 
                                                     <div id="collapse{{ $index }}" class="collapse" aria-labelledby="heading{{ $index }}" 
                                                          data-parent="#faqAccordion">
-                                                        <div class="card-body bg-light text-muted p-4">
-                                                            {!! nl2br(e($item['answer'])) !!}
+                                                        <div class="card-body bg-light text-muted p-4 kb-faq-content">
+                                                            {!! $item['answer'] !!}
                                                         </div>
                                                     </div>
                                                 </div>

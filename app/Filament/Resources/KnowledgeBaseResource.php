@@ -203,10 +203,13 @@ class KnowledgeBaseResource extends Resource
                                             ->label('Pergunta')
                                             ->required()
                                             ->columnSpanFull(),
-                                        Forms\Components\Textarea::make('answer')
+                                        Forms\Components\RichEditor::make('answer')
                                             ->label('Resposta')
                                             ->required()
-                                            ->rows(3)
+                                            ->disableToolbarButtons([
+                                                'attachFiles',
+                                                'codeBlock',
+                                            ])
                                             ->columnSpanFull(),
                                     ])
                                     ->collapsible()

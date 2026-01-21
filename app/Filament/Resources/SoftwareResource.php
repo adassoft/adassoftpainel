@@ -442,7 +442,14 @@ class SoftwareResource extends Resource
                                                     ->itemLabel(fn(array $state): ?string => $state['question'] ?? null)
                                                     ->schema([
                                                         TextInput::make('question')->required()->label('Pergunta')->columnSpanFull(),
-                                                        Textarea::make('answer')->required()->label('Resposta')->rows(2)->columnSpanFull(),
+                                                        RichEditor::make('answer')
+                                                            ->required()
+                                                            ->label('Resposta')
+                                                            ->disableToolbarButtons([
+                                                                'attachFiles',
+                                                                'codeBlock',
+                                                            ])
+                                                            ->columnSpanFull(),
                                                     ])
                                                     ->collapsible()
                                                     ->cloneable()
