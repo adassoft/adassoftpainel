@@ -406,6 +406,20 @@ class SoftwareResource extends Resource
                                                             ->label('Marca')
                                                             ->default('AdasSoft'),
 
+                                                        Forms\Components\Toggle::make('enviar_google')
+                                                            ->label('Enviar para Google Shopping')
+                                                            ->helperText('Se ativo, este produto aparecerá no feed XML.')
+                                                            ->default(false)
+                                                            ->columnSpanFull(),
+
+                                                        TextInput::make('preco_google')
+                                                            ->label('Preço Oficial (Google)')
+                                                            ->prefix('R$')
+                                                            ->numeric()
+                                                            ->placeholder('Auto (Menor preço)')
+                                                            ->helperText('Se preenchido, será usado no Google Shopping ao invés do menor preço do plano.')
+                                                            ->columnSpanFull(),
+
                                                         Forms\Components\Toggle::make('disponivel_revenda')
                                                             ->label('Disponível para Revenda')
                                                             ->helperText('Permite que revendedores comercializem este software.')

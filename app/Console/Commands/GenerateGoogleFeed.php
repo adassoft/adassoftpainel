@@ -17,7 +17,11 @@ class GenerateGoogleFeed extends Command
         $this->info('Gerando feed de produtos...');
 
         try {
-            $softwares = Software::where('status', true)->with('plans')->get();
+            // Filtra apenas ativos E marcados para Google Shopping
+            $softwares = Software::where('status', true)
+                ->where('enviar_google', true)
+                ->with('plans')
+                ->get();
 
             // Força o domínio de produção, ignorando configuração local errada
             $baseUrl = 'https://adassoft.com';
@@ -30,9 +34,15 @@ class GenerateGoogleFeed extends Command
             $content .= '<description>Softwares de Gestão e Automação</description>' . PHP_EOL;
 
             foreach ($softwares as $soft) {
-                // Pega o menor preço de plano ativo
-                $minPricePlan = $soft->plans->where('status', true)->sortBy('valor')->first();
-                $price = $minPricePlan ? $minPricePlan->valor : 0;
+                // Preço: Se tiver 'preco_google' definido, usa ele.
+                // Se não, usa o menor preço de plano ativo (regra antiga)
+                if ($soft->preco_google && $soft->preco_google > 0) {
+                    $price = $soft->preco_google;
+                } else {
+                    $minPricePlan = $soft->plans->where('status', true)->sortBy('valor')->first();
+                    $price = $minPricePlan ? $minPricePlan->valor : 0;
+                }
+
                 $priceFormatted = number_format($price, 2, '.', '') . ' BRL';
 
                 // Gera o link e substitui o domínio base pelo correto

@@ -85,6 +85,8 @@ class Software extends Model
         'api_key_gerada_em',
         'faq',
         'galeria', // Galeria de Imagens
+        'enviar_google',
+        'preco_google',
     ];
 
     protected $casts = [
@@ -93,6 +95,8 @@ class Software extends Model
         'disponivel_revenda' => 'boolean',
         'faq' => 'array',
         'galeria' => 'array',
+        'enviar_google' => 'boolean',
+        'preco_google' => 'decimal:2',
     ];
 
     public function plans()
