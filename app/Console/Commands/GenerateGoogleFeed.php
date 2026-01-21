@@ -42,8 +42,13 @@ class GenerateGoogleFeed extends Command
                 $imageLink = $soft->imagem_destaque ?: $soft->imagem;
                 if ($imageLink) {
                     if (!Str::startsWith($imageLink, 'http')) {
-                        // Se for caminho relativo, monta com base URL correta
-                        $imageLink = $baseUrl . '/' . ltrim($imageLink, '/');
+                        $cleanPath = ltrim($imageLink, '/');
+                        // Se não começar com storage/, adiciona
+                        if (!Str::startsWith($cleanPath, 'storage/')) {
+                            $cleanPath = 'storage/' . $cleanPath;
+                        }
+                        // Monta com base URL correta
+                        $imageLink = $baseUrl . '/' . $cleanPath;
                     } else {
                         // Se for absoluto mas com domínio errado, corrige
                         $imageLink = str_replace(url('/'), $baseUrl, $imageLink);
@@ -64,6 +69,26 @@ class GenerateGoogleFeed extends Command
                 $content .= '<g:link>' . $link . '</g:link>' . PHP_EOL;
                 if ($imageLink) {
                     $content .= '<g:image_link>' . $imageLink . '</g:image_link>' . PHP_EOL;
+                }
+
+                // Galeria de Imagens Adicionais
+                if ($soft->galeria && is_array($soft->galeria)) {
+                    foreach ($soft->galeria as $imgUrl) {
+                        if (!empty($imgUrl)) {
+                            $addImgLink = $imgUrl;
+                            if (!Str::startsWith($addImgLink, 'http')) {
+                                $cleanPath = ltrim($addImgLink, '/');
+                                if (!Str::startsWith($cleanPath, 'storage/')) {
+                                    $cleanPath = 'storage/' . $cleanPath;
+                                }
+                                $addImgLink = $baseUrl . '/' . $cleanPath;
+                            } else {
+                                $addImgLink = str_replace(url('/'), $baseUrl, $addImgLink);
+                            }
+
+                            $content .= '<g:additional_image_link>' . $addImgLink . '</g:additional_image_link>' . PHP_EOL;
+                        }
+                    }
                 }
                 $content .= '<g:condition>new</g:condition>' . PHP_EOL;
                 $content .= '<g:availability>in_stock</g:availability>' . PHP_EOL;

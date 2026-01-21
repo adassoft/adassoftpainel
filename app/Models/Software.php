@@ -84,6 +84,7 @@ class Software extends Model
         'api_key_hint',
         'api_key_gerada_em',
         'faq',
+        'galeria', // Galeria de Imagens
     ];
 
     protected $casts = [
@@ -91,6 +92,7 @@ class Software extends Model
         'data_cadastro' => 'datetime',
         'disponivel_revenda' => 'boolean',
         'faq' => 'array',
+        'galeria' => 'array',
     ];
 
     public function plans()

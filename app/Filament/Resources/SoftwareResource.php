@@ -292,6 +292,18 @@ class SoftwareResource extends Resource
                                                                     ]),
                                                             ]),
 
+                                                        FileUpload::make('galeria')
+                                                            ->label('Galeria de Imagens (Adicionais)')
+                                                            ->disk('public')
+                                                            ->directory('img/produtos/galeria')
+                                                            ->visibility('public')
+                                                            ->image()
+                                                            ->imageEditor()
+                                                            ->multiple()
+                                                            ->reorderable()
+                                                            ->maxFiles(5)
+                                                            ->helperText('Use JPG/PNG. Essas imagens serão enviadas ao Google Shopping.'),
+
                                                         Textarea::make('descricao')
                                                             ->label('Descrição Curta (Vitrine)')
                                                             ->rows(3)
