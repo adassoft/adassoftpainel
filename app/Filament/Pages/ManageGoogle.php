@@ -66,13 +66,24 @@ class ManageGoogle extends Page implements HasForms
                     ->schema([
                         TextInput::make('ga_measurement_id')
                             ->label('Google Analytics 4 (ID de Medição)')
-                            ->placeholder('Ex: G-XXXXXXXXXX')
-                            ->helperText('O script será injetado automaticamente em todas as páginas públicas.'),
+                            ->placeholder('G-XXXXXXXXXX')
+                            ->helperText(new \Illuminate\Support\HtmlString('
+                                <strong>Onde encontrar:</strong><br>
+                                1. Acesse o <a href="https://analytics.google.com/analytics/web/" target="_blank" class="text-primary-600 underline">Google Analytics</a>.<br>
+                                2. Vá em <b>Admin</b> (Engrenagem) > <b>Coleta e modificação de dados</b> > <b>Fluxos de dados</b>.<br>
+                                3. Clique no seu site e copie o "<b>ID DA MÉTRICA</b>" (Começa com G-).
+                            ')),
 
                         TextInput::make('google_site_verification')
-                            ->label('Tag de Verificação do Site')
-                            ->placeholder('Ex: google-site-verification-code...')
-                            ->helperText('Código da meta tag para verificar a propriedade no Search Console.'),
+                            ->label('Código de Verificação do Search Console')
+                            ->placeholder('Ex: U2983... (Apenas o código)')
+                            ->helperText(new \Illuminate\Support\HtmlString('
+                                <strong>Onde encontrar:</strong><br>
+                                1. Acesse o <a href="https://search.google.com/search-console/settings/ownership" target="_blank" class="text-primary-600 underline">Google Search Console</a>.<br>
+                                2. Vá em <b>Verificação de propriedade</b> > <b>Tag HTML</b>.<br>
+                                3. Copie APENAS o código que está dentro de <code>content="..."</code>.<br>
+                                <i>Não cole a tag &lt;meta&gt; inteira, apenas o código alfanumérico.</i>
+                            ')),
                     ]),
 
                 Section::make('Inteligência Artificial (Gemini API)')
