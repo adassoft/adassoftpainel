@@ -80,7 +80,9 @@ class FeedController extends Controller
         $content .= '</rss>';
 
         return response($content, 200, [
-            'Content-Type' => 'application/xml; charset=utf-8'
+            'Content-Type' => 'application/xml; charset=utf-8',
+            'Access-Control-Allow-Origin' => '*', // Permite CORS total
+            'Cache-Control' => 'public, max-age=3600', // Diz que é cacheável e público
         ]);
     }
 }
