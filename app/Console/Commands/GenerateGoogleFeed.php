@@ -19,11 +19,14 @@ class GenerateGoogleFeed extends Command
         try {
             $softwares = Software::where('status', true)->with('plans')->get();
 
+            // Força o domínio de produção, ignorando configuração local errada
+            $baseUrl = 'https://adassoft.com';
+
             $content = '<?xml version="1.0"?>' . PHP_EOL;
             $content .= '<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">' . PHP_EOL;
             $content .= '<channel>' . PHP_EOL;
             $content .= '<title>AdasSoft Store</title>' . PHP_EOL;
-            $content .= '<link>' . url('/') . '</link>' . PHP_EOL;
+            $content .= '<link>' . $baseUrl . '</link>' . PHP_EOL;
             $content .= '<description>Softwares de Gestão e Automação</description>' . PHP_EOL;
 
             foreach ($softwares as $soft) {
@@ -32,20 +35,26 @@ class GenerateGoogleFeed extends Command
                 $price = $minPricePlan ? $minPricePlan->valor : 0;
                 $priceFormatted = number_format($price, 2, '.', '') . ' BRL';
 
+                // Gera o link e substitui o domínio base pelo correto
                 $link = route('product.show', $soft->id);
+                $link = str_replace(url('/'), $baseUrl, $link);
+
                 $imageLink = $soft->imagem_destaque ?: $soft->imagem;
-                if ($imageLink && !Str::startsWith($imageLink, 'http')) {
-                    $imageLink = asset($imageLink); // Garante URL completa
+                if ($imageLink) {
+                    if (!Str::startsWith($imageLink, 'http')) {
+                        // Se for caminho relativo, monta com base URL correta
+                        $imageLink = $baseUrl . '/' . ltrim($imageLink, '/');
+                    } else {
+                        // Se for absoluto mas com domínio errado, corrige
+                        $imageLink = str_replace(url('/'), $baseUrl, $imageLink);
+                    }
                 }
 
                 // Descrição: Limpa tags HTML
                 $cleanDesc = strip_tags($soft->descricao);
-                $cleanDesc = preg_replace('/&/', '&amp;', $cleanDesc); // Escape básico
+                $cleanDesc = preg_replace('/&/', '&amp;', $cleanDesc);
 
-                // ID
                 $id = $soft->sku ?? $soft->id;
-
-                // Brand
                 $brand = $soft->brand ?: 'AdasSoft';
 
                 $content .= '<item>' . PHP_EOL;
@@ -60,14 +69,12 @@ class GenerateGoogleFeed extends Command
                 $content .= '<g:availability>in_stock</g:availability>' . PHP_EOL;
                 $content .= '<g:price>' . $priceFormatted . '</g:price>' . PHP_EOL;
 
-                // Google Fields
                 if ($soft->google_product_category) {
                     $content .= '<g:google_product_category>' . $soft->google_product_category . '</g:google_product_category>' . PHP_EOL;
                 } else {
                     $content .= '<g:google_product_category>316</g:google_product_category>' . PHP_EOL;
                 }
 
-                // Identifiers
                 if ($soft->gtin) {
                     $content .= '<g:gtin>' . $soft->gtin . '</g:gtin>' . PHP_EOL;
                     $content .= '<g:brand>' . $brand . '</g:brand>' . PHP_EOL;
@@ -83,8 +90,6 @@ class GenerateGoogleFeed extends Command
             $content .= '</channel>' . PHP_EOL;
             $content .= '</rss>';
 
-            // Salva no diretório PUBLIC para ser acessado diretamente pelo Apache/Nginx
-            // Isso evita passar pelo PHP/Laravel no momento do request
             File::put(public_path('google_products.xml'), $content);
 
             $this->info('Arquivo gerado com sucesso em: ' . public_path('google_products.xml'));
