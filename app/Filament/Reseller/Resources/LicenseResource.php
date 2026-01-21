@@ -222,113 +222,34 @@ class LicenseResource extends Resource
                             return;
                         }
 
-                        if ($empresaRevenda->saldo < $valor) {
-                            \Filament\Notifications\Notification::make()
-                                ->title('Saldo Insuficiente')
-                                ->body("O custo é R$ " . number_format($valor, 2, ',', '.') . ". Seu saldo atual é R$ " . number_format($empresaRevenda->saldo, 2, ',', '.') . ".")
-                                ->danger()
-                                ->send();
-                            return;
-                        }
+                        // Implementação ajustada: Apenas GERA o pedido de renovação.
+                        // A liberação (baixa) e atualização de saldo/estoque deve ser feita via "Baixar" no Financeiro.
+            
+                        $order = \App\Models\Order::create([
+                            'user_id' => $user->id,
+                            'plano_id' => $plano->id,
+                            'cnpj_revenda' => preg_replace('/\D/', '', $empresaRevenda->cnpj),
+                            'valor' => $valor,
+                            'total' => $valor,
+                            'status' => 'pending', // Pendente => Aguardando pagamento/liberação
+                            'status_entrega' => 'pendente', // Pendente de liberação da licença
+                            'recorrencia' => 'RENOVACAO',
+                            'licenca_id' => $record->id,
+                            'payment_method' => 'SALDO', // Indica que a intenção é usar saldo (ou definir no pagamento)
+                        ]);
 
-                        \Illuminate\Support\Facades\DB::transaction(function () use ($empresaRevenda, $valor, $user, $record, $plano) {
-
-                            // Verificar se já existe um pedido RECENTE (24h) e PAGO para esta licença
-                            // Isso evita duplicar o evento GA4 se o cliente pagou no checkout (gerou pedido)
-                            $existingOrder = \App\Models\Order::where('licenca_id', $record->id)
-                                ->where('status', 'paid')
-                                ->where('created_at', '>=', now()->subHours(24))
-                                ->exists();
-
-                            $sendGaEvent = !$existingOrder;
-
-                            $saldoAnterior = $empresaRevenda->saldo;
-                            $saldoNovo = $saldoAnterior - $valor;
-                            $empresaRevenda->forceFill(['saldo' => $saldoNovo])->save();
-
-                            \App\Models\CreditHistory::create([
-                                'empresa_cnpj' => preg_replace('/\D/', '', $empresaRevenda->cnpj),
-                                'usuario_id' => $user->id,
-                                'tipo' => 'saida',
-                                'valor' => $valor,
-                                'descricao' => "Renovação Licença #{$record->id} - {$record->software->nome_software} ({$plano->nome_plano})",
-                                'data_movimento' => now(),
-                            ]);
-
-                            // Gerar Pedido para contabilidade/receita
-                            \App\Models\Order::create([
-                                'user_id' => $user->id,
-                                'plano_id' => $plano->id,
-                                'cnpj_revenda' => preg_replace('/\D/', '', $empresaRevenda->cnpj),
-                                'valor' => $valor,
-                                'total' => $valor,
-                                'status' => 'paid',
-                                // 'paid_at' => now(), // Removido pois a coluna não existe no banco
-                                'recorrencia' => 'RENOVACAO',
-                                'licenca_id' => $record->id,
-                                'payment_method' => 'SALDO',
-                                'asaas_payment_id' => 'SALDO-' . time(), // Identificador interno para compatibilidade
-                                // 'forma_pagamento' => 'SALDO REVENDA' // Removido
-                            ]);
-
-                            // Enviar Evento de Conversão para GA4 (Measurement Protocol)
-                            if ($sendGaEvent) {
-                                try {
-                                    \App\Services\GoogleAnalyticsService::sendPurchaseEvent([
-                                        'transaction_id' => "RENOV-{$record->id}-" . time(),
-                                        'value' => $valor,
-                                        'user_id' => $user->id,
-                                        'items' => [
-                                            [
-                                                'item_id' => (string) $plano->id,
-                                                'item_name' => "Renovação {$record->software->nome_software} ({$plano->nome_plano})",
-                                                'price' => (float) $valor,
-                                                'quantity' => 1
-                                            ]
-                                        ]
-                                    ]);
-                                } catch (\Exception $e) {
-                                    // Silently fail details log
-                                }
-                            }
-
-                            $validadeAtual = \Carbon\Carbon::parse($record->data_expiracao);
-                            $novaValidade = $validadeAtual->isFuture() ? $validadeAtual : now();
-
-                            // Prioridade: Valor Numérico Inteiro (Meses)
-                            $mesesRecorrencia = (int) $plano->recorrencia;
-
-                            if ($mesesRecorrencia > 0) {
-                                $novaValidade->addMonths($mesesRecorrencia);
-                            } else {
-                                // Fallback: Tenta extrair número da string ou analisar texto
-                                preg_match('/(\d+)/', $plano->recorrencia, $matches);
-                                $mesesExtract = isset($matches[1]) ? (int) $matches[1] : 0;
-
-                                if ($mesesExtract > 0) {
-                                    $novaValidade->addMonths($mesesExtract);
-                                } else {
-                                    $recorrenciaStr = \Illuminate\Support\Str::slug($plano->recorrencia);
-                                    if (str_contains($recorrenciaStr, 'anual')) {
-                                        $novaValidade->addYear();
-                                    } elseif (str_contains($recorrenciaStr, 'semestral')) {
-                                        $novaValidade->addMonths(6);
-                                    } elseif (str_contains($recorrenciaStr, 'trimestral')) {
-                                        $novaValidade->addMonths(3);
-                                    } else {
-                                        $novaValidade->addMonth();
-                                    }
-                                }
-                            }
-
-                            $record->update([
-                                'data_expiracao' => $novaValidade,
-                                'data_ultima_renovacao' => now(),
-                                'status' => 'ativo'
-                            ]);
-                        });
-
-                        \Filament\Notifications\Notification::make()->title('Licença Renovada com Sucesso!')->success()->send();
+                        \Filament\Notifications\Notification::make()
+                            ->title('Pedido de Renovação Gerado!')
+                            ->body("O pedido #{$order->id} foi criado com sucesso. Para efetivar a renovação, acesse o menu Financeiro e faça a baixa/liberação do pedido.")
+                            ->success()
+                            ->persistent()
+                            ->actions([
+                                \Filament\Notifications\Actions\Action::make('visualizar')
+                                    ->label('Ir para Financeiro')
+                                    // ->url(route('filament.admin.resources.orders.index')) // Ajustar rota se souber, senão deixar sem
+                                    ->button(),
+                            ])
+                            ->send();
                     }),
 
                 Tables\Actions\Action::make('instalações')

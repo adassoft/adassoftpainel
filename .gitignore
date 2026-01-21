@@ -22,3 +22,17 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Delphi Compiled Files
+*.exe
+*.dll
+*.dcu
+*.bpl
+*.bpi
+*.dcp
+*.stat
+*.identcache
+*.local
+*.tvsconfig
+__history/
+ModelSupport_*/
