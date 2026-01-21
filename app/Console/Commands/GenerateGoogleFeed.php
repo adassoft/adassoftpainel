@@ -115,6 +115,10 @@ class GenerateGoogleFeed extends Command
                     $content .= '<g:google_product_category>316</g:google_product_category>' . PHP_EOL;
                 }
 
+                // Adiciona o Tipo de Produto (Categorização interna da loja) - Importante para o Google
+                $productType = $soft->categoria ? $soft->categoria : 'Software';
+                $content .= '<g:product_type><![CDATA[' . $productType . ']]></g:product_type>' . PHP_EOL;
+
                 if ($soft->gtin) {
                     $content .= '<g:gtin>' . $soft->gtin . '</g:gtin>' . PHP_EOL;
                     $content .= '<g:brand>' . $brand . '</g:brand>' . PHP_EOL;
