@@ -25,8 +25,10 @@ class DashboardStatsOverview extends BaseWidget
         $startLastMonth = now()->subMonth()->startOfMonth();
         $endLastMonth = now()->subMonth()->endOfMonth();
 
-        $revenueCurrent = Order::where('status', 'paid')->whereBetween('created_at', [$startMonth, $endMonth])->sum('valor');
-        $revenueLast = Order::where('status', 'paid')->whereBetween('created_at', [$startLastMonth, $endLastMonth])->sum('valor');
+        $validStatuses = ['paid', 'pago', 'approved', 'completed'];
+
+        $revenueCurrent = Order::whereIn('status', $validStatuses)->whereBetween('created_at', [$startMonth, $endMonth])->sum('valor');
+        $revenueLast = Order::whereIn('status', $validStatuses)->whereBetween('created_at', [$startLastMonth, $endLastMonth])->sum('valor');
 
         $diffRevenue = $revenueCurrent - $revenueLast;
         $descRevenue = $diffRevenue >= 0 ? 'Aumento de ' . number_format($diffRevenue, 2, ',', '.') : 'Queda de ' . number_format(abs($diffRevenue), 2, ',', '.');
@@ -37,7 +39,7 @@ class DashboardStatsOverview extends BaseWidget
         $chartRevenue = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
-            $chartRevenue[] = Order::where('status', 'paid')->whereDate('created_at', $date)->sum('valor');
+            $chartRevenue[] = Order::whereIn('status', $validStatuses)->whereDate('created_at', $date)->sum('valor');
         }
 
         // 2. Licenças Ativas
