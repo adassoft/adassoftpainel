@@ -17,28 +17,41 @@
 
         {{-- Cliente --}}
         <div class="flex flex-col gap-1">
+            @php
+                $empresaAlvo = null;
+                $labelRazao = 'Razão Social:';
+
+                if ($record->license && $record->license->company) {
+                    $empresaAlvo = $record->license->company;
+                } elseif ($record->user && $record->user->empresa) {
+                    $empresaAlvo = $record->user->empresa;
+                }
+
+                $razao = $empresaAlvo->razao ?? $record->user->name ?? 'N/A';
+
+                // Documento
+                $docValue = preg_replace('/\D/', '', $empresaAlvo->cnpj ?? $record->user->cpf ?? $record->user->cnpj ?? '');
+                $docLabel = strlen($docValue) > 11 ? 'CNPJ:' : 'CPF:';
+                $docFormatted = $docValue;
+                if (strlen($docValue) <= 11 && strlen($docValue) > 0) {
+                    $docFormatted = substr($docValue, 0, 3) . '.***.***-' . substr($docValue, -2);
+                } elseif (strlen($docValue) > 11) {
+                    $docFormatted = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $docValue);
+                } else {
+                    $docFormatted = 'N/A';
+                }
+            @endphp
+
             <div class="flex items-start gap-3">
                 <x-heroicon-m-building-office class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
-                    <span class="font-bold text-gray-700 dark:text-gray-200">Razão Social:</span>
-                    <span>{{ $record->user->empresa->razao ?? 'N/A' }}</span>
+                    <span class="font-bold text-gray-700 dark:text-gray-200">{{ $labelRazao }}</span>
+                    <span>{{ $razao }}</span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
                 <x-heroicon-m-identification class="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
-                    @php
-                        $docValue = preg_replace('/\D/', '', $record->user->empresa->cnpj ?? $record->user->cpf ?? $record->user->cnpj ?? '');
-                        $docLabel = strlen($docValue) > 11 ? 'CNPJ:' : 'CPF:';
-                        $docFormatted = $docValue;
-                        if (strlen($docValue) <= 11 && strlen($docValue) > 0) {
-                            $docFormatted = substr($docValue, 0, 3) . '.***.***-' . substr($docValue, -2);
-                        } elseif (strlen($docValue) > 11) {
-                            $docFormatted = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $docValue);
-                        } else {
-                            $docFormatted = 'N/A';
-                        }
-                    @endphp
                     <span class="font-bold text-gray-700 dark:text-gray-200">{{ $docLabel }}</span>
                     <span>
                         {{ $docFormatted }}

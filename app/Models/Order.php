@@ -50,4 +50,10 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class, 'order_id');
     }
+
+    public function license()
+    {
+        // Necessário para identificar quem é o cliente final da renovação
+        return $this->belongsTo(License::class, 'licenca_id');
+    }
 }
