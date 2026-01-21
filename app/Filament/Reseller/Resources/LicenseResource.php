@@ -202,6 +202,13 @@ class LicenseResource extends Resource
                                 ->disabled()
                                 ->dehydrated(false)
                                 ->default('R$ ' . number_format($planos->first()->valor, 2, ',', '.')),
+
+                            Forms\Components\Toggle::make('send_ga_event')
+                                ->label('Registrar Venda no Google Analytics?')
+                                ->default(true)
+                                ->onColor('success')
+                                ->offColor('gray')
+                                ->helperText('Desmarque se o cliente já pagou pelo Checkout Online (para não duplicar a venda no relatório).'),
                         ];
                     })
                     ->action(function (array $data, License $record) {
@@ -260,22 +267,25 @@ class LicenseResource extends Resource
                             ]);
 
                             // Enviar Evento de Conversão para GA4 (Measurement Protocol)
-                            try {
-                                \App\Services\GoogleAnalyticsService::sendPurchaseEvent([
-                                    'transaction_id' => "RENOV-{$record->id}-" . time(),
-                                    'value' => $valor,
-                                    'user_id' => $user->id,
-                                    'items' => [
-                                        [
-                                            'item_id' => (string) $plano->id,
-                                            'item_name' => "Renovação {$record->software->nome_software} ({$plano->nome_plano})",
-                                            'price' => (float) $valor,
-                                            'quantity' => 1
+                            // Apenas se o usuário optou por enviar (para evitar duplicidade com checkout)
+                            if (!empty($data['send_ga_event'])) {
+                                try {
+                                    \App\Services\GoogleAnalyticsService::sendPurchaseEvent([
+                                        'transaction_id' => "RENOV-{$record->id}-" . time(),
+                                        'value' => $valor,
+                                        'user_id' => $user->id,
+                                        'items' => [
+                                            [
+                                                'item_id' => (string) $plano->id,
+                                                'item_name' => "Renovação {$record->software->nome_software} ({$plano->nome_plano})",
+                                                'price' => (float) $valor,
+                                                'quantity' => 1
+                                            ]
                                         ]
-                                    ]
-                                ]);
-                            } catch (\Exception $e) {
-                                // Silently fail details log
+                                    ]);
+                                } catch (\Exception $e) {
+                                    // Silently fail details log
+                                }
                             }
 
                             $validadeAtual = \Carbon\Carbon::parse($record->data_expiracao);
