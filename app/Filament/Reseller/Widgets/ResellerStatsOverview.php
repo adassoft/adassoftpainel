@@ -96,7 +96,11 @@ class ResellerStatsOverview extends BaseWidget
             Stat::make('Vencidas', $vencidas)
                 ->description('Renovação necessária')
                 ->descriptionIcon('heroicon-o-x-circle')
-                ->color('danger'),
+                ->color('danger')
+                ->extraAttributes([
+                    'class' => 'cursor-pointer hover:bg-gray-50',
+                    'onclick' => "window.location.href = '" . route('filament.reseller.resources.licenses.index', ['tableFilters[status][value]' => 'expirado']) . "'",
+                ]),
 
             Stat::make('Avaliações (Recentes)', $avaliacoes)
                 ->description('Potencial de Conversão')
