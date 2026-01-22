@@ -14,11 +14,17 @@ class DownloadsDashboard extends Page
     protected static ?string $title = 'Analytics de Downloads';
     protected static ?int $navigationSort = 2;
 
+    public function getHeaderWidgetsColumns(): int|array
+    {
+        return 2;
+    }
+
     protected function getHeaderWidgets(): array
     {
         return [
             DownloadsStats::class,
             DownloadsChart::class,
+            \App\Filament\Widgets\DownloadsPieChart::class,
             \App\Filament\Widgets\DownloadsRankingWidget::class,
         ];
     }

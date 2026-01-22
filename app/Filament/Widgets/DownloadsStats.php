@@ -10,6 +10,7 @@ use App\Models\Download;
 class DownloadsStats extends BaseWidget
 {
     protected static ?string $pollingInterval = '30s';
+    protected int|string|array $columnSpan = 'full';
 
     protected function getStats(): array
     {
