@@ -19,6 +19,7 @@ class DownloadsDashboard extends Page
         return [
             DownloadsStats::class,
             DownloadsChart::class,
+            \App\Filament\Widgets\DownloadsRankingWidget::class,
         ];
     }
 }

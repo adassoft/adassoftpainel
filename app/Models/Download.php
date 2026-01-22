@@ -40,6 +40,8 @@ class Download extends Model
         'disponivel_revenda' => 'boolean',
     ];
 
+    protected $appends = ['imagem_url']; // Opcional, para serialization
+
     protected static function boot()
     {
         parent::boot();
@@ -82,8 +84,35 @@ class Download extends Model
             }
         }
     }
+
     public function versions()
     {
         return $this->hasMany(DownloadVersion::class, 'download_id')->orderBy('data_lancamento', 'desc');
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(DownloadLog::class, 'download_id');
+    }
+
+    public function software()
+    {
+        return $this->hasOne(Software::class, 'id_download_repo');
+    }
+
+    public function getImagemUrlAttribute()
+    {
+        // Se estiver vinculado a um software oficial, tenta pegar a imagem dele
+        if ($this->software && $this->software->imagem) {
+            $path = $this->software->imagem;
+            if (filter_var($path, FILTER_VALIDATE_URL))
+                return $path;
+            if (str_starts_with($path, 'img/produtos/'))
+                return asset('storage/' . $path);
+            if (str_starts_with($path, 'img/'))
+                return asset($path);
+            return asset('storage/' . $path);
+        }
+        return null;
     }
 }
