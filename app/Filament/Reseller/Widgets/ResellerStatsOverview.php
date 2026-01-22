@@ -85,22 +85,22 @@ class ResellerStatsOverview extends BaseWidget
         return [
             Stat::make('Licenças Ativas', $totalEmDia)
                 ->description('Em dia')
-                ->descriptionIcon('heroicon-m-check-circle')
+                ->descriptionIcon('heroicon-o-check-circle')
                 ->color('success'),
 
             Stat::make('A Vencer', $vencemBreve)
                 ->description('Próximos 15 dias')
-                ->descriptionIcon('heroicon-m-exclamation-triangle')
+                ->descriptionIcon('heroicon-o-exclamation-triangle')
                 ->color('warning'),
 
             Stat::make('Vencidas', $vencidas)
                 ->description('Renovação necessária')
-                ->descriptionIcon('heroicon-m-x-circle')
+                ->descriptionIcon('heroicon-o-x-circle')
                 ->color('danger'),
 
             Stat::make('Avaliações (Recentes)', $avaliacoes)
                 ->description('Potencial de Conversão')
-                ->descriptionIcon('heroicon-m-sparkles')
+                ->descriptionIcon('heroicon-o-sparkles')
                 ->color('gray')
                 ->extraAttributes([
                     'class' => 'cursor-pointer hover:bg-gray-50',
@@ -109,7 +109,7 @@ class ResellerStatsOverview extends BaseWidget
 
             Stat::make('Vitalícias', $vitalicias)
                 ->description('Licenças Perpétuas')
-                ->descriptionIcon('heroicon-m-infinity')
+                ->descriptionIcon('heroicon-o-star')
                 ->color('success')
                 ->extraAttributes([
                     'class' => 'cursor-pointer hover:bg-gray-50',
@@ -118,12 +118,12 @@ class ResellerStatsOverview extends BaseWidget
 
             Stat::make('Total de Licenças', $totalGeral)
                 ->description('Todas as licenças')
-                ->descriptionIcon('heroicon-m-clipboard-document-list')
+                ->descriptionIcon('heroicon-o-clipboard-document-list')
                 ->color('primary'),
 
             Stat::make('Saldo Disponível', 'R$ ' . number_format($saldo, 2, ',', '.'))
                 ->description('Créditos para uso')
-                ->descriptionIcon('heroicon-m-banknotes')
+                ->descriptionIcon('heroicon-o-banknotes')
                 ->color('info'),
         ];
     }

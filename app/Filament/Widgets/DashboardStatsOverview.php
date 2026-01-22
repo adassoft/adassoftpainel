@@ -37,7 +37,7 @@ class DashboardStatsOverview extends BaseWidget
 
         $diffRevenue = $revenueCurrent - $revenueLast;
         $descRevenue = $diffRevenue >= 0 ? 'Aumento de ' . number_format($diffRevenue, 2, ',', '.') : 'Queda de ' . number_format(abs($diffRevenue), 2, ',', '.');
-        $iconRevenue = $diffRevenue >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down';
+        $iconRevenue = $diffRevenue >= 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down';
         $colorRevenue = $diffRevenue >= 0 ? 'success' : 'danger';
 
         // Chart data (last 7 days revenue)
@@ -75,13 +75,13 @@ class DashboardStatsOverview extends BaseWidget
 
             Stat::make('Licenças Ativas', $activeLicenses)
                 ->description('+' . $newLicensesMonth . ' novas licenças (30d)')
-                ->descriptionIcon('heroicon-m-user-plus')
+                ->descriptionIcon('heroicon-o-user-plus')
                 ->color('primary')
                 ->chart([$activeLicenses - 5, $activeLicenses - 2, $activeLicenses]), // Mock trend visual
 
             Stat::make('Avaliações (Recentes)', $avaliacoes)
                 ->description('Conversão Potencial')
-                ->descriptionIcon('heroicon-m-sparkles')
+                ->descriptionIcon('heroicon-o-sparkles')
                 ->color('gray')
                 ->extraAttributes([
                     'class' => 'cursor-pointer hover:bg-gray-50',
@@ -90,7 +90,7 @@ class DashboardStatsOverview extends BaseWidget
 
             Stat::make('Licenças Vitalícias', $vitalicias)
                 ->description('Total Perpétuo')
-                ->descriptionIcon('heroicon-m-infinity')
+                ->descriptionIcon('heroicon-o-star')
                 ->color('success')
                 ->extraAttributes([
                     'class' => 'cursor-pointer hover:bg-gray-50',
