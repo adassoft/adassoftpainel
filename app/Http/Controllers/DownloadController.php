@@ -314,6 +314,14 @@ class DownloadController extends Controller
                 return redirect($detailsUrl)->with('error', 'Este é um produto exclusivo. Adquira para liberar o download.');
             }
 
+            // Analytics Log
+            \App\Models\DownloadLog::create([
+                'download_id' => $download->id,
+                'user_id' => auth()->id(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+
             $download->increment('contador');
 
             $arquivoPath = $download->arquivo_path;
@@ -423,6 +431,15 @@ class DownloadController extends Controller
                 return redirect($detailsUrl)->with('error', 'Você precisa adquirir este produto para liberar esta versão.');
             }
         }
+
+        // Analytics Log
+        \App\Models\DownloadLog::create([
+            'download_id' => $version->download_id,
+            'version_id' => $version->id,
+            'user_id' => auth()->id(),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
 
         // Incrementa contador da versão e do download principal
         $version->increment('contador');
