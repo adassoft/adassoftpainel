@@ -97,11 +97,17 @@ class LicenseResource extends Resource
                 Tables\Columns\TextColumn::make('company.razao')
                     ->label('Cliente')
                     ->description(function (License $record) {
-                        $desc = $record->company?->cnpj ?? '';
-                        if ($record->revenda) {
-                            $desc .= " | Rev: {$record->revenda->razao}";
+                        $lines = [];
+                        if ($cnpj = $record->company?->cnpj) {
+                            $lines[] = $cnpj;
                         }
-                        return $desc;
+                        if ($email = $record->company?->email) {
+                            $lines[] = $email;
+                        }
+                        if ($record->revenda) {
+                            $lines[] = "<span class='text-xs text-gray-500'>Rev: {$record->revenda->razao}</span>";
+                        }
+                        return new \Illuminate\Support\HtmlString(implode('<br>', $lines));
                     })
                     ->searchable()
                     ->sortable(),
