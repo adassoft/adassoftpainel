@@ -14,7 +14,7 @@ class ResellerStatsOverview extends BaseWidget
 
     protected function getColumns(): int
     {
-        return 5;
+        return 3;
     }
 
     protected function getStats(): array
@@ -31,9 +31,6 @@ class ResellerStatsOverview extends BaseWidget
         $baseQuery = License::where('cnpj_revenda', $cnpjRevenda);
 
         // 1. Total Active (In date + Active status)
-        // Using same logic as legacy: Total - Expired - Soon
-        // But doing it via SQL is safer:
-        // 'Em Dia' = active status AND expiration > 15 days from now
         $totalEmDia = (clone $baseQuery)
             ->where('status', 'ativo')
             ->where('data_expiracao', '>', now()->addDays(15))
@@ -53,9 +50,15 @@ class ResellerStatsOverview extends BaseWidget
         // 4. Total Licenses
         $totalGeral = (clone $baseQuery)->count();
 
-        // 5. Balance (from Company table)
-        // Assuming the User is linked to a Company via CNPJ
+        // 5. Balance
         $saldo = Company::where('cnpj', $cnpjRevenda)->value('saldo') ?? 0;
+
+        // 6. Avaliações Recentes (Filtro Inteligente: Sem legado antigo)
+        $avaliacoes = (clone $baseQuery)
+            ->whereNull('data_ultima_renovacao') // Nunca renovou
+            ->where('data_criacao', '>=', now()->subDays(90)) // Criado recentemente (exclui legado velho)
+            ->whereRaw('DATEDIFF(data_expiracao, data_criacao) <= 45') // Duração curta (teste)
+            ->count();
 
         return [
             Stat::make('Licenças Ativas', $totalEmDia)
@@ -73,6 +76,15 @@ class ResellerStatsOverview extends BaseWidget
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->color('danger'),
 
+            Stat::make('Avaliações (Recentes)', $avaliacoes)
+                ->description('Potencial de Conversão')
+                ->descriptionIcon('heroicon-m-sparkles')
+                ->color('gray')
+                ->extraAttributes([
+                    'class' => 'cursor-pointer hover:bg-gray-50',
+                    'onclick' => "window.location.href = '" . route('filament.reseller.resources.licenses.index', ['tableFilters[tipo][value]' => 'avaliacao']) . "'",
+                ]),
+
             Stat::make('Total de Licenças', $totalGeral)
                 ->description('Todas as licenças')
                 ->descriptionIcon('heroicon-m-clipboard-document-list')
@@ -81,12 +93,7 @@ class ResellerStatsOverview extends BaseWidget
             Stat::make('Saldo Disponível', 'R$ ' . number_format($saldo, 2, ',', '.'))
                 ->description('Créditos para uso')
                 ->descriptionIcon('heroicon-m-banknotes')
-                ->color('info')
-            // ->extraAttributes([
-            //     'class' => 'cursor-pointer',
-            //     'onclick' => "window.location.href = '" . url('/revenda/minha-carteira') . "'",
-            // ])
-            ,
+                ->color('info'),
         ];
     }
 }

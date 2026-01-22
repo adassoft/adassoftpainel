@@ -157,7 +157,26 @@ class LicenseResource extends Resource
                             $query->whereDate('data_expiracao', '<', now());
                             // Opcionalmente incluir status 'expirado' se existir no banco
                         } elseif ($value === 'suspenso') {
+                        } elseif ($value === 'suspenso') {
                             $query->where('status', 'suspenso'); // ou o que for usado para suspenso
+                        }
+                    }),
+                Tables\Filters\SelectFilter::make('tipo')
+                    ->label('Tipo de Licença')
+                    ->options([
+                        'avaliacao' => 'Avaliação (Recente)',
+                        'padrao' => 'Padrão / Renovada',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if ($data['value'] === 'avaliacao') {
+                            $query->whereNull('data_ultima_renovacao')
+                                ->where('data_criacao', '>=', now()->subDays(90))
+                                ->whereRaw('DATEDIFF(data_expiracao, data_criacao) <= 45');
+                        } elseif ($data['value'] === 'padrao') {
+                            $query->where(function ($q) {
+                                $q->whereNotNull('data_ultima_renovacao')
+                                    ->orWhereRaw('DATEDIFF(data_expiracao, data_criacao) > 45');
+                            });
                         }
                     }),
             ])

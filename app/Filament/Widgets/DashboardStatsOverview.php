@@ -17,6 +17,11 @@ class DashboardStatsOverview extends BaseWidget
 
     protected static ?int $sort = 1;
 
+    protected function getColumns(): int
+    {
+        return 3;
+    }
+
     protected function getStats(): array
     {
         // 1. Receita Mês (MRR Proxy)
@@ -47,9 +52,11 @@ class DashboardStatsOverview extends BaseWidget
         // Tendencia de novas licenças nos ultimos 30 dias
         $newLicensesMonth = License::where('data_criacao', '>=', now()->subDays(30))->count();
 
-        // 3. Validações nas ultimas 24h (Atividade)
-        // Se usar LogTable. (Assumindo ValidationLog model)
-        // $validations24h = \App\Models\ValidationLog::where('created_at', '>=', now()->subDay())->count();
+        // 3. Avaliações Recentes (Filtro Inteligente: Sem legado antigo)
+        $avaliacoes = License::whereNull('data_ultima_renovacao')
+            ->where('data_criacao', '>=', now()->subDays(90))
+            ->whereRaw('DATEDIFF(data_expiracao, data_criacao) <= 45')
+            ->count();
 
         return [
             Stat::make('Receita Este Mês', 'R$ ' . number_format($revenueCurrent, 2, ',', '.'))
@@ -63,6 +70,15 @@ class DashboardStatsOverview extends BaseWidget
                 ->descriptionIcon('heroicon-m-user-plus')
                 ->color('primary')
                 ->chart([$activeLicenses - 5, $activeLicenses - 2, $activeLicenses]), // Mock trend visual
+
+            Stat::make('Avaliações (Recentes)', $avaliacoes)
+                ->description('Conversão Potencial')
+                ->descriptionIcon('heroicon-m-sparkles')
+                ->color('gray')
+                ->extraAttributes([
+                    'class' => 'cursor-pointer hover:bg-gray-50',
+                    'onclick' => "window.location.href = '" . route('filament.admin.resources.licenses.index', ['tableFilters[tipo][value]' => 'avaliacao']) . "'",
+                ]),
 
             Stat::make('Catálogo de Softwares', Software::count())
                 ->description('Produtos disponíveis')
