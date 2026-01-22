@@ -243,17 +243,17 @@ class LicenseResource extends Resource
                         return [
                             Forms\Components\Select::make('plano_id')
                                 ->label('Plano de Renovação')
-                                ->options($planos->mapWithKeys(fn($p) => [$p->id => $p->nome_plano . ' - R$ ' . number_format($p->valor, 2, ',', '.')]))
+                                ->options($planos->mapWithKeys(fn($p) => [$p->id => $p->nome_plano . ' - R$ ' . number_format((float) $p->valor, 2, ',', '.')]))
                                 ->default($planos->first()->id)
                                 ->required()
                                 ->reactive()
-                                ->afterStateUpdated(fn($state, Forms\Set $set) => $set('custo_display', 'R$ ' . number_format(\App\Models\Plano::find($state)?->valor ?? 0, 2, ',', '.'))),
+                                ->afterStateUpdated(fn($state, Forms\Set $set) => $set('custo_display', 'R$ ' . number_format((float) (\App\Models\Plano::find($state)?->valor ?? 0), 2, ',', '.'))),
 
                             Forms\Components\TextInput::make('custo_display')
                                 ->label('Custo')
                                 ->disabled()
                                 ->dehydrated(false)
-                                ->default('R$ ' . number_format($planos->first()->valor, 2, ',', '.')),
+                                ->default('R$ ' . number_format((float) $planos->first()->valor, 2, ',', '.')),
 
 
                         ];
