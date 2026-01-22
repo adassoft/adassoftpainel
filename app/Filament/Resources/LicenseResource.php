@@ -161,17 +161,27 @@ class LicenseResource extends Resource
                     ->options([
                         'avaliacao' => 'Avaliação (Recente)',
                         'padrao' => 'Padrão / Renovada',
+                        'vitalicia' => 'Vitalícia (Perpétua)',
                     ])
                     ->query(function (Builder $query, array $data) {
                         if ($data['value'] === 'avaliacao') {
-                            $query->whereNull('data_ultima_renovacao')
-                                ->where('data_criacao', '>=', now()->subDays(90))
-                                ->whereRaw('DATEDIFF(data_expiracao, data_criacao) <= 45');
-                        } elseif ($data['value'] === 'padrao') {
                             $query->where(function ($q) {
-                                $q->whereNotNull('data_ultima_renovacao')
-                                    ->orWhereRaw('DATEDIFF(data_expiracao, data_criacao) > 45');
+                                $q->where('is_trial', 1)
+                                    ->orWhere(function ($sub) {
+                                        $sub->whereNull('data_ultima_renovacao')
+                                            ->where('data_criacao', '>=', now()->subDays(90))
+                                            ->whereRaw('DATEDIFF(data_expiracao, data_criacao) < 30');
+                                    });
                             });
+                        } elseif ($data['value'] === 'padrao') {
+                            $query->where('is_trial', 0)
+                                ->where('vitalicia', 0)
+                                ->where(function ($q) {
+                                    $q->whereNotNull('data_ultima_renovacao')
+                                        ->orWhereRaw('DATEDIFF(data_expiracao, data_criacao) >= 30');
+                                });
+                        } elseif ($data['value'] === 'vitalicia') {
+                            $query->where('vitalicia', 1);
                         }
                     }),
 

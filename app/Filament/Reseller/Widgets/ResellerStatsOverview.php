@@ -43,11 +43,11 @@ class ResellerStatsOverview extends BaseWidget
             ->count();
 
         // Filtro para "ignorar" avaliações antigas não convertidas (Lixo)
-        // Ignorar se: nunca renovou E duração curta E expirou há mais de 60 dias
+        // Ignorar se: nunca renovou E duração < 30 dias (4, 7, 15 dias) E expirou há mais de 60 dias
         $ignoreJunk = function ($query) {
             return $query->whereNot(function ($q) {
                 $q->whereNull('data_ultima_renovacao')
-                    ->whereRaw('DATEDIFF(data_expiracao, data_criacao) <= 45')
+                    ->whereRaw('DATEDIFF(data_expiracao, data_criacao) < 30')
                     ->where('data_expiracao', '<', now()->subDays(60));
             });
         };
@@ -66,12 +66,21 @@ class ResellerStatsOverview extends BaseWidget
         // 5. Balance
         $saldo = Company::where('cnpj', $cnpjRevenda)->value('saldo') ?? 0;
 
-        // 6. Avaliações Recentes (Filtro Inteligente: Sem legado antigo)
+        // 6. Avaliações Recentes (Filtro Inteligente)
+        // Usa flag explícita OU inferência para legados
         $avaliacoes = (clone $baseQuery)
-            ->whereNull('data_ultima_renovacao') // Nunca renovou
-            ->where('data_criacao', '>=', now()->subDays(90)) // Criado recentemente (exclui legado velho)
-            ->whereRaw('DATEDIFF(data_expiracao, data_criacao) <= 45') // Duração curta (teste)
+            ->where(function ($q) {
+                $q->where('is_trial', 1)
+                    ->orWhere(function ($sub) {
+                        $sub->whereNull('data_ultima_renovacao')
+                            ->where('data_criacao', '>=', now()->subDays(90))
+                            ->whereRaw('DATEDIFF(data_expiracao, data_criacao) < 30');
+                    });
+            })
             ->count();
+
+        // 7. Vitalícias
+        $vitalicias = (clone $baseQuery)->where('vitalicia', 1)->count();
 
         return [
             Stat::make('Licenças Ativas', $totalEmDia)
@@ -96,6 +105,15 @@ class ResellerStatsOverview extends BaseWidget
                 ->extraAttributes([
                     'class' => 'cursor-pointer hover:bg-gray-50',
                     'onclick' => "window.location.href = '" . route('filament.reseller.resources.licenses.index', ['tableFilters[tipo][value]' => 'avaliacao']) . "'",
+                ]),
+
+            Stat::make('Vitalícias', $vitalicias)
+                ->description('Licenças Perpétuas')
+                ->descriptionIcon('heroicon-m-infinity')
+                ->color('success')
+                ->extraAttributes([
+                    'class' => 'cursor-pointer hover:bg-gray-50',
+                    'onclick' => "window.location.href = '" . route('filament.reseller.resources.licenses.index', ['tableFilters[tipo][value]' => 'vitalicia']) . "'",
                 ]),
 
             Stat::make('Total de Licenças', $totalGeral)

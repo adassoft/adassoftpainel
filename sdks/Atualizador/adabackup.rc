@@ -1,0 +1,8 @@
+STRINGTABLE
+BEGIN
+  101, "https://adassoft.com/api/v1/adassoft"
+  102, "c6b63d5e80110177e6550b6913d62d40bffd6fff2ee19cd3658725c7b95ada5b"
+  103, "1"
+  104, "AdaBackup.exe"
+  105, "AdaBackup Manager"
+END

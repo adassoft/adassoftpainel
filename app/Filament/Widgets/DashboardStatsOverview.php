@@ -52,11 +52,19 @@ class DashboardStatsOverview extends BaseWidget
         // Tendencia de novas licenças nos ultimos 30 dias
         $newLicensesMonth = License::where('data_criacao', '>=', now()->subDays(30))->count();
 
-        // 3. Avaliações Recentes (Filtro Inteligente: Sem legado antigo)
-        $avaliacoes = License::whereNull('data_ultima_renovacao')
-            ->where('data_criacao', '>=', now()->subDays(90))
-            ->whereRaw('DATEDIFF(data_expiracao, data_criacao) <= 45')
+        // 3. Avaliações Recentes (Filtro Inteligente)
+        $avaliacoes = License::where(function ($q) {
+            $q->where('is_trial', 1)
+                ->orWhere(function ($sub) {
+                    $sub->whereNull('data_ultima_renovacao')
+                        ->where('data_criacao', '>=', now()->subDays(90))
+                        ->whereRaw('DATEDIFF(data_expiracao, data_criacao) < 30');
+                });
+        })
             ->count();
+
+        // 4. Vitalícias
+        $vitalicias = License::where('vitalicia', 1)->count();
 
         return [
             Stat::make('Receita Este Mês', 'R$ ' . number_format($revenueCurrent, 2, ',', '.'))
@@ -78,6 +86,15 @@ class DashboardStatsOverview extends BaseWidget
                 ->extraAttributes([
                     'class' => 'cursor-pointer hover:bg-gray-50',
                     'onclick' => "window.location.href = '" . route('filament.admin.resources.licenses.index', ['tableFilters[tipo][value]' => 'avaliacao']) . "'",
+                ]),
+
+            Stat::make('Licenças Vitalícias', $vitalicias)
+                ->description('Total Perpétuo')
+                ->descriptionIcon('heroicon-m-infinity')
+                ->color('success')
+                ->extraAttributes([
+                    'class' => 'cursor-pointer hover:bg-gray-50',
+                    'onclick' => "window.location.href = '" . route('filament.admin.resources.licenses.index', ['tableFilters[tipo][value]' => 'vitalicia']) . "'",
                 ]),
 
             Stat::make('Catálogo de Softwares', Software::count())

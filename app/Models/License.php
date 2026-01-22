@@ -25,6 +25,7 @@ class License extends Model
         'terminais_permitidos',
         'status',
         'vitalicia',
+        'is_trial',
         'observacoes',
     ];
 

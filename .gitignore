@@ -36,3 +36,8 @@ Thumbs.db
 *.tvsconfig
 __history/
 ModelSupport_*/
+Build_Final/
+Win32/
+Win64/
+*.rar
+*.zip
