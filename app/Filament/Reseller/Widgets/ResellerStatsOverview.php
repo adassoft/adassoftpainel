@@ -42,13 +42,26 @@ class ResellerStatsOverview extends BaseWidget
             ->whereBetween('data_expiracao', [now(), now()->addDays(15)])
             ->count();
 
-        // 3. Expired (Date < now)
+        // Filtro para "ignorar" avaliações antigas não convertidas (Lixo)
+        // Ignorar se: nunca renovou E duração curta E expirou há mais de 60 dias
+        $ignoreJunk = function ($query) {
+            return $query->whereNot(function ($q) {
+                $q->whereNull('data_ultima_renovacao')
+                    ->whereRaw('DATEDIFF(data_expiracao, data_criacao) <= 45')
+                    ->where('data_expiracao', '<', now()->subDays(60));
+            });
+        };
+
+        // 3. Expired (Date < now) - Sanitized
         $vencidas = (clone $baseQuery)
             ->where('data_expiracao', '<', now())
+            ->tap($ignoreJunk)
             ->count();
 
-        // 4. Total Licenses
-        $totalGeral = (clone $baseQuery)->count();
+        // 4. Total Licenses - Sanitized
+        $totalGeral = (clone $baseQuery)
+            ->tap($ignoreJunk)
+            ->count();
 
         // 5. Balance
         $saldo = Company::where('cnpj', $cnpjRevenda)->value('saldo') ?? 0;
