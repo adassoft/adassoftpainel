@@ -59,6 +59,10 @@ class LicenseResource extends Resource
                                     ->label('Licença Vitalícia')
                                     ->live(),
 
+                                Forms\Components\Toggle::make('is_trial')
+                                    ->label('Licença de Avaliação')
+                                    ->default(false),
+
                                 Forms\Components\TextInput::make('terminais_permitidos')
                                     ->label('Limite Terminais')
                                     ->numeric()

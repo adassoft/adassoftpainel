@@ -480,7 +480,7 @@ trait LegacyLicenseGenerator
             }
         }
 
-        $diasValidade = $meses * 30;
+        $diasValidade = (int) $meses * 30;
 
         // Prioriza o software do PLANO, pois todo pedido tem plano. Fallback para direto se houver.
         $softwareId = $pedido->plan?->software_id ?? $pedido->software_id;
