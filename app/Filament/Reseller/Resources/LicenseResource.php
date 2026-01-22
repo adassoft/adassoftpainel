@@ -193,7 +193,7 @@ class LicenseResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('renovar')
                     ->label('')
-                    ->icon('heroicon-m-arrow-path')
+                    ->icon('heroicon-o-arrow-path')
                     ->color('primary')
                     ->button()
                     ->extraAttributes(['class' => 'force-btn-height'])
@@ -306,9 +306,34 @@ class LicenseResource extends Resource
                             ->send();
                     }),
 
-                Tables\Actions\Action::make('instalações')
+
+                Tables\Actions\Action::make('whatsapp_alert')
                     ->label('')
-                    ->icon('heroicon-m-computer-desktop')
+                    ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                    ->color('success')
+                    ->button()
+                    ->extraAttributes(['class' => 'force-btn-height'])
+                    ->tooltip('Enviar WhatsApp')
+                    ->url(function (License $record) {
+                        $fone = preg_replace('/\D/', '', $record->company->fone ?? '');
+                        if (empty($fone))
+                            return null;
+
+                        $vencido = $record->data_expiracao && $record->data_expiracao->isPast();
+                        $data = $record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '';
+                        $software = $record->software->nome_software ?? 'Software';
+                        $cliente = $record->company->razao ?? 'Cliente';
+
+                        $msg = $vencido
+                            ? "Olá {$cliente}, sua licença do sistema {$software} venceu em {$data}. Entre em contato para renovar e manter seu acesso."
+                            : "Olá {$cliente}, lembrete: sua licença do sistema {$software} vence dia {$data}.";
+
+                        return "https://wa.me/55{$fone}?text=" . urlencode($msg);
+                    }, shouldOpenInNewTab: true),
+
+                Tables\Actions\Action::make('instalacoes')
+                    ->label('')
+                    ->icon('heroicon-o-computer-desktop')
                     ->color('info')
                     ->button()
                     ->extraAttributes(['class' => 'force-btn-height'])
@@ -322,7 +347,7 @@ class LicenseResource extends Resource
 
                 Tables\Actions\Action::make('token')
                     ->label('')
-                    ->icon('heroicon-m-clipboard')
+                    ->icon('heroicon-o-clipboard')
                     ->color('warning')
                     ->button()
                     ->extraAttributes(['class' => 'force-btn-height'])
@@ -331,7 +356,7 @@ class LicenseResource extends Resource
 
                 Tables\Actions\Action::make('generateOfflineToken')
                     ->label('')
-                    ->icon('heroicon-m-qr-code')
+                    ->icon('heroicon-o-qr-code')
                     ->color('gray')
                     ->button()
                     ->extraAttributes(['class' => 'force-btn-height'])
