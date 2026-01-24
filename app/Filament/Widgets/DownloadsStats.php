@@ -22,6 +22,9 @@ class DownloadsStats extends BaseWidget
             ->whereYear('created_at', now()->year)
             ->count();
 
+        // Ano
+        $downloadsYear = DownloadLog::whereYear('created_at', now()->year)->count();
+
         // Top Software Hoje
         $topToday = DownloadLog::whereDate('created_at', today())
             ->selectRaw('download_id, count(*) as total')
@@ -33,7 +36,7 @@ class DownloadsStats extends BaseWidget
         $topName = $topToday?->download->titulo ?? '-';
         $topCount = $topToday?->total ?? 0;
 
-        // Total Geral (Contador Legado + Logs) não mistura bem, melhor usar o contador do Download::sum() para 'Total Histórico'
+        // Total Geral
         $totalHistorico = Download::sum('contador');
 
         return [
@@ -45,13 +48,18 @@ class DownloadsStats extends BaseWidget
             Stat::make('Downloads (Hoje)', $downloadsToday)
                 ->description('Registros diários')
                 ->descriptionIcon('heroicon-o-arrow-path')
-                ->chart([$downloadsToday, $downloadsToday + 2, $downloadsToday + 5]) // Mock visual
+                ->chart([$downloadsToday, $downloadsToday + 2, $downloadsToday + 5])
                 ->color('success'),
 
             Stat::make('Downloads (Mês)', $downloadsMonth)
                 ->description('Neste mês')
                 ->descriptionIcon('heroicon-o-calendar')
                 ->color('primary'),
+
+            Stat::make('Downloads (Ano)', $downloadsYear)
+                ->description('Neste ano')
+                ->descriptionIcon('heroicon-o-calendar-days')
+                ->color('info'),
 
             Stat::make('Top Hoje', $topName)
                 ->description("{$topCount} downloads")
