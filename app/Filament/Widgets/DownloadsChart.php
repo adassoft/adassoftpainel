@@ -9,6 +9,7 @@ class DownloadsChart extends ChartWidget
 {
     protected static ?string $heading = 'Tendência de Downloads (30 Dias)';
     protected static ?int $sort = 2;
+    protected int|string|array $columnSpan = 'full';
     protected static ?string $maxHeight = '300px';
 
     protected function getData(): array

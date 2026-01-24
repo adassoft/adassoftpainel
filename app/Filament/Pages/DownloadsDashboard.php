@@ -25,6 +25,7 @@ class DownloadsDashboard extends Page
             DownloadsStats::class,
             DownloadsChart::class,
             \App\Filament\Widgets\DownloadsPieChart::class,
+            \App\Filament\Widgets\DownloadsReferersWidget::class,
             \App\Filament\Widgets\DownloadsRankingWidget::class,
         ];
     }
