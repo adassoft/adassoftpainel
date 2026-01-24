@@ -155,6 +155,11 @@ class DownloadResource extends Resource
                                         ->helperText('Usuário deve estar logado para baixar.')
                                         ->default(false),
 
+                                    Forms\Components\Toggle::make('requires_lead')
+                                        ->label('Exigir Cadastro de Lead')
+                                        ->helperText('Formulário de captura antes de liberar download.')
+                                        ->default(false),
+
                                     Forms\Components\Toggle::make('is_paid')
                                         ->label('Produto Pago')
                                         ->live()

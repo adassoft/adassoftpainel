@@ -60,6 +60,21 @@ class ManageGoogle extends Page implements HasForms
                             ->label('Client Secret (Chave Secreta):'),
                     ]),
 
+                Section::make('reCAPTCHA v2 (Proteger Formulários)')
+                    ->icon('heroicon-o-shield-check')
+                    ->description(new \Illuminate\Support\HtmlString('Proteja seus formulários. <a href="https://www.google.com/recaptcha/admin/create" target="_blank" class="text-primary-600 underline font-bold">Obter Chaves (v2 Checkbox)</a>'))
+                    ->schema([
+                        TextInput::make('recaptcha_site_key')
+                            ->label('Site Key (Chave do Site)')
+                            ->placeholder('Ex: 6LeIxAcTAAAAAJc...'),
+
+                        TextInput::make('recaptcha_secret_key')
+                            ->label('Secret Key (Chave Secreta)')
+                            ->password()
+                            ->revealable()
+                            ->placeholder('Ex: 6LeIxAcTAAAAAGG...'),
+                    ]),
+
                 Section::make('Monitoramento e SEO (Google Search Console & Analytics)')
                     ->icon('heroicon-o-chart-bar')
                     ->extraAttributes(['class' => 'google-section-seo'])

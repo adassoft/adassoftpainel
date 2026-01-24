@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Download;
 use App\Models\Software;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
+use App\Mail\DownloadLinkMail;
+use App\Models\Lead;
 
 class DownloadController extends Controller
 {
@@ -314,6 +319,24 @@ class DownloadController extends Controller
                 return redirect($detailsUrl)->with('error', 'Este é um produto exclusivo. Adquira para liberar o download.');
             }
 
+            // Lead Capture (Se não for link assinado e usuário não estiver logado)
+            if (!request()->hasValidSignature()) {
+                if ($download->requires_lead && !auth()->check()) {
+                    $siteKey = null;
+                    $config = \App\Models\Configuration::where('chave', 'google_config')->first();
+                    if ($config) {
+                        $json = json_decode($config->valor, true);
+                        $siteKey = $json['recaptcha_site_key'] ?? null;
+                    }
+
+                    return view('downloads.lead-capture', [
+                        'download' => $download,
+                        'versionId' => null,
+                        'recaptchaSiteKey' => $siteKey
+                    ]);
+                }
+            }
+
             // Bot Detection
             $userAgent = request()->userAgent();
             $isBot = false;
@@ -449,6 +472,24 @@ class DownloadController extends Controller
                 $detailsUrl = route('downloads.show', $dl->slug ?? $dl->id);
                 return redirect($detailsUrl)->with('error', 'Você precisa adquirir este produto para liberar esta versão.');
             }
+
+            // Lead Capture
+            if (!request()->hasValidSignature()) {
+                if ($dl->requires_lead && !auth()->check()) {
+                    $siteKey = null;
+                    $config = \App\Models\Configuration::where('chave', 'google_config')->first();
+                    if ($config) {
+                        $json = json_decode($config->valor, true);
+                        $siteKey = $json['recaptcha_site_key'] ?? null;
+                    }
+
+                    return view('downloads.lead-capture', [
+                        'download' => $dl,
+                        'versionId' => $version->id,
+                        'recaptchaSiteKey' => $siteKey
+                    ]);
+                }
+            }
         }
 
         // Bot Detection
@@ -503,5 +544,93 @@ class DownloadController extends Controller
         }
 
         return response()->download($path);
+    }
+    public function storeLead(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'nome' => 'required|string',
+            'empresa' => 'required|string',
+        ]);
+
+        // Recaptcha Validation
+        $config = \App\Models\Configuration::where('chave', 'google_config')->first();
+        if ($config) {
+            $json = json_decode($config->valor, true);
+            $siteKey = $json['recaptcha_site_key'] ?? null;
+            $secretKey = $json['recaptcha_secret_key'] ?? null;
+
+            if ($siteKey && $secretKey) {
+                if (!$request->input('g-recaptcha-response')) {
+                    return back()->with('error', 'Por favor, confirme que você não é um robô.')->withInput();
+                }
+
+                try {
+                    $verify = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                        'secret' => $secretKey,
+                        'response' => $request->input('g-recaptcha-response'),
+                        'remoteip' => $request->ip(),
+                    ]);
+
+                    if (!$verify->successful() || !$verify->json()['success']) {
+                        return back()->with('error', 'Falha na verificação do reCAPTCHA.')->withInput();
+                    }
+                } catch (\Exception $e) {
+                }
+            }
+        }
+
+        // Save Lead
+        Lead::create([
+            'download_id' => $request->download_id,
+            'empresa' => $request->empresa,
+            'nome' => $request->nome,
+            'email' => $request->email,
+            'whatsapp' => $request->whatsapp,
+            'ip_address' => $request->ip(),
+        ]);
+
+        // Generate Signed Link (24 hours valid)
+        $link = '';
+        $download = Download::find($request->download_id);
+
+        if ($request->version_id) {
+            $link = URL::temporarySignedRoute(
+                'downloads.version.signed',
+                now()->addHours(24),
+                ['id' => $request->version_id]
+            );
+        } else {
+            $link = URL::temporarySignedRoute(
+                'downloads.file.signed',
+                now()->addHours(24),
+                ['id' => $request->download_id]
+            );
+        }
+
+        // Send Email
+        try {
+            Mail::to($request->email)->send(new DownloadLinkMail($download, $link));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erro ao enviar e-mail: ' . $e->getMessage())->withInput();
+        }
+
+        return view('downloads.lead-success', ['email' => $request->email]);
+    }
+
+    public function downloadFileSigned($id)
+    {
+        if (!request()->hasValidSignature()) {
+            abort(403, 'Link expirado ou inválido.');
+        }
+        return $this->downloadFile($id);
+    }
+
+    public function downloadVersionSigned($id)
+    {
+        if (!request()->hasValidSignature()) {
+            abort(403, 'Link expirado ou inválido.');
+        }
+        return $this->downloadVersion($id);
     }
 }

@@ -142,6 +142,11 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+// === Download Lead Capture ===
+Route::post('/downloads/lead', [\App\Http\Controllers\DownloadController::class, 'storeLead'])->name('downloads.lead.store');
+Route::get('/downloads/{id}/secure-link', [\App\Http\Controllers\DownloadController::class, 'downloadFileSigned'])->name('downloads.file.signed')->middleware('signed');
+Route::get('/downloads/version/{id}/secure-link', [\App\Http\Controllers\DownloadController::class, 'downloadVersionSigned'])->name('downloads.version.signed')->middleware('signed');
+
 // === Gerenciador de Redirecionamentos (SEO) ===
 Route::fallback(function () {
     $path = request()->path();
