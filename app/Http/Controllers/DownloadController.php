@@ -314,15 +314,33 @@ class DownloadController extends Controller
                 return redirect($detailsUrl)->with('error', 'Este é um produto exclusivo. Adquira para liberar o download.');
             }
 
-            // Analytics Log
-            \App\Models\DownloadLog::create([
-                'download_id' => $download->id,
-                'user_id' => auth()->id(),
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ]);
+            // Bot Detection
+            $userAgent = request()->userAgent();
+            $isBot = false;
 
-            $download->increment('contador');
+            if (empty($userAgent)) {
+                $isBot = true;
+            } else {
+                $bots = ['bot', 'crawl', 'slurp', 'spider', 'mediapartners', 'facebook', 'whatsapp', 'preview', 'google', 'bing', 'yahoo'];
+                foreach ($bots as $bot) {
+                    if (stripos($userAgent, $bot) !== false) {
+                        $isBot = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$isBot) {
+                // Analytics Log
+                \App\Models\DownloadLog::create([
+                    'download_id' => $download->id,
+                    'user_id' => auth()->id(),
+                    'ip_address' => request()->ip(),
+                    'user_agent' => $userAgent,
+                ]);
+
+                $download->increment('contador');
+            }
 
             $arquivoPath = $download->arquivo_path;
 
@@ -432,19 +450,37 @@ class DownloadController extends Controller
             }
         }
 
-        // Analytics Log
-        \App\Models\DownloadLog::create([
-            'download_id' => $version->download_id,
-            'version_id' => $version->id,
-            'user_id' => auth()->id(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
+        // Bot Detection
+        $userAgent = request()->userAgent();
+        $isBot = false;
 
-        // Incrementa contador da versão e do download principal
-        $version->increment('contador');
-        if ($version->download) {
-            $version->download->increment('contador');
+        if (empty($userAgent)) {
+            $isBot = true;
+        } else {
+            $bots = ['bot', 'crawl', 'slurp', 'spider', 'mediapartners', 'facebook', 'whatsapp', 'preview', 'google', 'bing', 'yahoo'];
+            foreach ($bots as $bot) {
+                if (stripos($userAgent, $bot) !== false) {
+                    $isBot = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$isBot) {
+            // Analytics Log
+            \App\Models\DownloadLog::create([
+                'download_id' => $version->download_id,
+                'version_id' => $version->id,
+                'user_id' => auth()->id(),
+                'ip_address' => request()->ip(),
+                'user_agent' => $userAgent,
+            ]);
+
+            // Incrementa contador da versão e do download principal
+            $version->increment('contador');
+            if ($version->download) {
+                $version->download->increment('contador');
+            }
         }
 
         // 1. Tenta no disco Seguro (Novo Padrão)
