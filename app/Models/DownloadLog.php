@@ -17,6 +17,7 @@ class DownloadLog extends Model
         'user_id',
         'ip_address',
         'user_agent',
+        'referer',
     ];
 
     public function download()

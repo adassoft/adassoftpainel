@@ -337,6 +337,7 @@ class DownloadController extends Controller
                     'user_id' => auth()->id(),
                     'ip_address' => request()->ip(),
                     'user_agent' => $userAgent,
+                    'referer' => request()->header('referer'),
                 ]);
 
                 $download->increment('contador');
@@ -474,6 +475,7 @@ class DownloadController extends Controller
                 'user_id' => auth()->id(),
                 'ip_address' => request()->ip(),
                 'user_agent' => $userAgent,
+                'referer' => request()->header('referer'),
             ]);
 
             // Incrementa contador da versão e do download principal
