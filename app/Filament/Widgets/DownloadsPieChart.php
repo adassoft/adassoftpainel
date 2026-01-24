@@ -12,6 +12,21 @@ class DownloadsPieChart extends ChartWidget
     protected static ?int $sort = 3;
     protected static ?string $maxHeight = '300px';
 
+    protected function getOptions(): array
+    {
+        return [
+            'scales' => [
+                'x' => ['display' => false],
+                'y' => ['display' => false],
+            ],
+            'plugins' => [
+                'legend' => [
+                    'position' => 'bottom',
+                ],
+            ],
+        ];
+    }
+
     protected function getData(): array
     {
         // Buscar top 5 downloads baseados nos logs analytics
