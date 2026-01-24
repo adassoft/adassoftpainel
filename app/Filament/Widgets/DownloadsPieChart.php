@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class DownloadsPieChart extends ChartWidget
 {
     protected static ?string $heading = 'Top 5 (Distribuição)';
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
     protected static ?string $maxHeight = '300px';
 
     protected function getData(): array

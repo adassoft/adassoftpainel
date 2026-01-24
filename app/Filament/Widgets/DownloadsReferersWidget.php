@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class DownloadsReferersWidget extends BaseWidget
 {
     protected static ?string $heading = 'Top Origens (Referer)';
-    protected static ?int $sort = 3; // Lado a lado com Pizza (sort 3 tambem?)
+    protected static ?int $sort = 4; // Lado a lado com Pizza (sort 3)
 
     public function table(Table $table): Table
     {

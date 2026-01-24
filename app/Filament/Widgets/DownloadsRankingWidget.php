@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 class DownloadsRankingWidget extends BaseWidget
 {
     protected static ?string $heading = 'Ranking de Downloads (Top 10)';
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 5;
     protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
