@@ -6,6 +6,7 @@ use App\Models\License;
 use App\Models\User;
 use App\Models\Company;
 use App\Jobs\SendOnboardingMessageJob;
+use App\Jobs\SendLicenseNotificationJob;
 use Illuminate\Support\Facades\Log;
 
 class LicenseObserver
@@ -84,7 +85,7 @@ class LicenseObserver
 
                 $validity = $license->data_expiracao ? $license->data_expiracao->format('d/m/Y') : 'N/A';
 
-                SendOnboardingMessageJob::dispatch($user, 'license_released', [
+                SendLicenseNotificationJob::dispatch($user, [
                     'validity' => $validity,
                     'license_id' => $license->id
                 ])
