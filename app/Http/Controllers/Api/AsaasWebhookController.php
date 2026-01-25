@@ -123,9 +123,10 @@ class AsaasWebhookController extends Controller
                     }
                 }
                 // --- Lógica de Assinaturas / Licenças (Novo) ---
-                if ($order->plano_id) {
+                // Se for pedido de REVENDA, ignoramos aqui pois o ResellerWebhookController deve tratar (com validação de saldo)
+                if ($order->plano_id && !$order->cnpj_revenda) {
                     try {
-                        Log::info("Processando Licença para Pedido {$order->id} (Plano: {$order->plano_id})");
+                        Log::info("Processando Licença para Pedido Venda Direta {$order->id} (Plano: {$order->plano_id})");
                         $plano = \App\Models\Plano::find($order->plano_id);
 
                         // Busca o usuário dono do pedido
