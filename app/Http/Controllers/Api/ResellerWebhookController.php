@@ -179,7 +179,8 @@ class ResellerWebhookController extends Controller
                             Log::warning("FALHA ATIVAÇÃO: Revenda {$revenda->razao} (CNPJ {$revenda->cnpj}) SEM SALDO. Necessário: {$custoLicenca}, Disponível: {$revenda->saldo}");
 
                             // Dispara Job de Insistência (Cobrança)
-                            \App\Jobs\SendResellerInsufficientBalanceJob::dispatch($revenda, $custoLicenca, $order);
+                            // Usando dispatchSync para garantir envio imediato e evitar atrasos de fila
+                            \App\Jobs\SendResellerInsufficientBalanceJob::dispatchSync($revenda, $custoLicenca, $order);
 
                             // Marca pedido como pendente de saldo
                             $order->update(['observacoes' => 'Pendente: Saldo insuficiente na revenda.']);
