@@ -15,11 +15,19 @@ class DownloadLinkMail extends Mailable
 
     public $download;
     public $link;
+    public $nome;
 
-    public function __construct(Download $download, string $link)
+    public function __construct(Download $download, string $link, ?string $nome = null)
     {
         $this->download = $download;
         $this->link = $link;
+        // Extract First Name
+        if ($nome) {
+            $parts = explode(' ', trim($nome));
+            $this->nome = $parts[0];
+        } else {
+            $this->nome = 'Visitante';
+        }
     }
 
     public function envelope(): Envelope
@@ -33,6 +41,11 @@ class DownloadLinkMail extends Mailable
     {
         return new Content(
             view: 'emails.download-link',
+            with: [
+                'nome' => $this->nome,
+                'download' => $this->download,
+                'link' => $this->link,
+            ],
         );
     }
 

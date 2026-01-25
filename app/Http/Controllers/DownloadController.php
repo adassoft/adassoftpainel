@@ -665,7 +665,7 @@ class DownloadController extends Controller
 
         // Send Email
         try {
-            Mail::to($request->email)->send(new DownloadLinkMail($download, $link));
+            Mail::to($request->email)->send(new DownloadLinkMail($download, $link, $request->nome));
         } catch (\Exception $e) {
             return back()->with('error', 'Erro ao enviar e-mail: ' . $e->getMessage())->withInput();
         }
