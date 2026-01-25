@@ -29,21 +29,32 @@ class ProcessCampaignJob implements ShouldQueue
     {
         $this->campaign->update(['status' => 'processing']);
 
-        $query = \App\Models\License::query();
+        if ($this->campaign->target_type === 'lead') {
+            $query = \App\Models\Lead::query();
 
-        // Aplica Filtros
-        if ($this->campaign->target_software_id) {
-            $query->where('software_id', $this->campaign->target_software_id);
+            if ($this->campaign->target_download_id) {
+                $query->where('download_id', $this->campaign->target_download_id);
+            }
+
+            $targets = $query->get();
+        } else {
+            // Default: Licenses
+            $query = \App\Models\License::query();
+
+            // Aplica Filtros
+            if ($this->campaign->target_software_id) {
+                $query->where('software_id', $this->campaign->target_software_id);
+            }
+
+            if ($this->campaign->target_license_status !== 'all') {
+                $query->where('status', $this->campaign->target_license_status);
+            }
+
+            // Eager Load Company
+            $targets = $query->with('company')->get();
         }
 
-        if ($this->campaign->target_license_status !== 'all') {
-            $query->where('status', $this->campaign->target_license_status);
-        }
-
-        // Eager Load Company
-        $licenses = $query->with('company')->get();
-
-        $total = $licenses->count();
+        $total = $targets->count();
         $this->campaign->update(['total_targets' => $total]);
 
         if ($total === 0) {
@@ -57,11 +68,11 @@ class ProcessCampaignJob implements ShouldQueue
 
         $accumulatedDelay = 0; // Primeira mensagem sai imediatamente (ou quase)
 
-        foreach ($licenses as $license) {
+        foreach ($targets as $target) {
 
             $delayDate = now()->addSeconds($accumulatedDelay);
 
-            \App\Jobs\SendCampaignMessageJob::dispatch($this->campaign, $license)
+            \App\Jobs\SendCampaignMessageJob::dispatch($this->campaign, $target)
                 ->delay($delayDate);
 
             // Sorteia o tempo para o PRÓXIMO envio (entre 1 e 2 minutos)

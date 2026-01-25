@@ -51,11 +51,23 @@ class MessageCampaignResource extends Resource
 
                 \Filament\Forms\Components\Section::make('Público Alvo')
                     ->schema([
+                        \Filament\Forms\Components\Select::make('target_type')
+                            ->label('Tipo de Público')
+                            ->options([
+                                'license' => 'Licenças de Software',
+                                'lead' => 'Leads (Downloads)',
+                            ])
+                            ->default('license')
+                            ->reactive()
+                            ->required(),
+
+                        // Filters for License
                         \Filament\Forms\Components\Select::make('target_software_id')
                             ->label('Filtrar por Software (Opcional)')
                             ->options(\App\Models\Software::all()->pluck('nome_software', 'id'))
                             ->searchable()
-                            ->placeholder('Todos os Softwares'),
+                            ->placeholder('Todos os Softwares')
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('target_type') === 'license'),
 
                         \Filament\Forms\Components\Select::make('target_license_status')
                             ->label('Status da Licença')
@@ -65,7 +77,16 @@ class MessageCampaignResource extends Resource
                                 'all' => 'Todos (Ativos e Bloqueados)'
                             ])
                             ->default('ativo')
-                            ->required(),
+                            ->required()
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('target_type') === 'license'),
+
+                        // Filters for Lead
+                        \Filament\Forms\Components\Select::make('target_download_id')
+                            ->label('Filtrar por Download de Interesse (Opcional)')
+                            ->options(\App\Models\Download::all()->pluck('titulo', 'id'))
+                            ->searchable()
+                            ->placeholder('Todos os Downloads')
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('target_type') === 'lead'),
                     ])->columns(2),
 
                 \Filament\Forms\Components\Section::make('Agendamento e Status')

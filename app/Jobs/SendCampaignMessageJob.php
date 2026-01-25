@@ -13,27 +13,52 @@ class SendCampaignMessageJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $campaign;
-    protected $license;
+    protected $target;
 
-    public function __construct(\App\Models\MessageCampaign $campaign, $license)
+
+    public function __construct(\App\Models\MessageCampaign $campaign, $target)
     {
         $this->campaign = $campaign;
-        $this->license = $license;
+        $this->target = $target; // Can be License or Lead
     }
 
     public function handle(): void
     {
-        if (!$this->license->company)
-            return; // Segurança
+        if (!$this->target)
+            return;
 
-        $company = $this->license->company;
+        $name = '';
+        $companyName = '';
+        $softwareName = '';
+        $phone = null;
+        $email = null;
+
+        if ($this->target instanceof \App\Models\Lead) {
+            $name = $this->target->nome;
+            $companyName = $this->target->empresa;
+            $softwareName = $this->target->download->titulo ?? 'Download';
+            $phone = $this->target->whatsapp;
+            $email = $this->target->email;
+        } elseif ($this->target instanceof \App\Models\License) {
+            if (!$this->target->company)
+                return;
+            $company = $this->target->company;
+            $name = $company->razao;
+            $companyName = $company->razao;
+            $softwareName = $this->target->nome_software;
+            $phone = $company->fone;
+            $email = $company->email;
+        } else {
+            // Fallback for generic objects if valid
+            return;
+        }
 
         // 1. Preparar Variáveis
         $vars = [
-            '{name}' => $company->razao ?? 'Cliente',
-            '{first_name}' => explode(' ', $company->razao ?? 'Cliente')[0],
-            '{company}' => $company->razao ?? 'Sua Empresa',
-            '{software}' => $this->license->nome_software ?? 'Software',
+            '{name}' => $name ?? 'Cliente',
+            '{first_name}' => explode(' ', $name ?? 'Cliente')[0],
+            '{company}' => $companyName ?? 'Sua Empresa',
+            '{software}' => $softwareName ?? 'Software',
         ];
 
         // Mensagem Base
@@ -43,21 +68,14 @@ class SendCampaignMessageJob implements ShouldQueue
         $htmlMessage = str_replace(array_keys($vars), array_values($vars), $rawMessage);
 
         // Versão Texto (Para Zap/SMS) - Converter HTML em Texto
-        // Substitui quebras visuais por quebras reais
         $textOnly = str_replace(['<br>', '<br/>', '<br />', '</p>'], "\n", $rawMessage);
-        // Remove todo o restante de tags
         $textOnly = strip_tags($textOnly);
-        // Decodifica &nbsp; e outros
         $textOnly = html_entity_decode($textOnly);
-        // Aplica variáveis
         $textMessage = str_replace(array_keys($vars), array_values($vars), $textOnly);
-        // Remove excesso de linhas em branco do strip_tags
         $textMessage = preg_replace("/\n\s*\n\s*\n/", "\n\n", $textMessage);
         $textMessage = trim($textMessage);
 
         // Extrair Contatos
-        $phone = $company->fone;
-        $email = $company->email;
         $channels = $this->campaign->channels ?? [];
 
         // --- WhatsApp ---

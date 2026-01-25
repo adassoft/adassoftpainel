@@ -13,7 +13,10 @@ class ListLeads extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            // Actions\CreateAction::make(),
+            Actions\Action::make('create_campaign')
+                ->label('Nova Campanha de Mensagens')
+                ->icon('heroicon-o-megaphone')
+                ->url(fn() => \App\Filament\Resources\MessageCampaignResource::getUrl('create')),
         ];
     }
 }
