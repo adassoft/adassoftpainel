@@ -177,7 +177,12 @@ class ResellerWebhookController extends Controller
                         } else {
                             // === SEM SALDO ===
                             Log::warning("FALHA ATIVAÇÃO: Revenda {$revenda->razao} (CNPJ {$revenda->cnpj}) SEM SALDO. Necessário: {$custoLicenca}, Disponível: {$revenda->saldo}");
-                            // Aqui poderíamos notificar a revenda por e-mail
+
+                            // Dispara Job de Insistência (Cobrança)
+                            \App\Jobs\SendResellerInsufficientBalanceJob::dispatch($revenda, $custoLicenca, $order);
+
+                            // Marca pedido como pendente de saldo
+                            $order->update(['observacoes' => 'Pendente: Saldo insuficiente na revenda.']);
                         }
                     }
                 }
