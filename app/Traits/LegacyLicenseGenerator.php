@@ -301,7 +301,7 @@ trait LegacyLicenseGenerator
             ->where('software_id', $softwareId)
             ->first();
 
-        if ($licencaAtual && in_array($licencaAtual->status, ['ativo', 'suspenso'])) {
+        if ($licencaAtual && in_array(strtolower($licencaAtual->status), ['ativo', 'suspenso'])) {
             if ($licencaAtual->data_expiracao > now()) {
                 $saldoRemanescenteDias = (int) now()->diff($licencaAtual->data_expiracao)->days;
             }
