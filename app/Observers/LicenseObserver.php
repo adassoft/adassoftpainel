@@ -6,6 +6,7 @@ use App\Models\License;
 use App\Models\User;
 use App\Models\Company;
 use App\Jobs\SendOnboardingMessageJob;
+use Illuminate\Support\Facades\Log;
 
 class LicenseObserver
 {
@@ -37,19 +38,7 @@ class LicenseObserver
 
     protected function notifyLicenseReleased(License $license): void
     {
-        // Verifica se é licença de cliente válida (não Trial curto de 7 dias criado no cadastro)
-        // Se for trial, NÃO manda "Licença Liberada" (já mandou boas vindas).
-        // Como diferenciar? 
-        // Trial criado no cadastro tem obs 'cadastro_trial' ou dias < 30.
-        // Se a validade for pequena (<= 10 dias), assume trial e silencia?
-        // User query: "quando usuário comprar a licença...".
-        // Então só manda se foi COMPRADO.
-        // O LicenseObserver não sabe se foi comprado.
-        // Mas o trial é criado no começo.
-        // Se for Renovação, manda.
-        // Se for Criação:
-        //   - Se for Manual/Webhook (Paga): Manda.
-        //   - Se for Automática Trial: Não Manda.
+        Log::info("LicenseObserver: Verificando notificação para licença {$license->id}...");
 
         // Verifica origem nas observações
         $obs = json_decode($license->observacoes ?? '{}', true);
@@ -59,24 +48,35 @@ class LicenseObserver
 
         // Ou verifica se dias < 15
         if ($license->data_expiracao && $license->data_expiracao->diffInDays(now()) < 15) {
-            // Provavelmente trial ou teste curto.
             return;
         }
 
         // Encontra o usuário responsável (dono da empresa)
         $company = Company::find($license->empresa_codigo);
         if ($company) {
-            // Busca Master ou primeiro usuário da empresa
-            $user = User::where('cnpj', $company->cnpj)->orderBy('id')->first();
+            $cnpj = $company->cnpj;
+            $cnpjLimpo = preg_replace('/\D/', '', $cnpj);
 
-            // Fallback: busca por empresa_id (novo padrão)
+            Log::info("LicenseObserver: Buscando usuário para Empresa: {$company->razao} (CNPJ: {$cnpj})");
+
+            // 1. Tenta por empresa_id (Vínculo Novo - Mais Seguro)
+            $user = User::where('empresa_id', $company->codigo)->orderBy('id')->first();
+
+            // 2. Fallback: CNPJ (com ou sem mascara)
             if (!$user) {
-                $user = User::where('empresa_id', $company->codigo)->orderBy('id')->first();
+                $user = User::where(function ($q) use ($cnpj, $cnpjLimpo) {
+                    $q->where('cnpj', $cnpj)->orWhere('cnpj', $cnpjLimpo);
+                })->orderBy('id')->first();
             }
 
             if ($user) {
+                Log::info("LicenseObserver: Usuário encontrado: {$user->name} (ID: {$user->id}). Disparando Job.");
                 SendOnboardingMessageJob::dispatch($user, 'license_released')->delay(now()->addSeconds(5));
+            } else {
+                Log::warning("LicenseObserver: Nenhum usuário encontrado para notificar. Company ID: {$company->codigo}, CNPJ Buscado: {$cnpj}");
             }
+        } else {
+            Log::error("LicenseObserver: Empresa código {$license->empresa_codigo} não encontrada para licença {$license->id}.");
         }
     }
 }
