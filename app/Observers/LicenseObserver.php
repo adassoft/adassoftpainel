@@ -81,7 +81,11 @@ class LicenseObserver
 
             if ($user) {
                 Log::info("LicenseObserver: Usuário encontrado: {$user->name} (ID: {$user->id}). Disparando Job.");
-                SendOnboardingMessageJob::dispatch($user, 'license_released')->delay(now()->addSeconds(5));
+
+                $validity = $license->data_expiracao ? $license->data_expiracao->format('d/m/Y') : 'N/A';
+
+                SendOnboardingMessageJob::dispatch($user, 'license_released', ['validity' => $validity])
+                    ->delay(now()->addSeconds(5));
             } else {
                 Log::warning("LicenseObserver: Nenhum usuário encontrado para notificar. Company ID: {$company->codigo}, CNPJ Buscado: {$cnpj}");
             }

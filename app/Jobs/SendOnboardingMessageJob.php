@@ -18,17 +18,20 @@ class SendOnboardingMessageJob implements ShouldQueue
 
     public $user;
     public $stage;
+    public $customData;
 
     /**
      * Create a new job instance.
      *
      * @param User $user
      * @param string $stage 'welcome', 'checkin_day1', 'tips_day3', etc.
+     * @param array $customData Optional data to override constraints or enrich message
      */
-    public function __construct(User $user, string $stage)
+    public function __construct(User $user, string $stage, array $customData = [])
     {
         $this->user = $user;
         $this->stage = $stage;
+        $this->customData = $customData;
     }
 
     /**
@@ -68,10 +71,10 @@ class SendOnboardingMessageJob implements ShouldQueue
         $messageWa = '';
         $subjectEmail = '';
         $bodyEmail = '';
-        $extraData = [];
+        $extraData = $this->customData; // Start with custom data
 
-        // Prepara dados extras se necessário
-        if ($this->stage === 'license_released') {
+        // Prepara dados extras se necessário (apenas se não vieram no customData)
+        if ($this->stage === 'license_released' && !isset($extraData['validity'])) {
             $license = \App\Models\License::where('empresa_codigo', $this->user->empresa_id ?? 0)
                 ->where('status', 'Ativo')
                 ->orderByDesc('data_expiracao')
