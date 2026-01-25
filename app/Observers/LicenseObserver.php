@@ -35,7 +35,7 @@ class LicenseObserver
             // Verifica se houve extensão de prazo real
             if ($newDate > $oldDate) {
                 Log::info("LicenseObserver: Extensão de prazo detectada. Notificando...");
-                $this->notifyLicenseReleased($license);
+                $this->notifyLicenseReleased($license, true);
             } else {
                 Log::info("LicenseObserver: Data não avançou (Nova: {$newDate}, Velha: {$oldDate}). Ignorando.");
             }
@@ -44,18 +44,21 @@ class LicenseObserver
         }
     }
 
-    protected function notifyLicenseReleased(License $license): void
+    protected function notifyLicenseReleased(License $license, bool $isRenewal = false): void
     {
-        Log::info("LicenseObserver: Verificando notificação para licença {$license->id}...");
+        Log::info("LicenseObserver: Verificando notificação para licença {$license->id}. IsRenewal: " . ($isRenewal ? 'S' : 'N'));
 
         // A verificação de origem 'cadastro_trial' foi removida pois impedia notificações
         // de renovação para licenças que nasceram como trial mas viraram pagas.
         // A proteção contra trials curtos já é feita pela verificação de dias (< 15).
 
-        // Ou verifica se dias < 15
-        if ($license->data_expiracao && $license->data_expiracao->diffInDays(now()) < 15) {
-            Log::info("LicenseObserver: Licença com validade curta (< 15 dias). Ignorando notificação (Provável Trial).");
-            return;
+        // Se NÃO for renovação explícita, aplica filtros anti-spam (trials, prazos curtos)
+        if (!$isRenewal) {
+            // A proteção contra trials curtos
+            if ($license->data_expiracao && $license->data_expiracao->diffInDays(now()) < 15) {
+                Log::info("LicenseObserver: Licença com validade curta (< 15 dias). Ignorando notificação (Provável Trial).");
+                return;
+            }
         }
 
         // Encontra o usuário responsável (dono da empresa)
