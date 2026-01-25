@@ -33,8 +33,11 @@ class SendResellerInsufficientBalanceJob implements ShouldQueue
         // Reload reseller fresh data
         $reseller = $this->reseller->fresh();
 
+        \Illuminate\Support\Facades\Log::info("Job Insuficiencia Saldo: Iniciando para Revenda {$reseller->razao}. Tentativa {$this->attempt}. Saldo: {$reseller->saldo}");
+
         // Se o pedido já for ativado (licença gerada), para a insistência
         if ($this->order->fresh()->licenca_id) {
+            \Illuminate\Support\Facades\Log::info("Job Insuficiencia Saldo: Pedido {$this->order->id} já possui licença. Abortando.");
             return;
         }
 
@@ -48,6 +51,7 @@ class SendResellerInsufficientBalanceJob implements ShouldQueue
             // 2. Re-agendar para daqui a 1 hora (Insistência)
             // Limite de tentativas para não spammar eternamente (ex: 24h)
             if ($this->attempt <= 24) {
+                \Illuminate\Support\Facades\Log::info("Job Insuficiencia Saldo: Reagendando para 1h.");
                 self::dispatch($reseller, $this->requiredAmount, $this->order, $this->attempt + 1)
                     ->delay(now()->addHour());
             }
@@ -74,8 +78,12 @@ class SendResellerInsufficientBalanceJob implements ShouldQueue
             try {
                 $wa = new \App\Services\WhatsappService();
                 $wa->sendMessage($wa->loadConfig(), $phone, $msg);
+                \Illuminate\Support\Facades\Log::info("Job Insuficiencia Saldo: Mensagem enviada para {$phone}");
             } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Job Insuficiencia Saldo: Erro ao enviar Zap: " . $e->getMessage());
             }
+        } else {
+            \Illuminate\Support\Facades\Log::warning("Job Insuficiencia Saldo: Revenda sem telefone cadastrado.");
         }
     }
 
@@ -91,6 +99,7 @@ class SendResellerInsufficientBalanceJob implements ShouldQueue
                 $wa = new \App\Services\WhatsappService();
                 $wa->sendMessage($wa->loadConfig(), $phone, $msg);
             } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Job Insuficiencia Saldo (Success): Erro ao enviar Zap: " . $e->getMessage());
             }
         }
     }
