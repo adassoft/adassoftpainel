@@ -18,12 +18,12 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self'; 
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://c.bing.com {{ $chatwootUrl }} https://app.chatwoot.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net; 
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://c.bing.com {{ $chatwootUrl }} https://app.chatwoot.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com; 
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
         img-src 'self' data: blob: https:; 
         font-src 'self' https://fonts.gstatic.com data:; 
-        frame-src 'self' https://www.youtube.com https://www.facebook.com {{ $chatwootUrl }} https://app.chatwoot.com; 
-        connect-src 'self' https://www.google-analytics.com https://stats.g.doubleclick.net https://*.clarity.ms https://c.bing.com https://www.facebook.com {{ $chatwootUrl }} https://app.chatwoot.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net;
+        frame-src 'self' https://www.youtube.com https://www.facebook.com {{ $chatwootUrl }} https://app.chatwoot.com https://www.google.com; 
+        connect-src 'self' https://www.google-analytics.com https://stats.g.doubleclick.net https://*.clarity.ms https://c.bing.com https://www.facebook.com {{ $chatwootUrl }} https://app.chatwoot.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.google.com;
     ">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     @php
@@ -56,8 +56,8 @@
 
     @if(!empty($seo->json_ld))
         <script type="application/ld+json">
-                                    {!! json_encode($seo->json_ld) !!}
-                                </script>
+                                        {!! json_encode($seo->json_ld) !!}
+                                    </script>
     @endif
 
     @php
