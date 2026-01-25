@@ -116,15 +116,32 @@ class ResellerWebhookController extends Controller
                             // --- ATIVAÇÃO DE LICENÇA ---
                             // Busca dados do CLIENTE FINAL (Empresa que vai usar o software)
                             $userCliente = \App\Models\User::find($order->user_id);
+
+                            Log::info("Reseller Webhook Debug: Tentando ativar licença. User ID: " . ($order->user_id ?? 'NULL'));
+
                             if ($userCliente) {
                                 // Assegura busca da empresa do cliente
-                                $cnpjCliente = $userCliente->cnpj;
-                                $cnpjClienteLimpo = preg_replace('/\D/', '', $cnpjCliente);
-                                $empresaCliente = \App\Models\Company::where(function ($q) use ($cnpjCliente, $cnpjClienteLimpo) {
-                                    $q->where('cnpj', $cnpjCliente)->orWhere('cnpj', $cnpjClienteLimpo);
+                                // Prioridade: CNPJ do Pedido (Cliente Final) > Perfil do Usuário
+                                $cnpjAlvo = $order->cnpj ? $order->cnpj : $userCliente->cnpj;
+                                $cnpjClienteLimpo = preg_replace('/\D/', '', $cnpjAlvo);
+
+                                Log::info("Reseller Webhook Debug: Buscando empresa. Fonte: " . ($order->cnpj ? 'ORDER_CNPJ' : 'USER_CNPJ') . ". CNPJ Buscado: '{$cnpjAlvo}'");
+
+                                $empresaCliente = \App\Models\Company::where(function ($q) use ($cnpjAlvo, $cnpjClienteLimpo) {
+                                    $q->where('cnpj', $cnpjAlvo)->orWhere('cnpj', $cnpjClienteLimpo);
                                 })->first();
 
+                                if (!$empresaCliente) {
+                                    // Tenta buscar por empresa_id direto no user (novo padrão)
+                                    if ($userCliente->empresa_id) {
+                                        $empresaCliente = \App\Models\Company::find($userCliente->empresa_id);
+                                        Log::info("Reseller Webhook Debug: Busca por CNPJ falhou, mas achou por empresa_id ({$userCliente->empresa_id}).");
+                                    }
+                                }
+
                                 if ($empresaCliente) {
+                                    Log::info("Reseller Webhook Debug: Empresa Cliente encontrada: {$empresaCliente->razao} (ID: {$empresaCliente->codigo})");
+
                                     $validadeDias = 30; // Padrão
                                     if (strtoupper($plano->recorrencia) === 'ANUAL')
                                         $validadeDias = 365;
@@ -145,6 +162,9 @@ class ResellerWebhookController extends Controller
                                                 'status' => 'Ativo'
                                             ]);
                                             Log::info("Licença renovada (Revenda) ID #{$license->id}.");
+
+                                            // IMPORTANTE: Atualizar status entrega
+                                            $order->update(['status_entrega' => 'entregue', 'observacoes' => 'Licença renovada automaticamente.']);
                                         }
                                     } else {
                                         // Nova Licença
@@ -154,7 +174,7 @@ class ResellerWebhookController extends Controller
                                             ->exists();
 
                                         if (!$existe) {
-                                            \App\Models\License::create([
+                                            $newLic = \App\Models\License::create([
                                                 'empresa_codigo' => $empresaCliente->codigo,
                                                 'cnpj_revenda' => $revenda->cnpj, // Vincula à revenda que pagou
                                                 'software_id' => $plano->software_id,
@@ -167,11 +187,32 @@ class ResellerWebhookController extends Controller
                                                 'status' => 'Ativo'
                                             ]);
                                             Log::info("Nova licença criada (Revenda) para cliente {$empresaCliente->razao}.");
+
+                                            // IMPORTANTE: Atualizar status entrega e vincular
+                                            $order->update([
+                                                'status_entrega' => 'entregue',
+                                                'licenca_id' => $newLic->id,
+                                                'serial_gerado' => $newLic->serial_atual
+                                            ]);
+                                        } else {
+                                            Log::warning("Reseller Webhook: Licença já existe para este software/empresa. Tentando renovar a existente...");
+                                            // Lógica de renovação de existente não-vinculada
+                                            $existing = \App\Models\License::where('empresa_codigo', $empresaCliente->codigo)
+                                                ->where('software_id', $plano->software_id)
+                                                ->first();
+                                            if ($existing) {
+                                                $existing->update(['data_expiracao' => now()->addDays($validadeDias), 'status' => 'Ativo']);
+                                                $order->update(['status_entrega' => 'entregue', 'licenca_id' => $existing->id]);
+                                                Log::info("Licença existente recuperada e renovada.");
+                                            }
                                         }
                                     }
                                 } else {
-                                    Log::error("Empresa do cliente final não encontrada (CNPJ: {$userCliente->cnpj})");
+                                    Log::error("Empresa do cliente final não encontrada (CNPJ: {$userCliente->cnpj}). Tentando criar?");
+                                    // Todo: Criar empresa automaticamente se não existir?
                                 }
+                            } else {
+                                Log::error("Usuario do pedido não encontrado (ID: {$order->user_id})");
                             }
 
                         } else {
