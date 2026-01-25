@@ -14,3 +14,6 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('queue:work --stop-when-empty --tries=3')
     ->everyMinute()
     ->withoutOverlapping();
+
+// Check for Scheduled Campaigns
+\Illuminate\Support\Facades\Schedule::command('campaigns:check')->everyMinute();
