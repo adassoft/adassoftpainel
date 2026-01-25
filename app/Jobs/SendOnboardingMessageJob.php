@@ -75,10 +75,17 @@ class SendOnboardingMessageJob implements ShouldQueue
 
         // Prepara dados extras se necessário (apenas se não vieram no customData)
         if ($this->stage === 'license_released' && !isset($extraData['validity'])) {
-            $license = \App\Models\License::where('empresa_codigo', $this->user->empresa_id ?? 0)
-                ->where('status', 'Ativo')
-                ->orderByDesc('data_expiracao')
-                ->first();
+            $query = \App\Models\License::where('status', 'Ativo');
+
+            if (isset($extraData['license_id'])) {
+                $query->where('id', $extraData['license_id']);
+            } else {
+                $query->where('empresa_codigo', $this->user->empresa_id ?? 0)
+                    ->orderByDesc('data_expiracao');
+            }
+
+            $license = $query->first();
+
             if ($license) {
                 $extraData['validity'] = $license->data_expiracao->format('d/m/Y');
             } else {
