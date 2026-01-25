@@ -27,6 +27,7 @@ class Download extends Model
         'preco',
         'is_paid',
         'requires_login',
+        'requires_lead',
         'disponivel_revenda',
     ];
 
@@ -37,6 +38,7 @@ class Download extends Model
         'preco' => 'decimal:2',
         'is_paid' => 'boolean',
         'requires_login' => 'boolean',
+        'requires_lead' => 'boolean',
         'disponivel_revenda' => 'boolean',
     ];
 

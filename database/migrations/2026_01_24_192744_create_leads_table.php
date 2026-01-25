@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('email');
             $table->string('whatsapp')->nullable();
             $table->string('ip_address')->nullable();
+            $table->boolean('converted')->default(false);
             $table->timestamps();
 
             // Não uso foreign key constraint rígida 'constrained' pq downloads_extras é tabela legacy e pode ter engines diferentes ou problemas.

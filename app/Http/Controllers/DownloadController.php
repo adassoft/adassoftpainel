@@ -320,8 +320,10 @@ class DownloadController extends Controller
             }
 
             // Lead Capture (Se não for link assinado e usuário não estiver logado)
-            if (!request()->hasValidSignature()) {
-                if ($download->requires_lead && !auth()->check()) {
+            // Lead Capture
+            if (!request()->hasValidSignature() && $download->requires_lead) {
+                if (!auth()->check()) {
+                    // Visitante: Exibir Formulário
                     $siteKey = null;
                     $config = \App\Models\Configuration::where('chave', 'google_config')->first();
                     if ($config) {
@@ -334,6 +336,34 @@ class DownloadController extends Controller
                         'versionId' => null,
                         'recaptchaSiteKey' => $siteKey
                     ]);
+                } else {
+                    // Usuário Logado: Captura Silenciosa do Lead para estatísticas
+                    try {
+                        $user = auth()->user();
+                        $companyName = 'Cliente Cadastrado';
+                        $uPhone = null;
+
+                        // Tenta obter dados da empresa vinculada
+                        if ($user->empresa) {
+                            $companyName = $user->empresa->nome_fantasia ?? $user->empresa->razao ?? $companyName;
+                            $uPhone = $user->empresa->fone;
+                        }
+
+                        // Tenta obter fone direto do usuário se existir (futuro/legado)
+                        $uPhone = $user->whatsapp ?? $user->celular ?? $uPhone;
+
+                        \App\Models\Lead::firstOrCreate([
+                            'download_id' => $download->id,
+                            'email' => $user->email
+                        ], [
+                            'nome' => $user->name,
+                            'empresa' => $companyName,
+                            'whatsapp' => $uPhone,
+                            'ip_address' => request()->ip()
+                        ]);
+                    } catch (\Exception $e) {
+                        // Ignora erro duplicado ou campo faltando
+                    }
                 }
             }
 
@@ -474,8 +504,8 @@ class DownloadController extends Controller
             }
 
             // Lead Capture
-            if (!request()->hasValidSignature()) {
-                if ($dl->requires_lead && !auth()->check()) {
+            if (!request()->hasValidSignature() && $dl->requires_lead) {
+                if (!auth()->check()) {
                     $siteKey = null;
                     $config = \App\Models\Configuration::where('chave', 'google_config')->first();
                     if ($config) {
@@ -488,6 +518,31 @@ class DownloadController extends Controller
                         'versionId' => $version->id,
                         'recaptchaSiteKey' => $siteKey
                     ]);
+                } else {
+                    // Usuário Logado: Captura Silenciosa
+                    try {
+                        $user = auth()->user();
+                        $companyName = 'Cliente Cadastrado';
+                        $uPhone = null;
+
+                        if ($user->empresa) {
+                            $companyName = $user->empresa->nome_fantasia ?? $user->empresa->razao ?? $companyName;
+                            $uPhone = $user->empresa->fone;
+                        }
+
+                        $uPhone = $user->whatsapp ?? $user->celular ?? $uPhone;
+
+                        \App\Models\Lead::firstOrCreate([
+                            'download_id' => $dl->id,
+                            'email' => $user->email
+                        ], [
+                            'nome' => $user->name,
+                            'empresa' => $companyName,
+                            'whatsapp' => $uPhone,
+                            'ip_address' => request()->ip()
+                        ]);
+                    } catch (\Exception $e) {
+                    }
                 }
             }
         }
