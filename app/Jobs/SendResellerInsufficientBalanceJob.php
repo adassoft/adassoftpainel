@@ -8,6 +8,7 @@ use Illuminate\Foundation\Queue\Queueable;
 class SendResellerInsufficientBalanceJob implements ShouldQueue
 {
     use \Illuminate\Foundation\Bus\Dispatchable, \Illuminate\Queue\InteractsWithQueue, \Illuminate\Queue\SerializesModels, \Illuminate\Bus\Queueable;
+    use \App\Traits\LegacyLicenseGenerator;
 
     protected $reseller;
     protected $requiredAmount;
@@ -56,11 +57,23 @@ class SendResellerInsufficientBalanceJob implements ShouldQueue
                     ->delay(now()->addHour());
             }
         } else {
-            // == SALDO SUFICIENTE AGORA ==
-            // Opcional: Notificar que agora tem saldo e pedir pra liberar?
-            // Ou tentar reprocessar?
-            // Por segurança, vamos mandar mensagem: "Saldo detectado! Acesse o painel para liberar a licença pendente."
-            $this->sendSuccessHint($reseller);
+            // == SALDO SUFICIENTE DETECTADO ==
+            try {
+                \Illuminate\Support\Facades\Log::info("Job Insuficiencia Saldo: Saldo suficiente detectado! Tentando liberar pedido {$this->order->id} automaticamente.");
+
+                // Tenta processar a entrega (consome saldo e gera licença)
+                $this->processarEntregaPedido($this->order);
+
+                // Notifica sucesso para Revenda
+                $this->sendAutoReleaseSuccess($reseller);
+
+                \Illuminate\Support\Facades\Log::info("Job Insuficiencia Saldo: Pedido {$this->order->id} liberado com sucesso automagicamente.");
+
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Job Insuficiencia Saldo: Erro ao tentar liberar automaticamente: " . $e->getMessage());
+                // Manda hint manual se falhar o automático
+                $this->sendSuccessHint($reseller);
+            }
         }
     }
 
@@ -100,6 +113,22 @@ class SendResellerInsufficientBalanceJob implements ShouldQueue
                 $wa->sendMessage($wa->loadConfig(), $phone, $msg);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Job Insuficiencia Saldo (Success): Erro ao enviar Zap: " . $e->getMessage());
+            }
+        }
+    }
+
+    protected function sendAutoReleaseSuccess($reseller)
+    {
+        $phone = $reseller->fone;
+        $msg = "✅ *AdasSoft Recarga Confirmada*\n\n";
+        $msg .= "Identificamos seu saldo e o Pedido #{$this->order->id} foi processado e liberado automaticamente.\n\n";
+        $msg .= "O cliente final já foi notificado. Obrigado!";
+
+        if ($phone) {
+            try {
+                $wa = new \App\Services\WhatsappService();
+                $wa->sendMessage($wa->loadConfig(), $phone, $msg);
+            } catch (\Exception $e) {
             }
         }
     }
