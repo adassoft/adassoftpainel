@@ -23,16 +23,24 @@ class LicenseObserver
      */
     public function updated(License $license): void
     {
+        Log::info("LicenseObserver: Evento UPDATED disparado para Licença {$license->id}. Dirty: " . json_encode($license->getDirty()));
+
         // Se a data de expiração mudou para frente E o status é ativo
-        if ($license->isDirty('data_expiracao') && $license->status === 'Ativo') {
+        // Uso de strtolower para evitar problemas de case (Ativo vs ativo)
+        if ($license->isDirty('data_expiracao') && strtolower($license->status) === 'ativo') {
 
             $newDate = $license->data_expiracao;
             $oldDate = $license->getOriginal('data_expiracao');
 
             // Verifica se houve extensão de prazo real
             if ($newDate > $oldDate) {
+                Log::info("LicenseObserver: Extensão de prazo detectada. Notificando...");
                 $this->notifyLicenseReleased($license);
+            } else {
+                Log::info("LicenseObserver: Data não avançou (Nova: {$newDate}, Velha: {$oldDate}). Ignorando.");
             }
+        } else {
+            Log::info("LicenseObserver: Condições não atendidas. DirtyExp: " . ($license->isDirty('data_expiracao') ? 'S' : 'N') . ", Status: {$license->status}");
         }
     }
 
