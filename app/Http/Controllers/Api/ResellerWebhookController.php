@@ -120,23 +120,26 @@ class ResellerWebhookController extends Controller
                             Log::info("Reseller Webhook Debug: Tentando ativar licença. User ID: " . ($order->user_id ?? 'NULL'));
 
                             if ($userCliente) {
-                                // Assegura busca da empresa do cliente
-                                // Prioridade: CNPJ do Pedido (Cliente Final) > Perfil do Usuário
-                                $cnpjAlvo = $order->cnpj ? $order->cnpj : $userCliente->cnpj;
-                                $cnpjClienteLimpo = preg_replace('/\D/', '', $cnpjAlvo);
+                                $empresaCliente = null;
 
-                                Log::info("Reseller Webhook Debug: Buscando empresa. Fonte: " . ($order->cnpj ? 'ORDER_CNPJ' : 'USER_CNPJ') . ". CNPJ Buscado: '{$cnpjAlvo}'");
-
-                                $empresaCliente = \App\Models\Company::where(function ($q) use ($cnpjAlvo, $cnpjClienteLimpo) {
-                                    $q->where('cnpj', $cnpjAlvo)->orWhere('cnpj', $cnpjClienteLimpo);
-                                })->first();
-
-                                if (!$empresaCliente) {
-                                    // Tenta buscar por empresa_id direto no user (novo padrão)
-                                    if ($userCliente->empresa_id) {
-                                        $empresaCliente = \App\Models\Company::find($userCliente->empresa_id);
-                                        Log::info("Reseller Webhook Debug: Busca por CNPJ falhou, mas achou por empresa_id ({$userCliente->empresa_id}).");
+                                // 1. Prioridade Absoluta: Vínculo Direto (empresa_id) na tabela `users`
+                                if ($userCliente->empresa_id) {
+                                    $empresaCliente = \App\Models\Company::find($userCliente->empresa_id);
+                                    if ($empresaCliente) {
+                                        Log::info("Reseller Webhook Debug: Empresa encontrada via ID Vinculado ({$userCliente->empresa_id}). Razão: {$empresaCliente->razao}");
                                     }
+                                }
+
+                                // 2. Fallback: Busca por CNPJ string do perfil (Legado)
+                                if (!$empresaCliente && $userCliente->cnpj) {
+                                    $cnpjCliente = $userCliente->cnpj;
+                                    $cnpjClienteLimpo = preg_replace('/\D/', '', $cnpjCliente);
+
+                                    Log::info("Reseller Webhook Debug: Vínculo ID ausente. Buscando por CNPJ Perfil: '{$cnpjCliente}'");
+
+                                    $empresaCliente = \App\Models\Company::where(function ($q) use ($cnpjCliente, $cnpjClienteLimpo) {
+                                        $q->where('cnpj', $cnpjCliente)->orWhere('cnpj', $cnpjClienteLimpo);
+                                    })->first();
                                 }
 
                                 if ($empresaCliente) {
