@@ -164,13 +164,13 @@
     <div
         class="p-4 bg-gray-50/50 border-t border-gray-100 flex flex-col items-center gap-3 dark:bg-gray-800 dark:border-gray-700">
 
-        @if($status === 'pago' && $statusEntrega !== 'entregue')
+        @if(in_array($status, ['pago', 'paid']) && $statusEntrega !== 'entregue')
             <button wire:click="mountTableAction('liberar', '{{ $record->id }}')"
                 class="w-full text-white font-bold py-2.5 px-4 rounded-lg shadow-sm hover:shadow transition-all duration-200 ease-in-out flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
                 style="background-color: #06b6d4; color: white;">
                 <x-heroicon-m-key class="w-5 h-5" /> Liberar Licença
             </button>
-        @elseif($status === 'pago' && $statusEntrega === 'entregue')
+        @elseif(in_array($status, ['pago', 'paid']) && $statusEntrega === 'entregue')
             <button disabled
                 class="w-full text-white font-bold py-2.5 px-4 rounded-lg shadow-sm opacity-80 cursor-not-allowed flex items-center justify-center gap-2"
                 style="background-color: #10b981; color: white;"> {{-- Emerald 500 --}}
@@ -178,7 +178,7 @@
             </button>
         @endif
 
-        @if($status !== 'pago' && $status !== 'cancelado')
+        @if(!in_array($status, ['pago', 'paid', 'cancelado', 'cancelled', 'refused']))
             <button wire:click="mountTableAction('receber', '{{ $record->id }}')"
                 class="w-full text-white font-bold py-2.5 px-4 rounded-lg shadow-sm hover:shadow transition-all duration-200 ease-in-out flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
                 style="background-color: #ef4444; color: white;">
