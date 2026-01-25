@@ -145,13 +145,20 @@ class ResellerWebhookController extends Controller
                                 if ($empresaCliente) {
                                     Log::info("Reseller Webhook Debug: Empresa Cliente encontrada: {$empresaCliente->razao} (ID: {$empresaCliente->codigo})");
 
-                                    $validadeDias = 30; // Padrão
-                                    if (strtoupper($plano->recorrencia) === 'ANUAL')
-                                        $validadeDias = 365;
-                                    if (strtoupper($plano->recorrencia) === 'TRIMESTRAL')
-                                        $validadeDias = 90;
-                                    if (strtoupper($plano->recorrencia) === 'SEMESTRAL')
-                                        $validadeDias = 180;
+                                    // Lógica robusta de cálculo de dias
+                                    $validadeDias = 30;
+                                    $recorrencia = $plano->recorrencia;
+
+                                    if (is_numeric($recorrencia) && $recorrencia > 0) {
+                                        $validadeDias = (int) $recorrencia * 30;
+                                    } else {
+                                        if (strtoupper($recorrencia) === 'ANUAL')
+                                            $validadeDias = 365;
+                                        if (strtoupper($recorrencia) === 'TRIMESTRAL')
+                                            $validadeDias = 90;
+                                        if (strtoupper($recorrencia) === 'SEMESTRAL')
+                                            $validadeDias = 180;
+                                    }
 
                                     if ($order->licenca_id) {
                                         // Renovação
@@ -204,9 +211,13 @@ class ResellerWebhookController extends Controller
                                                 ->where('software_id', $plano->software_id)
                                                 ->first();
                                             if ($existing) {
-                                                $existing->update(['data_expiracao' => now()->addDays($validadeDias), 'status' => 'Ativo']);
+                                                // Lógica de Acúmulo de Dias (Corrigido)
+                                                $baseDate = ($existing->data_expiracao > now()) ? $existing->data_expiracao : now();
+                                                $novaData = \Carbon\Carbon::parse($baseDate)->addDays($validadeDias);
+
+                                                $existing->update(['data_expiracao' => $novaData, 'status' => 'Ativo']);
                                                 $order->update(['status_entrega' => 'entregue', 'licenca_id' => $existing->id]);
-                                                Log::info("Licença existente recuperada e renovada.");
+                                                Log::info("Licença existente recuperada e renovada. Nova validade: {$novaData}");
                                             }
                                         }
                                     }
