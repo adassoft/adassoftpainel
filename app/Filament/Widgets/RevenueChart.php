@@ -25,7 +25,7 @@ class RevenueChart extends ChartWidget
             DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month_year"),
             DB::raw("SUM(valor) as total")
         )
-            ->where('status', 'paid')
+            ->whereIn('status', ['paid', 'pago', 'approved', 'completed', 'PAID', 'PAGO', 'APPROVED', 'COMPLETED'])
             ->where('created_at', '>=', now()->subYear())
             ->groupBy('month_year')
             ->orderBy('month_year')
