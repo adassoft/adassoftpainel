@@ -12,7 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [
+        $middleware->web(prepend: [
+            \App\Http\Middleware\RedirectWwwToNonWww::class,
+        ], append: [
             \App\Http\Middleware\Monitor404Middleware::class,
             \App\Http\Middleware\CheckProfileCompletion::class,
         ]);
