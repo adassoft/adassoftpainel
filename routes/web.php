@@ -163,8 +163,7 @@ Route::fallback(function () {
         return redirect($redirect->target_url, $redirect->status_code);
     }
 
-    // Se quiser, descomente abaixo para enviar qualquer 404 para o blog
-// return redirect('https://blog.adassoft.com/' . $path);
-
-    abort(404);
+    // Fallback: Se não existe no sistema, redireciona 301 para o Blog (Legado WP)
+    // Isso resolve os erros de rastreamento de URLs antigas
+    return redirect()->away('https://blog.adassoft.com/' . $path, 301);
 });
