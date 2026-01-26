@@ -213,7 +213,7 @@ class LicenseResource extends Resource
                         ->label('WhatsApp')
                         ->icon('heroicon-o-chat-bubble-left-ellipsis')
                         ->color('success')
-                        ->url(fn(License $record) => "https://wa.me/55" . preg_replace('/\D/', '', $record->company->fone ?? '') . "?text=" . urlencode("Olá {$record->company->razao}, sua licença do sistema {$record->software->nome_software} vence dia " . ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '') . ". Regularize para evitar bloqueio."), true),
+                        ->url(fn(License $record) => "https://wa.me/55" . preg_replace('/\D/', '', $record->company?->fone ?? '') . "?text=" . urlencode("Olá " . ($record->company?->razao ?? 'Cliente') . ", sua licença do sistema " . ($record->software?->nome_software ?? 'Software') . " vence dia " . ($record->data_expiracao ? $record->data_expiracao->format('d/m/Y') : '') . ". Regularize para evitar bloqueio."), true),
 
                     Tables\Actions\Action::make('suspend')
                         ->label('Suspender')
