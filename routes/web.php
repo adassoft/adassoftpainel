@@ -164,6 +164,13 @@ Route::fallback(function () {
     }
 
     // Fallback: Se não existe no sistema, redireciona 301 para o Blog (Legado WP)
+
+    // Limpeza de URLs legadas (AMP)
+    // Remove /amp do final para redirecionar para o post original limpo
+    if (str_ends_with($path, '/amp')) {
+        $path = substr($path, 0, -4);
+    }
+
     // Isso resolve os erros de rastreamento de URLs antigas
     return redirect()->away('https://blog.adassoft.com/' . $path, 301);
 });
