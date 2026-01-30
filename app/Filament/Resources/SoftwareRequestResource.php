@@ -74,7 +74,7 @@ class SoftwareRequestResource extends Resource
                         Forms\Components\Textarea::make('admin_notes')
                             ->label('Anotações Internas')
                             ->columnSpanFull(),
-                    ])->color('gray'),
+                    ]),
             ]);
     }
 
