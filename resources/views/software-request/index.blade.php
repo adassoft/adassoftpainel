@@ -160,24 +160,32 @@
         </div>
     </div>
 
+
+@endsection
+
+@section('extra-js')
     <!-- Summernote css/js -->
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
     <script>
-        $(document).ready(function () {
-            $('.summernote').summernote({
-                placeholder: 'Digite aqui os detalhes...',
-                tabsize: 2,
-                height: 200,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['insert', ['link']],
-                    ['view', ['fullscreen', 'help']]
-                ],
-                lang: 'pt-BR' // default: 'en-US'
-            });
+        document.addEventListener("DOMContentLoaded", function () {
+            if (typeof jQuery !== 'undefined') {
+                $('.summernote').summernote({
+                    placeholder: 'Digite aqui os detalhes...',
+                    tabsize: 2,
+                    height: 200,
+                    toolbar: [
+                        ['style', ['style']],
+                        ['font', ['bold', 'underline', 'clear']],
+                        ['para', ['ul', 'ol', 'paragraph']],
+                        ['insert', ['link']],
+                        ['view', ['fullscreen', 'help']]
+                    ],
+                    lang: 'pt-BR' // default: 'en-US'
+                });
+            } else if (console) {
+                console.error('jQuery não carregado para o Summernote');
+            }
         });
     </script>
 @endsection
