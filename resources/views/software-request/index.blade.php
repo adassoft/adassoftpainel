@@ -35,6 +35,12 @@
                         <form action="{{ route('software-request.store') }}" method="POST">
                             @csrf
 
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-info" id="btn-example">
+                                    <i class="fas fa-magic mr-1"></i> Preencher com Exemplo
+                                </button>
+                            </div>
+
                             <h5 class="text-primary border-bottom pb-2 mb-4"><i class="fas fa-user mb-1"></i> Seus Dados
                             </h5>
                             <div class="form-row">
@@ -195,6 +201,44 @@
             // Fallback: tentar carregar jQuery se não existir? Melhor não arriscar conflito agora.
             // Apenas alertar no console.
         }
+
+        // Example Button Logic
+        $('#btn-example').on('click', function() {
+            if(!confirm('Isso irá substituir os dados atuais do formulário. Deseja continuar?')) return;
+
+            $('#name').val('Sérgio Oliveira');
+            $('#email').val('sergio.oliveira@exemplo.com');
+            $('#phone').val('(11) 98765-4321');
+            $('#company').val('TechMusic Inc.');
+            $('#project_name').val('MusicOff - Player Offline');
+            $('#project_type').val('Mobile App').change();
+            $('#budget_range').val('15k-30k').change();
+            $('#deadline').val('3 meses');
+
+            var desc = '<p>Gostaria de um aplicativo <b>Android nativo</b> para reproduzir músicas armazenadas localmente no dispositivo.</p>' + 
+                       '<p>O app deve escanear pastas, organizar por artista/álbum e permitir criar playlists. Importante: deve funcionar 100% offline, sem necessidade de internet.</p>' +
+                       '<p><b>Público Alvo:</b> Colecionadores de arquivos MP3/FLAC que não usam Spotify.</p>';
+            
+            var features = '<ul>' +
+                           '<li>Escaneamento automático de arquivos de áudio</li>' +
+                           '<li>Equalizador de 5 bandas</li>' +
+                           '<li>Suporte a letras de música (.LRC)</li>' +
+                           '<li>Modo Escuro (Dark Mode)</li>' +
+                           '<li>Widget para a tela inicial</li>' +
+                           '</ul>';
+
+            if (typeof jQuery !== 'undefined' && $('.summernote').summernote) {
+                 $('#description').summernote('code', desc);
+                 $('#features_list').summernote('code', features);
+            } else {
+                $('#description').val(desc);
+                $('#features_list').val(features);
+            }
+            
+            // Scroll to top to show filled data
+            $('html, body').animate({ scrollTop: $('#name').offset().top - 100 }, 500);
+        });
+
     });
 </script>
 @endsection
