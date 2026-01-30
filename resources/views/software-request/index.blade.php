@@ -164,12 +164,15 @@
 @endsection
 
 @section('extra-js')
-    <!-- Summernote css/js -->
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            if (typeof jQuery !== 'undefined') {
+<!-- Summernote Lite css/js (Independent of Bootstrap version) -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log('Inicializando Summernote...');
+        
+        if (typeof jQuery !== 'undefined') {
+            try {
                 $('.summernote').summernote({
                     placeholder: 'Digite aqui os detalhes...',
                     tabsize: 2,
@@ -179,13 +182,19 @@
                         ['font', ['bold', 'underline', 'clear']],
                         ['para', ['ul', 'ol', 'paragraph']],
                         ['insert', ['link']],
-                        ['view', ['fullscreen', 'help']]
+                        ['view', ['fullscreen', 'codeview', 'help']] // codeview help debug
                     ],
-                    lang: 'pt-BR' // default: 'en-US'
+                    lang: 'pt-BR'
                 });
-            } else if (console) {
-                console.error('jQuery não carregado para o Summernote');
+                console.log('Summernote inicializado com sucesso.');
+            } catch (e) {
+                console.error('Erro ao inicializar Summernote:', e);
             }
-        });
-    </script>
+        } else {
+            console.error('ERRO CRÍTICO: jQuery não foi encontrado. O Summernote precisa do jQuery.');
+            // Fallback: tentar carregar jQuery se não existir? Melhor não arriscar conflito agora.
+            // Apenas alertar no console.
+        }
+    });
+</script>
 @endsection
