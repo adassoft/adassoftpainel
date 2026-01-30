@@ -88,7 +88,7 @@
                                         name="project_type" required>
                                         <option value="" disabled selected>Selecione...</option>
                                         <option value="Web System" {{ old('project_type') == 'Web System' ? 'selected' : '' }}>Sistema Web / SaaS</option>
-                                        <option value="Mobile App" {{ old('project_type') == 'Mobile App' ? 'selected' : '' }}>Aplicativo Mobile (Android/iOS)</option>
+                                        <option value="Mobile App" {{ old('project_type') == 'Mobile App' ? 'selected' : '' }}>Aplicativo Mobile (Android)</option>
                                         <option value="Desktop" {{ old('project_type') == 'Desktop' ? 'selected' : '' }}>
                                             Software Desktop (Windows)</option>
                                         <option value="Integration" {{ old('project_type') == 'Integration' ? 'selected' : '' }}>Integração / API</option>
@@ -125,14 +125,15 @@
                             <div class="form-group mt-3">
                                 <label for="description" class="font-weight-bold">Descrição Detalhada do Projeto <span
                                         class="text-danger">*</span></label>
-                                <textarea class="form-control" id="description" name="description" rows="5" required
-                                    placeholder="Descreva o problema que você quer resolver, como imagina a solução funcionando, quem serão os usuários, etc.">{{ old('description') }}</textarea>
+                                <textarea class="form-control summernote" id="description" name="description"
+                                    required>{{ old('description') }}</textarea>
+                                <small class="text-muted">Descreva o problema, usuários e sua visão da solução.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="features_list" class="font-weight-bold">Lista de Funcionalidades Chave</label>
-                                <textarea class="form-control" id="features_list" name="features_list" rows="3"
-                                    placeholder="Ex: Login com Google, Geração de Relatórios PDF, Chat em tempo real...">{{ old('features_list') }}</textarea>
+                                <textarea class="form-control summernote" id="features_list"
+                                    name="features_list">{{ old('features_list') }}</textarea>
                                 <small class="text-muted">Liste as funções indispensáveis para a primeira versão.</small>
                             </div>
 
@@ -158,4 +159,25 @@
             </div>
         </div>
     </div>
+
+    <!-- Summernote css/js -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.summernote').summernote({
+                placeholder: 'Digite aqui os detalhes...',
+                tabsize: 2,
+                height: 200,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link']],
+                    ['view', ['fullscreen', 'help']]
+                ],
+                lang: 'pt-BR' // default: 'en-US'
+            });
+        });
+    </script>
 @endsection

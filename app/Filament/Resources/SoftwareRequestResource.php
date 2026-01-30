@@ -44,17 +44,23 @@ class SoftwareRequestResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('project_name')
                             ->label('Nome do Projeto'),
-                        Forms\Components\TextInput::make('project_type')
-                            ->label('Tipo de Projeto'),
+                        Forms\Components\Select::make('project_type')
+                            ->label('Tipo de Projeto')
+                            ->options([
+                                'Web System' => 'Sistema Web / SaaS',
+                                'Mobile App' => 'Aplicativo Mobile (Android)',
+                                'Desktop' => 'Software Desktop (Windows)',
+                                'Integration' => 'Integração / API',
+                                'Other' => 'Outro',
+                            ]),
                         Forms\Components\TextInput::make('budget_range')
                             ->label('Orçamento Estimado'),
                         Forms\Components\TextInput::make('deadline')
                             ->label('Prazo Desejado'),
-                        Forms\Components\Textarea::make('description')
+                        Forms\Components\RichEditor::make('description')
                             ->label('Descrição')
-                            ->columnSpanFull()
-                            ->rows(5),
-                        Forms\Components\Textarea::make('features_list')
+                            ->columnSpanFull(),
+                        Forms\Components\RichEditor::make('features_list')
                             ->label('Funcionalidades Chave')
                             ->columnSpanFull(),
                     ])->columns(2),
