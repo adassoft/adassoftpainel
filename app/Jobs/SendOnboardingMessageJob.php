@@ -141,24 +141,48 @@ class SendOnboardingMessageJob implements ShouldQueue
 
         // 1. Enviar WhatsApp
         if ($phone && !empty($messageWa)) {
-            $result = $whatsappService->sendMessage($config, $phone, $messageWa);
-            if (!$result['success']) {
-                Log::warning("Falha ao enviar WhatsApp onboarding ({$this->stage}) para User {$this->user->id}: " . ($result['error'] ?? 'Erro desconhecido'));
+            // Idempotency Check (WhatsApp)
+            $isDuplicateWa = \App\Models\MessageLog::where('channel', 'whatsapp')
+                ->where('recipient', $whatsappService->sanitizeNumber($phone)) // Ensure format matches
+                ->where('body', $messageWa)
+                ->where('status', 'sent')
+                ->where('sent_at', '>=', now()->subMinutes(10))
+                ->exists();
+
+            if ($isDuplicateWa) {
+                Log::info("Skipping duplicate WhatsApp onboarding ({$this->stage}) to User {$this->user->id}");
             } else {
-                Log::info("WhatsApp onboarding sent ({$this->stage}) to User {$this->user->id}");
+                $result = $whatsappService->sendMessage($config, $phone, $messageWa);
+                if (!$result['success']) {
+                    Log::warning("Falha ao enviar WhatsApp onboarding ({$this->stage}) para User {$this->user->id}: " . ($result['error'] ?? 'Erro desconhecido'));
+                } else {
+                    Log::info("WhatsApp onboarding sent ({$this->stage}) to User {$this->user->id}");
+                }
             }
         }
 
         // 2. Enviar E-mail (Se email válido)
         if ($this->user->email && !empty($subjectEmail)) {
-            try {
-                Mail::raw($bodyEmail, function ($message) use ($subjectEmail) {
-                    $message->to($this->user->email)
-                        ->subject($subjectEmail);
-                });
-                Log::info("Email onboarding sent ({$this->stage}) to User {$this->user->id}");
-            } catch (\Exception $e) {
-                Log::error("Falha ao enviar Email onboarding ({$this->stage}) para User {$this->user->id}: " . $e->getMessage());
+            // Idempotency Check (Email)
+            $isDuplicateEmail = \App\Models\MessageLog::where('channel', 'email')
+                ->where('recipient', $this->user->email)
+                ->where('subject', $subjectEmail)
+                ->where('status', 'sent')
+                ->where('sent_at', '>=', now()->subMinutes(10))
+                ->exists();
+
+            if ($isDuplicateEmail) {
+                Log::info("Skipping duplicate Email onboarding ({$this->stage}) to User {$this->user->id}");
+            } else {
+                try {
+                    Mail::raw($bodyEmail, function ($message) use ($subjectEmail) {
+                        $message->to($this->user->email)
+                            ->subject($subjectEmail);
+                    });
+                    Log::info("Email onboarding sent ({$this->stage}) to User {$this->user->id}");
+                } catch (\Exception $e) {
+                    Log::error("Falha ao enviar Email onboarding ({$this->stage}) para User {$this->user->id}: " . $e->getMessage());
+                }
             }
         }
     }
