@@ -142,6 +142,10 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+// Solicitacao de Software
+Route::get('/software-sob-medida', [\App\Http\Controllers\SoftwareRequestController::class, 'index'])->name('software-request.index');
+Route::post('/software-sob-medida', [\App\Http\Controllers\SoftwareRequestController::class, 'store'])->name('software-request.store');
+
 // === Download Lead Capture ===
 Route::post('/downloads/lead', [\App\Http\Controllers\DownloadController::class, 'storeLead'])->name('downloads.lead.store');
 Route::get('/downloads/{id}/secure-link', [\App\Http\Controllers\DownloadController::class, 'downloadFileSigned'])->name('downloads.file.signed')->middleware('signed');
