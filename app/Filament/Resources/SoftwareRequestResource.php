@@ -47,9 +47,7 @@ class SoftwareRequestResource extends Resource
                         Forms\Components\TextInput::make('project_type')
                             ->label('Tipo de Projeto'),
                         Forms\Components\TextInput::make('budget_range')
-                            ->label('Orçamento Estimado')
-                            ->badge()
-                            ->color('success'),
+                            ->label('Orçamento Estimado'),
                         Forms\Components\TextInput::make('deadline')
                             ->label('Prazo Desejado'),
                         Forms\Components\Textarea::make('description')
@@ -122,7 +120,6 @@ class SoftwareRequestResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
