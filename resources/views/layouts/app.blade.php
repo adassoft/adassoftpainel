@@ -56,8 +56,8 @@
 
     @if(!empty($seo->json_ld))
         <script type="application/ld+json">
-                                            {!! json_encode($seo->json_ld) !!}
-                                        </script>
+                                                {!! json_encode($seo->json_ld) !!}
+                                            </script>
     @endif
 
     @php
@@ -363,39 +363,39 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto align-items-center">
-                    <li class="nav-item mx-3">
+                    <li class="nav-item mx-2">
                         <a class="nav-link {{ Request::is('/') ? 'active-link' : '' }}" href="{{ url('/') }}">Home</a>
                     </li>
-                    <li class="nav-item mx-3">
+                    <li class="nav-item mx-2">
                         <a class="nav-link" href="{{ url('/') }}#produtos">Catálogo</a>
                     </li>
-                    <li class="nav-item mx-3">
+                    <li class="nav-item mx-2">
                         <a class="nav-link {{ Request::routeIs('downloads') ? 'active-link' : '' }}"
                             href="{{ route('downloads') }}">Downloads</a>
                     </li>
-                    <li class="nav-item mx-3">
+                    <li class="nav-item mx-2">
                         <a class="nav-link" href="https://blog.adassoft.com" target="_blank">Blog</a>
                     </li>
-                    <li class="nav-item mx-3">
-                        <a class="nav-link {{ Request::routeIs('software-request.*') ? 'active-link' : '' }}"
+                    <li class="nav-item mx-2">
+                        <a class="nav-link text-nowrap {{ Request::routeIs('software-request.*') ? 'active-link' : '' }}"
                             href="{{ route('software-request.index') }}">
                             Software Sob Medida
                         </a>
                     </li>
-                    <li class="nav-item mx-3">
+                    <li class="nav-item mx-2">
                         <a class="nav-link {{ Request::routeIs('kb.*') ? 'active-link' : '' }}"
                             href="{{ route('kb.index') }}">Ajuda</a>
                     </li>
                     @if(\App\Services\ResellerBranding::isDefault())
-                        <li class="nav-item mx-3">
-                            <a class="nav-link btn-partner" href="{{ route('partners.index') }}">
+                        <li class="nav-item mx-2">
+                            <a class="nav-link btn-partner text-nowrap" href="{{ route('partners.index') }}">
                                 <i class="fas fa-handshake mr-1"></i> Seja Parceiro
                             </a>
                         </li>
                     @endif
                     @guest
-                        <li class="nav-item ml-lg-4">
-                            <a href="{{ url('/app/login') }}" class="btn-login">
+                        <li class="nav-item ml-lg-3">
+                            <a href="{{ url('/app/login') }}" class="btn-login text-nowrap">
                                 Área do Cliente
                             </a>
                         </li>
@@ -417,8 +417,8 @@
                             }
                         @endphp
 
-                        <li class="nav-item ml-lg-4">
-                            <a href="{{ url($painelUrl) }}" class="btn-login">
+                        <li class="nav-item ml-lg-3">
+                            <a href="{{ url($painelUrl) }}" class="btn-login text-nowrap">
                                 <i class="fas fa-user-circle mr-1"></i> {{ $painelLabel }}
                             </a>
                         </li>
