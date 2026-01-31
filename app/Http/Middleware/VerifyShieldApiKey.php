@@ -108,35 +108,28 @@ class VerifyShieldApiKey
         // --- Proteção contra Replay Attack ---
         $clientTimestamp = $request->input('timestamp');
 
-        // Em ambiente de Dev/Teste, se o cliente ainda não mandou, podemos ser lenientes ou exigir logo.
-        // Vamos exigir para garantir segurança.
-        if (!$clientTimestamp) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Requisicao inválida (Timestamp ausente). Atualize seu software.',
-                'code' => 'MISSING_TIMESTAMP'
-            ], 400); // Bad Request
-        }
+        // Em ambiente de Dev/Teste, ou para clientes legados (Instalador antigo), vamos ser lenientes.
+        if ($clientTimestamp) {
+            try {
+                $clientTime = \Carbon\Carbon::parse($clientTimestamp);
+                $serverTime = now();
 
-        try {
-            $clientTime = \Carbon\Carbon::parse($clientTimestamp);
-            $serverTime = now();
-
-            // Tolerância de 10 minutos (5 pra frente, 5 pra tras) para evitar problemas com relogios desincronizados
-            if ($clientTime->diffInMinutes($serverTime) > 10) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Relogio do sistema desincronizado. Verifique a data/hora do seu computador.',
-                    'server_time' => $serverTime->toIso8601String(),
-                    'code' => 'CLOCK_DRIFT'
-                ], 401);
+                // Aumentar Tolerância para 60 minutos (evita problemas de fuso horário mal configurado no cliente)
+                if ($clientTime->diffInMinutes($serverTime) > 60) {
+                    // Apenas loga warning, mas não bloqueia por enquanto para não parar o instalador
+                    \Illuminate\Support\Facades\Log::warning("Shield Validação de Tempo falhou: Client={$clientTimestamp} Server={$serverTime}");
+                    /*
+                   return response()->json([
+                       'success' => false,
+                       'error' => 'Relogio do sistema desincronizado. Verifique a data/hora do seu computador.',
+                       'server_time' => $serverTime->toIso8601String(),
+                       'code' => 'CLOCK_DRIFT'
+                   ], 401);
+                   */
+                }
+            } catch (\Exception $e) {
+                // Se timestamp for inválido, ignora.
             }
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Formato de data inválido.',
-                'code' => 'INVALID_TIMESTAMP'
-            ], 400);
         }
 
         return $next($request);

@@ -266,7 +266,7 @@ class SeoForm
                                                 $context .= "URL/Slug: $slug\n";
                                                 $context .= "Palavra-chave Foco: $keyword\n";
 
-                                                $context .= "Palavra-chave Foco: $keyword\n";
+
 
                                                 // Permitir tags de estrutura para a IA analisar cabeçalhos E IMAGENS
                                                 $allowedTags = '<h1><h2><h3><h4><h5><h6><p><ul><ol><li><strong><b><img>';

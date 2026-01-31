@@ -49,6 +49,6 @@ Route::prefix('v1/adassoft')->middleware(['throttle:60,1', 'shield.auth'])->grou
 // Download Seguro de Updates (URL Assinada - Válida por X minutos)
 Route::prefix('v1/adassoft')->group(function () {
     Route::get('/updates/download/{versionId}', [\App\Http\Controllers\Api\UpdateController::class, 'download'])
-        ->name('api.updates.download');
-    // ->middleware('signed'); // Desativado para debug de 403 no instalador
+        ->name('api.updates.download')
+        ->middleware('signed');
 });
